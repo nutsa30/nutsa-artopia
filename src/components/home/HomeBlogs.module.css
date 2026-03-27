@@ -1,0 +1,179 @@
+/* HomeBlogs.module.css */
+
+/* --- Section/Header: products-ის იგივე ლოგიკა --- */
+.section {
+  margin: 24px 0 8px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.title { font-size: 22px; font-weight: 700; color: white; margin: 0; }
+.seeAll { font-size: 14px; text-decoration: none; }
+
+/* --- GRID: products-ის იგივე ბრეიქპოინტები --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1100px) {
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 780px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+/* --- ბარათი — Glass შენარჩუნებული --- */
+.cardLike {
+  width: 100%;
+  max-width: 320px;
+  justify-self: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background-color: transparent;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  color: white;
+
+  display: flex;             /* რომ actions დაბლა მივამაგროთ */
+  flex-direction: column;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.cardLike:hover {
+  transform: translateY(-2px);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 6px 18px rgba(0,0,0,.28);
+}
+
+/* --- სურათი --- */
+.cardImageWrap {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+.productImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* --- ტექსტური ნაწილი: კლამპები --- */
+.cardTitleClamp {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cardExcerptClamp {
+  opacity: 0.85;
+  font-size: 14px;
+  margin: 0;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 3;      /* 3 ხაზი */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* --- Actions + Read more --- */
+.actions {
+  margin-top: auto;           /* მიაწებებს actions-ს ქვედა კიდეს */
+  padding: 0 12px 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.readMoreBtn {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgba(59,130,246,.9), rgba(99,102,241,.9));
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(59,130,246,.35);
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.readMoreBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px rgba(59,130,246,.45);
+  filter: brightness(1.04);
+}
+
+/* --- Skeleton (გრიდით) --- */
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 1100px) {
+  .skeletonGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 780px) {
+  .skeletonGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .skeletonGrid { grid-template-columns: 1fr; }
+}
+.skeletonCard {
+  height: 240px;
+  border-radius: 12px;
+  background: linear-gradient(90deg,#eee 25%,#f5f5f5 37%,#eee 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+/* ცარიელი მდგომარეობა */
+.empty { opacity: .7; font-size: 14px; color: white; }
+
+/* "See all" */
+.seeAll {
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #dbe2ea;
+  text-decoration: none;
+  color: #0f4f70;
+  background: #fff;
+}
+
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* xs: base styles */
+
+/* sm */
+@media (min-width: 480px){ /* small tweaks */ }
+
+/* md- */
+@media (min-width: 640px){ /* small/medium tweaks */ }
+
+/* md */
+@media (min-width: 768px){ /* medium screens */ }
+
+/* lg */
+@media (min-width: 1024px){ /* large screens */ }
+
+/* xl */
+@media (min-width: 1280px){ /* extra large screens */ }

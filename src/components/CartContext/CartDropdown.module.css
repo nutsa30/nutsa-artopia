@@ -1,0 +1,307 @@
+.cartDropdown {
+  position: absolute; 
+   z-index: 99999;
+  right: -190px;
+  width: 600px;
+  height: 100vh;
+  
+ color: white;
+  background: #0a1a2f;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 0 14px rgba(0, 0, 0, 0.2);
+ 
+}
+
+
+.cartDropdown p{
+  display: flex;
+margin-top: -30px;
+}
+
+.cartItem {
+  display: flex;
+  width: 400px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  background: #ffffffee;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+
+.itemImage {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-right: 12px;
+}
+
+
+
+.itemImage {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-right: 12px;
+}
+.itemDetails {
+  flex: 1;
+  margin-right: 10px;
+}
+.itemName {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.itemPrice {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+
+
+.quantityBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background-color: #ddd;
+  color: #333;
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  padding: 5px;
+}
+
+
+
+.quantityBtn:hover {
+  background-color: #ccc;
+}
+
+.quantityDisplay {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+  color: black;
+}
+.deleteBtn {
+  background-color: transparent;
+  border: none;
+  font-size: 18px;
+  color: #cc0000;
+  cursor: pointer;
+  margin-left: auto;
+}
+.totalPrice {
+  text-align: right;
+  font-weight: bold;
+  font-size: 16px;
+  margin-top: 10px;
+  color: #222;
+  border-top: 1px solid #ccc;
+  padding-top: 10px;
+}
+
+
+.cartFooter {
+    width: 250px;
+  padding: 10px 16px;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  
+}
+
+.totalAndClear {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  
+}
+
+.total {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.clearButton {
+  width: 130px;
+  background-color: #e63946;
+  color: white;
+  padding: 10px 20px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  flex: 1;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.clearButton:hover {
+  background-color: #d62828;
+}
+
+.checkoutButton {
+  width: 240px;
+  background-color: #1d3557;
+  color: white;
+  padding: 10px 20px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  flex: 1;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.checkoutButton:hover {
+  background-color: #2b3c5e;
+}
+
+.disabled {
+  background-color: #ccc;
+  color: #888;
+  cursor: not-allowed;
+}
+
+
+.checkoutButton.enabled {
+  background-color: #3b82f6; /* ულამაზო ცისფერი */
+  color: white;
+  cursor: pointer;
+  opacity: 1;
+}
+
+.checkoutButton.enabled:hover {
+  background-color: #2563eb;
+}
+
+
+/* CartDropdown.module.css */
+.thumbSlot {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 10px 12px;
+}
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* CartDropdown.module.css – დაამატე */
+.saleBadge { position: absolute; top: 4px; left: 4px; z-index: 2; }
+.newBadge  { position: absolute; top: 4px; right: 4px; z-index: 2; }
+
+
+
+/* ფონის დაბლურის overlay — მთელი საიტის თავზე */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  z-index: 1000; /* overlay */
+}
+
+/* Dropdown wrapper, რომ იყოს overlay-ზე ზემოთ და არ დაიბლუროს */
+.cartPortal {
+  position: fixed;      /* ან absolute, მაგრამ fixed ჯობს */
+  inset: auto;          
+  top: 1px;     
+  right: 16px;
+  z-index: 1002;        /* higher than overlay */
+}
+
+/* შენი არსებული .cartDropdown გაგრძელდეს ჩვეულებრივ */
+/* .cartDropdown { ... შენი არსებული სტილები ... } */
+
+
+
+
+
+/* ❌ close button */
+.closeBtn {
+  display: flex;
+  /* position: absolute; */
+margin-top: auto; 
+margin-left: 370px;
+background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: white;
+  z-index: 9999;
+  transition: color 0.2s;
+}
+
+.closeBtn:hover {
+  color: #e63946;
+}
+
+
+/* Mobile: დროპდაუნი არ უნდა გადაცდეს ეკრანს */
+@media (max-width: 430px) {
+  .cartDropdown{
+    position: fixed;                 /* როგორც გაქვს, portal-შიც იმუშავებს */
+    top: 0px;                       /* სურვილით */
+    left: 80px;                      /* ორივე მხარეს ვამაგრებთ */
+    right: 4px;
+    width: auto;                     /* ფიქსირებული სიგანის ნაცვლად */
+    max-width: calc(100vw - 24px);   /* არასდროს გადააჭარბოს viewport-ს */
+    overflow-y: auto;
+    box-sizing: border-box;          /* padding ჩათვალოს სიგანეში */
+  }
+
+  /* შიდა ელემენტები არ იყოს ფიქსირებულ სიგანეებზე */
+  .cartItem { width: 100%; }
+  .buttonRow { width: 100%; }
+
+  /* Close ღილაკი მარჯვნივ, გარეშე „230px“ ჰარდკოდის */
+  .closeBtn { margin-left: auto; }
+}
+
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* xs: base styles */
+
+/* sm */
+@media (min-width: 480px){ /* small tweaks */ }
+
+/* md- */
+@media (min-width: 640px){ /* small/medium tweaks */ }
+
+/* md */
+@media (min-width: 768px){ /* medium screens */ }
+
+/* lg */
+@media (min-width: 1024px){ /* large screens */ }
+
+/* xl */
+@media (min-width: 1280px){ /* extra large screens */ }

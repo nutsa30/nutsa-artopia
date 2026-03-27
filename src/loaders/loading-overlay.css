@@ -1,0 +1,33 @@
+.loading-overlay{
+  position: fixed;
+  inset: 0;
+ background-color: transparent; /* შეგიძლია შეცვალო ბრენდულ ფერზე */
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(1px);
+}
+.loading-spinner{
+  width: 900px;
+  height: 900px;
+  object-fit: contain;
+}
+
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* xs: base styles */
+
+/* sm */
+@media (min-width: 480px){ /* small tweaks */ }
+
+/* md- */
+@media (min-width: 640px){ /* small/medium tweaks */ }
+
+/* md */
+@media (min-width: 768px){ /* medium screens */ }
+
+/* lg */
+@media (min-width: 1024px){ /* large screens */ }
+
+/* xl */
+@media (min-width: 1280px){ /* extra large screens */ }

@@ -1,0 +1,234 @@
+/* ===================== NAVBAR / TABBAR ===================== */
+.tabbar {
+  position: fixed;
+  top: 0;
+  left: 0;                   /* ცენტრი fixed ელემენტისთვის: */
+  right: 0;                  /* ვაფარებთ ორივე მხარეს და  */
+  margin: 0 auto;            
+  width: min(1200px, 90vw);  /* დიდებზე 1200px, სხვაგან 90vw */
+
+  /* Desktop default = ერთრიგიანი FLEX */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 1rem 1.25rem;
+  border-radius: 5rem;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  pointer-events: auto;
+  z-index: 1000;
+
+  /* სურვილით გამოიყენე, რომ pageWrapper-იდან მართო სიმაღლე */
+  --navbar-h: 108px;
+}
+
+/* ---------- მარცხენა: ბრენდი ---------- */
+.header,
+.brandLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  text-decoration: none;
+}
+
+.logo { width: 50px; height: 50px; }
+.h2 { color: rgb(200, 200, 200); }
+
+/* ---------- შუა: ტაბების/აიკონების ზოლი — იდეალურ ცენტრში ---------- */
+.tabsWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* ცენტრი */
+  gap: 1rem;
+  flex-wrap: wrap;
+  /* flex: 1 1 auto;    */
+  margin: 0 1rem;
+}
+
+.tabItem {
+  position: relative;
+  border-radius: 1.5rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* BLOB FX */
+.blobWrapper { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.blob, .blobAlt {
+  position: absolute; width: 100%; height: 100%; border-radius: 1.2rem; filter: blur(8px); top: 0; left: 0;
+}
+.blob { background: linear-gradient(135deg, #0056FF, #0056FF); z-index: 0; transform: rotate(-6deg); }
+.blobAlt { background: linear-gradient(135deg, #0056FF, #0056FF); z-index: 0; transform: rotate(6deg); opacity: 0.8; }
+
+/* ---------- მარჯვენა: ენების სვიჩერი ---------- */
+.langSwitcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: white;
+  flex: 0 0 auto;           /* ფიქსად მარჯვნივ */
+  margin-left: auto;        /* ბრენდი ↔︎ ენები შორის tabsWrapper თანაბრად ცენტრში რჩება */
+}
+
+.langSwitcher button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+}
+.langSwitcher img { width: 45px; height: 30px; transition: transform 0.3s ease; }
+.langSwitcher img:hover { transform: scale(1.2); }
+.langSwitcher .langActive { font-weight: 700; text-decoration: underline; }
+/* თუ "|" ჩანს ენებს შორის, მოვშალოთ */
+.langSwitcher .separator, .langSwitcher .sep { display: none !important; }
+
+/* ---------- აიკონები ---------- */
+.navItem {
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  padding: 10px;
+  margin: 0 8px;
+  cursor: pointer;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  transition: box-shadow 0.3s ease;
+  z-index: 10000;
+}
+.navItem:hover { box-shadow: 0 0 12px #3f79ff; }
+
+.icon {
+  display: flex; align-items: center; justify-content: center;
+  background-color: transparent;
+  width: 30px; height: 30px; font-size: 18px; color: purple;
+}
+.cartCount {
+  position: absolute; top: -5px; right: -5px;
+  background-color: red; color: white; font-size: 10px; padding: 2px 5px; border-radius: 50%;
+}
+
+/* ---------- წარწერიანი აიკონი (გახსნისას ფართოვდება) ---------- */
+.iconWrap {
+  position: relative; z-index: 2;
+  height: 42px; width: 42px;
+  background: rgb(200, 200, 200);
+  border-radius: 1.2rem;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  padding: 0 0.75rem;
+  overflow: hidden; white-space: nowrap; gap: 0;
+}
+.iconWrapActive { width: 150px; gap: 0.5rem; justify-content: flex-start; }
+.iconLabel {
+  font-size: 14px; font-weight: bold; color: #0056FF;
+  white-space: nowrap; opacity: 0; transform: translateX(-10px);
+  transition: all 0.3s ease; pointer-events: none;
+}
+.iconWrapActive .iconLabel { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
+/* ===================== Responsive ===================== */
+
+/* ≥1290px — ოდნავ კომპაქტური padding */
+@media (min-width: 1290px) {
+  .tabbar { width: min(1200px, 90vw); padding: 0.9rem 1.1rem; }
+}
+
+/* ≤1024px — ჯერ კიდევ ერთრიგიანად, მაგრამ კომპაქტური */
+@media (max-width: 1024px) {
+  .tabbar { width: min(1200px, 96vw); border-radius: 3rem; }
+  .logo { width: 44px; height: 44px; }
+  .icon { width: 26px; height: 26px; font-size: 16px; }
+  .iconLabel { font-size: 13px; }
+  .langSwitcher img { width: 36px; height: 24px; }
+}
+
+/* ≤768px — გადავდივართ 2-რიგიან განლაგებაზე */
+@media (max-width: 768px) {
+  .tabbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "brand lang"
+      "tabs  tabs";
+    row-gap: 0.5rem;
+    width: min(1200px, 96vw);
+  }
+
+  /* grid პოზიციონირება კლასების მიხედვით */
+  .brandLink, .header { grid-area: brand; }
+  .langSwitcher { grid-area: lang; justify-self: end; }
+  .tabsWrapper { grid-area: tabs; justify-content: center; flex: unset; margin: 0; padding-top: 5px;padding-right: 5px;}
+
+  .tabsWrapper {
+    gap: 0.6rem;
+    overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none;
+  }
+  .tabsWrapper::-webkit-scrollbar { display: none; }
+
+  .iconWrap { height: 36px; width: 36px; padding: 0 0.5rem; border-radius: 1rem; }
+  .iconWrapActive { width: 110px; }
+  .iconLabel { font-size: 12px; }
+  .navItem { padding: 6px; margin: 0 4px; }
+  .icon { width: 22px; height: 22px; font-size: 15px; }
+  .cartCount { top: -4px; right: -4px; font-size: 9px; padding: 1px 4px; }
+  .logo { width: 36px; height: 36px; }
+}
+
+/* ≤560px — კიდევ უფრო კომპაქტური */
+@media (max-width: 800px) {
+  .tabbar {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "brand"
+      "lang"
+      "tabs";
+    justify-items: center;
+    border-radius: 2rem;
+     padding: 0.35rem 0.5rem;
+      margin-bottom: 70px; 
+  }
+  .langSwitcher { justify-self: center; }
+  .iconLabel { display: none !important; }
+  .iconWrapActive { width: 42px; justify-content: center; }
+  .iconWrap { width: 42px; height: 42px; }
+   .logo { width: 32px; height: 32px; }
+  .icon { width: 18px; height: 18px; font-size: 13px; }
+  .navItem { padding: 5px;width: 40px; height: 40px; }
+  .langSwitcher img { width: 30px; height: 20px; }
+}
+
+
+
+
+/* iOS safe-area */
+@supports (padding: max(0px)) {
+  .tabbar {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* xs: base styles */
+
+/* sm */
+@media (min-width: 480px){ /* small tweaks */ }
+
+/* md- */
+@media (min-width: 640px){ /* small/medium tweaks */ }
+
+/* md */
+@media (min-width: 768px){ /* medium screens */ }
+
+/* lg */
+@media (min-width: 1024px){ /* large screens */ }
+
+/* xl */
+@media (min-width: 1280px){ /* extra large screens */ }

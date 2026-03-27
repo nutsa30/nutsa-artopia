@@ -1,0 +1,236 @@
+/* === საერთო ლეიაუთი === */
+.filterContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  position: relative;
+  z-index: 100;
+}
+
+/* მარცხენა სვეტი – კატეგორია */
+.categoryWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  color: #e5edf8;
+  position: relative; /* dropdown anchor */
+}
+
+/* label + კატეგორიის ღილაკი */
+.categoryRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+}
+
+/* search input + კატეგორიის trigger ერთნაირად გამოიყუროს */
+.searchInput {
+  padding: 10px 18px;
+  border-radius: 12px;
+  background-color: #1f2e44;
+  color: #f9fafb;
+  font-size: 18px;
+  border: none;
+  outline: none;
+}
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
+.searchField {
+  min-width: 260px;
+}
+
+/* კატეგორიის ღილაკი (select-ის მაგივრად) */
+.catTrigger {
+  min-width: 260px;
+  cursor: pointer;
+  position: relative;
+  padding-right: 40px;
+}
+.catTrigger::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #cbd5e1;
+  pointer-events: none;
+}
+
+/* არჩეული ქვეკატეგორი(ებ)ის ბეჯები */
+.subSummary {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.subSummaryLabel {
+  font-size: 13px;
+  opacity: 0.75;
+}
+.subSummaryValue {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #13293b;
+}
+.subSummaryClear {
+  background: transparent;
+  border: none;
+  color: #9fb3c8;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+.subSummaryClear:hover {
+  background: #1a3248;
+}
+
+/* === DROPDOWN კონტეინერი === */
+/* კატეგორიების ბოქსი ზუსტად კატეგორიების ღილაკის ქვემოთ */
+.darkDropdown {
+  position: absolute;
+  top: calc(100% + 6px);   /* 👉 პირდაპირ ფილტრის ქვემოთ */
+  left: 35%;                 /* trigger-ის მარცხენა გვერდზე გასწორებული */
+  right: auto;
+  display: inline-flex;    /* სიგანე = კონტენტის სიგანე */
+  align-items: flex-start;
+  z-index: 10000;
+  background: transparent;
+}
+
+/* კატეგორიების სია – იგივე სიგანე, რაც ღილაკს */
+.darkList {
+  position: relative;       /* subPanel-ის top ამაზე ითვლება */
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  max-height: 320px;        /* scrollable */
+  overflow-y: auto;
+  background: #122536;
+  width: 100%;              /* 👉 trigger-ის სიგანის გამეორება */
+  min-width: 260px;
+  border-radius: 12px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+}
+
+.darkItem {
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+.darkItem:hover {
+  background: #1a3248;
+}
+.darkActive {
+  background: #21415c;
+}
+.catText {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.greenDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+/* === ქვეკატეგორიების პანელი (მარჯვნივ, ახლოს) === */
+.subPanel {
+  position: absolute;                     /* overlay – არ წევს სიას */
+  left: calc(100% + 4px);                /* 👉 ძალიან ახლოს ეკვრის მარჯვნიდან */
+  top: 0;                                /* JS-ის inline {top: subTop} ამაზე ზემოდან დაჯდება */
+  background: #0f1f2b;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 260px;
+  max-width: 320px;
+  max-height: 320px;                     /* scrollable */
+  overflow-y: auto;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* სვეტად დალაგებული ჩიფები */
+.subGrid {
+  display: flex;
+  flex-direction: column;   /* COLUMN layout */
+  gap: 8px;
+}
+
+/* დიდი, მთელ სიგანეზე ჩიფები */
+.subChip {
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 15px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #13293b;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.subChip:hover {
+  background: #18344a;
+}
+.subChipActive {
+  border-color: #3aa0ff;
+  box-shadow: 0 0 0 2px rgba(58, 160, 255, 0.35) inset;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .filterContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchField,
+  .catTrigger {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* მობილურზე dropdown ქვემოთ, სრული სიგანით */
+  .darkDropdown {
+    position: static;
+    margin-top: 8px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .darkList {
+    width: 100%;
+    max-height: 260px;
+  }
+
+  .subPanel {
+    position: static;
+    margin-left: 0;
+    margin-top: 10px;
+    width: 100%;
+    max-width: 100%;
+    max-height: 260px;
+  }
+}

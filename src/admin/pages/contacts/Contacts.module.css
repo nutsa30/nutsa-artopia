@@ -1,0 +1,93 @@
+/* Contacts.module.css */
+
+.contactContainer {
+  padding: 2rem;
+  max-width: 600px;
+  margin: auto;
+}
+
+.contactForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.contactForm input {
+  padding: 10px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: border-color 0.3s ease;
+}
+
+.contactForm input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.contactForm button {
+  padding: 10px 16px;
+  font-size: 14px;
+  background-color: var(--accentColor);
+  color: var(--backgroundColor1);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.contactForm button:hover {
+  background-color: var(--backgroundColor1);
+  color: white;
+}
+
+.contactForm button[type="button"] {
+  background-color: #dc3545;
+}
+
+.contactForm button[type="button"]:hover {
+  background-color: #b52d3b;
+}
+
+.contactBox {
+  background-color: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+  line-height: 1.6;
+}
+
+.contactBox p {
+  margin-bottom: 10px;
+}
+
+
+.contactList {
+  list-style: none;
+  padding: 0;
+  margin-top: 2rem;
+}
+
+.contactItem {
+  background-color: #f5f5f5;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.actions button {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+

@@ -1,0 +1,103 @@
+/* src/components/pagination/EdgePager.module.css */
+:root {
+  --pg-item: 40px;     /* ღილაკის მინ. სიგანე/სიმაღლე */
+  --pg-gap: 8px;       /* დაშორება */
+  --pg-radius: 12px;   /* კუთხეები */
+  --pg-font: 14px;     /* ფონტის ზომა */
+  --pg-padx: 12px;     /* ჰორიზონტალური padding */
+  --pg-color: #111827; /* ტექსტი */
+  --pg-bg: #ffffff;    /* ფონი */
+  --pg-border: #e5e7eb; /* ჩარჩო */
+  --pg-act-bg: #16608A; /* აქტიური ფონი */
+  --pg-act-fg: #fff;    /* აქტიური ტექსტი */
+  --pg-act-br: #16608A; /* აქტიური ჩარჩო */
+}
+
+.pagination {
+  display: flex;
+  gap: var(--pg-gap);
+  align-items: center;
+  flex-wrap: wrap;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  margin: 50px;
+}
+
+.pgBtn {
+  min-width: var(--pg-item);
+  height: var(--pg-item);
+  padding: 0 var(--pg-padx);
+  border-radius: var(--pg-radius);
+  border: 1px solid var(--pg-border);
+  background: var(--pg-bg);
+  color: var(--pg-color);
+  font-size: var(--pg-font);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .06s ease, background .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.pgBtn:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+.pgBtn:active { transform: scale(0.98); }
+
+.isActive {
+  background: var(--pg-act-bg);
+  color: var(--pg-act-fg);
+  border-color: var(--pg-act-br);
+  cursor: default;
+}
+
+.ellipsis {
+  min-width: auto;
+  height: var(--pg-item);
+  padding: 0 6px;
+    color: #ffffff;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Responsive tuning: შეცვალე შენი სურვილით --- */
+@media (max-width: 768px) {
+  :root {
+    --pg-item: 36px;
+    --pg-font: 13px;
+    --pg-gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --pg-item: 34px;
+    --pg-font: 12px;
+    --pg-gap: 6px;
+  }
+}
+
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* xs: base styles */
+
+/* sm */
+@media (min-width: 480px){ /* small tweaks */ }
+
+/* md- */
+@media (min-width: 640px){ /* small/medium tweaks */ }
+
+/* md */
+@media (min-width: 768px){ /* medium screens */ }
+
+/* lg */
+@media (min-width: 1024px){ /* large screens */ }
+
+/* xl */
+@media (min-width: 1280px){ /* extra large screens */ }

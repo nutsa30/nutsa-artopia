@@ -1,0 +1,171 @@
+:root{
+    --LogoColor1: #0056FF;
+    --LogoColor2: #C7D6F9;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  margin: 0px;
+  padding: 0px;
+  /* background: url('/src/assets/background.png') center/cover no-repeat; */
+  height: 100vh;
+  overflow-x: hidden;
+}
+
+.video-bg {
+  position: fixed;   /* stick to background */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* makes sure video covers entire screen */
+  z-index: -1;       /* send behind content */
+}
+
+
+
+body {
+  background: linear-gradient(335deg, #134074, #13315c, #0b2545);
+  min-height: 100vh;
+  margin: 0;
+  /* padding: 20px; */
+}
+
+/* =============================== */
+/* Smooth blend override (append)  */
+/* =============================== */
+
+/* ახალი, უფრო გლუვი გარდატეხა perceptual სივრცით */
+/* =============================== */
+/* Smooth blend override — new palette */
+/* =============================== */
+@supports (background: linear-gradient(in oklab, red, blue)) {
+  body {
+    background:
+      linear-gradient(in oklab, 335deg,
+        #043a78 0%,
+        color-mix(in oklab, #043a78 70%, #073366) 40%,
+        color-mix(in oklab, #073366 65%, #041a36) 70%,
+        #041a36 100%
+      );
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+}
+
+@supports not (background: linear-gradient(in oklab, red, blue)) {
+  body {
+    background:
+      linear-gradient(335deg,
+        #043a78 0%,
+        color-mix(in srgb, #043a78 70%, #073366) 40%,
+        color-mix(in srgb, #073366 65%, #142644) 70%,
+        #142644 100%
+      );
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+}
+
+/* === Smooth blend override — Dive / Deep sea / Night time === */
+@supports (background: linear-gradient(in oklab, red, blue)) {
+  body {
+    background:
+      linear-gradient(in oklab, 335deg,
+        #1F3F74 0%,
+        color-mix(in oklab, #1F3F74 65%, #14366D) 45%,
+        color-mix(in oklab, #14366D 60%, #142644) 75%,
+        #142644 100%
+      );
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+}
+
+@supports not (background: linear-gradient(in oklab, red, blue)) {
+  body {
+    background:
+      linear-gradient(335deg,
+        #1F3F74 0%,
+        color-mix(in srgb, #1F3F74 65%, #14366D) 45%,
+        color-mix(in srgb, #14366D 60%, #142644) 75%,
+        #142644 100%
+      );
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+}
+
+
+/* ==== Navbar offset (ჰაერი Navbar-ის ქვეშ) ==== */
+/* დეფოლტური მნიშვნელობები */
+:root{
+  --navbar-h: 108px;  /* approx: desktop-ზე შენი ბარის სიმაღლე */
+  --navbar-gap: 36px; /* რამდენი ჰაერი გინდა Navbar-ის ქვემოთ */
+}
+
+/* სადაც კონტენტი იწყება, მოვუმატოთ top-padding */
+.pageWrapper {
+  padding-top: calc(var(--navbar-h) + var(--navbar-gap)) !important;
+}
+
+/* თუ ზოგ გვერდზე არ გაქვს .pageWrapper, ესეც დააზღვევს */
+main:first-of-type {
+  padding-top: calc(var(--navbar-h) + var(--navbar-gap)) !important;
+}
+
+/* მობილურზე ბარი ორრიგიანია და უფრო მაღალია—აქ ვზრდით სიმაღლეს */
+@media (max-width: 768px){
+  :root{
+    --navbar-h: 156px;  /* მოარგე საჭიროებისამებრ 148–172px დიაპაზონში */
+    --navbar-gap: 14px;
+  }
+}
+
+/* ძალიან მცირე ეკრანებზე კიდევ ოდნავ მეტი */
+@media (max-width: 380px){
+  :root{ --navbar-h: 168px; --navbar-gap: 40px; }
+  
+}
+
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* xs: base styles */
+
+/* sm */
+@media (min-width: 480px){ /* small tweaks */ }
+
+/* md- */
+@media (min-width: 640px){ /* small/medium tweaks */ }
+
+/* md */
+@media (min-width: 768px){ /* medium screens */ }
+
+/* lg */
+@media (min-width: 1024px){ /* large screens */ }
+
+/* xl */
+@media (min-width: 1280px){ /* extra large screens */ }
+
+
+
+/* თეთრი ფონი მხოლოდ ადმინზე */
+body.admin-bg {
+  background: #fff !important;
+  color: #111;
+}
+
+body.admin-bg #root {
+  min-height: 100vh;
+  background: #fff;
+}

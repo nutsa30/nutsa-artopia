@@ -1,0 +1,177 @@
+.page {
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px clamp(12px, 3vw, 24px);
+  max-width: 1600px;
+}
+
+.section { margin-top: 8px; }
+
+.h1 {
+  font-size: clamp(20px, 2.6vw, 28px);
+  font-weight: 800;
+  color: #0f3f5a;
+  margin: 6px 0 14px;
+}
+
+.info {
+  background: #f1f8ff;
+  color: #0b4d75;
+  border: 1px solid #d5e9ff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.error {
+  background: #ffe6e6;
+  color: #b00020;
+  border: 1px solid #ffb3b3;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.empty {
+  background: #f6f9fc;
+  color: #5d6d78;
+  border: 1px dashed #dfe8f0;
+  padding: 14px;
+  border-radius: 12px;
+}
+
+/* ლოკალური გრიდი (თუ გამოიყენება ამ გვერდში პირდაპირ) */
+.grid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: clamp(10px, 2vw, 16px);
+}
+
+/* ბარათის საერთო სტილები — არ ვცვლით ქცევას */
+.card {
+  display: block;
+  text-decoration: none;
+  border: 1px solid #eef2f6;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(22, 96, 138, 0.06);
+  transition: transform 0.08s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(22, 96, 138, 0.12);
+}
+
+.thumb { aspect-ratio: 1.6 / 1; background: #f3f7fb; overflow: hidden; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.meta { padding: 10px 12px 12px; }
+.title { font-weight: 700; color: #163e58; margin-bottom: 4px; }
+.alt { color: #597181; font-size: 13px; line-height: 1.3; }
+.badgeRow { display: flex; gap: 8px; margin-top: 8px; }
+.badgeLang {
+  background: #e6f1f8; color: #0f4f70; border: 1px solid #cfe2f3;
+  font-weight: 800; font-size: 12px; padding: 2px 8px; border-radius: 999px;
+}
+.badgeSort {
+  background: #eef4f8; color: #2a4454; border: 1px solid #dbe7f0;
+  font-weight: 700; font-size: 12px; padding: 2px 8px; border-radius: 999px;
+}
+
+/* Overlay Play button */
+.heroOverlayBtn,
+.heroReplayBtn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+}
+.heroOverlayBtn:hover,
+.heroReplayBtn:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+/* ===================================================================== */
+/*  ჰოუმის პროდუქტების გრიდის მართვა — კოდს/კომპონენტებს არ ვეხებით       */
+/*  ვამიზნებთ შიდა grid-ს უბრალოდ სელექტორით                             */
+/*  ბრეკპოინები: 360 → 562 → 643 → 900 → 1116                            */
+/* ===================================================================== */
+
+.section :global([class*="HomeNewProducts"]) [class*="grid"],
+.section :global([class*="HomeSaleProducts"]) [class*="grid"] {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+/* 562px → 3 სვეტი */
+@media (min-width: 562px){
+  .section :global([class*="HomeNewProducts"]) [class*="grid"],
+  .section :global([class*="HomeSaleProducts"]) [class*="grid"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+}
+
+/* 643px → 3 სვეტი (ზრდილი gap) */
+@media (min-width: 643px){
+  .section :global([class*="HomeNewProducts"]) [class*="grid"],
+  .section :global([class*="HomeSaleProducts"]) [class*="grid"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+  }
+}
+
+/* 900px → 4 სვეტი */
+@media (min-width: 900px){
+  .section :global([class*="HomeNewProducts"]) [class*="grid"],
+  .section :global([class*="HomeSaleProducts"]) [class*="grid"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+  }
+}
+
+/* 1116px → 5 სვეტი */
+@media (min-width: 1116px){
+  .section :global([class*="HomeNewProducts"]) [class*="grid"],
+  .section :global([class*="HomeSaleProducts"]) [class*="grid"] {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+  }
+}
+
+/* Overflow პრევენცია — რომ შიგნით ელემენტებმა რიგი არ „გაგლიჯონ“ */
+.section :global([class*="HomeNewProducts"]) [class*="grid"] > *,
+.section :global([class*="HomeSaleProducts"]) [class*="grid"] > * {
+  min-width: 0 !important;
+}
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* xs: base styles */
+
+/* sm */
+@media (min-width: 480px){ /* small tweaks */ }
+
+/* md- */
+@media (min-width: 640px){ /* small/medium tweaks */ }
+
+/* md */
+@media (min-width: 768px){ /* medium screens */ }
+
+/* lg */
+@media (min-width: 1024px){ /* large screens */ }
+
+/* xl */
+@media (min-width: 1280px){ /* extra large screens */ }

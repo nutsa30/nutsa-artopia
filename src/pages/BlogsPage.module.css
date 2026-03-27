@@ -1,0 +1,265 @@
+/* BlogsPage.module.css — Glassmorphism, იგივე вайბი რაც ProductsPage-ში */
+
+/* ===== გვერდის wrapper ===== */
+.blogPageContainer,
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: gradientAnimation 10s ease infinite;
+  margin-top: 120px;
+}
+
+.blogPageContainer h2 { color: white; }
+
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ===== ფილტრები/სერჩ ===== */
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin: 30px 0;
+}
+
+.categoryWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  color: #ddd;
+}
+
+/* Search input */
+.searchInput {
+  padding: 10px 20px;
+  margin-top: 20px;
+  border-radius: 12px;
+  background-color: #1f2e44;
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  width: 260px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.searchInput::placeholder { color: #cbd5e1; }
+
+/* ===== GRID — ბლოგების სია (GRID-ზე) ===== */
+/* Base: <425px → 1 სვეტი */
+.blogList,
+.blogsGrid,
+.blogsContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;             /* საერთო ჰაერი ბარათებს შორის */
+  list-style: none;
+  padding: 30px;
+  margin: 0;
+  position: relative;
+  z-index: 0;
+}
+
+/* 425–699px → 2 სვეტი */
+@media (min-width: 425px) {
+  .blogList,
+  .blogsGrid,
+  .blogsContainer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 700–1099px → 3 სვეტი */
+@media (min-width: 700px) {
+  .blogList,
+  .blogsGrid,
+  .blogsContainer {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ≥1100px → 4 სვეტი */
+@media (min-width: 1100px) {
+  .blogList,
+  .blogsGrid,
+  .blogsContainer {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ===== ბლოგ-ბარათი ===== */
+.blogItem {
+  /* width: 320px;  ← ფიქს სიგანე მოვხსენით, რომ GRID-ს დაემორჩილოს */
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.22);
+  background-color: transparent;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 14px 36px rgba(0,0,0,.28);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+
+  /* margin-top: 50px; ← GRID gap უკვე გვაძლევს ჰაერს, ეს აღარ გვჭირდება */
+  margin: 0;
+}
+
+.blogItem:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 46px rgba(0,0,0,.34);
+  border-color: rgba(255,255,255,.32);
+}
+
+/* ქავერის ზოლი */
+.coverRow {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+}
+.cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.coverPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+  font-size: 13px;
+  background: linear-gradient(135deg, rgba(148,163,184,.12), rgba(226,232,240,.12));
+}
+
+/* შიგნით INFO */
+.blogInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;     /* ფოტო/ტექსტს შორის მცირე ჰაერი */
+  min-height: 0; /* line-clamp სწორად იმუშაოს */
+  color: white;
+}
+
+/* სათაური/ექცერპტი */
+.title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.excerpt {
+  opacity: 0.85;
+  font-size: 14px;
+  margin: 0;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 3;      /* 3 ხაზი */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* პატარა თუმბნეილების რიგი (თუ გამოიყენებ) */
+.blogImages {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px 12px;
+  flex-wrap: wrap;
+}
+.blogImage {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.25);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+
+/* ქონი/ღილაკები */
+.actions {
+  margin-top: auto;
+  padding: 12px 14px 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+.readMoreBtn {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgba(59,130,246,.9), rgba(99,102,241,.9));
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(59,130,246,.35);
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.readMoreBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px rgba(59,130,246,.45);
+  filter: brightness(1.04);
+}
+
+/* Error ბლოკი */
+.error {
+  background: rgba(239,68,68,.15);
+  color: #fecaca;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(239,68,68,.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  margin-bottom: 16px;
+}
+
+/* პაგინაცია */
+.paginationContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+  list-style: none;
+  gap: 8px;
+}
+.paginationContainer a {
+  padding: 10px 18px;
+  border-radius: 10px;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  background-color: #1f2e4480;
+  border: 1px solid rgba(255,255,255,.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.paginationContainer a:hover { background-color: #4caf50; }
+.paginationContainer .activePage {
+  background-color: #4caf50;
+  color: #fff;
+  font-weight: 700;
+  border: 2px solid #4caf50;
+}
+
+/* ===== დამატებითი მცირე ტვიქები ===== */
+@media (max-width: 640px) {
+  .coverRow { height: 160px; }
+  .title    { font-size: 16px; }
+  .excerpt  { font-size: 13px; }
+}
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* sm */ @media (min-width: 480px){ /* small tweaks */ }
+/* md- */ @media (min-width: 640px){ /* small/medium tweaks */ }
+/* md  */ @media (min-width: 768px){ /* medium screens */ }
+/* lg  */ @media (min-width: 1024px){ /* large screens */ }
+/* xl  */ @media (min-width: 1280px){ /* extra large screens */ }

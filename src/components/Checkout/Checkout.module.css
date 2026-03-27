@@ -1,0 +1,417 @@
+.checkoutContainer {
+    /* min-height: 100vh; */
+  max-width: 900px;
+  justify-content: center;
+  margin: 120px auto;
+  padding: 20px;
+  /* background-color: #0f172a;  */
+  border-radius: 12px;
+  color: #f1faee; /* თეთრი ტექსტი */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+  display: flex;
+  gap: 40px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.cartSummary {
+  border: 1px solid #ddd;
+  padding: 10px;
+  
+  margin-bottom: 20px;
+  background: #1e293b;
+  border-radius: 8px;
+  max-width: 600px; /* მაქსიმალური სიგანე */
+  overflow-y: auto; /* თუ ბევრი პროდუქტი იქნება */
+}
+
+.cartItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cartItem img {
+  margin-right: 15px;
+  border-radius: 4px;
+  width: 60px;      
+  height: 60px;
+  object-fit: cover; 
+}
+
+.cartItem strong {
+  font-size: 16px;
+}
+
+.cartItem p {
+  margin: 0;
+  font-size: 0.9em;
+  color: #555;
+}
+
+
+/* ჯამური ფასი */
+.cartSummary h3 {
+  margin-top: 20px;
+  font-size: 1.3em;
+  border-top: 1px solid #64748b;
+  padding-top: 15px;
+  color: #f1faee;
+}
+
+/* ფორმა */
+.form {
+  flex: 1;
+  background-color: #1e293b;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  max-width: 500px;
+  overflow-y: auto;
+  /* max-height: 500px; */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ფორმის ინპუტები */
+.input {
+  width: 100%;
+  padding: 12px 15px;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid #64748b;
+  background-color: #2a344d;
+  color: #f1faee;
+  font-size: 1rem;
+  font-weight: 500;
+  box-sizing: border-box;
+  outline-offset: 2px;
+  transition: border-color 0.3s ease;
+}
+
+.input:focus {
+  border-color: #457b9d;
+}
+
+/* წარუდგენელი ღილაკი */
+.submitBtn {
+  background-color: #1d3557;
+  color: white;
+  width: 100%;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-top: 15px;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submitBtn:hover {
+  background-color: #112240;
+}
+
+
+
+.controls {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+}
+
+.controls button{
+  background-color: #64748b;
+}
+
+.controls button:disabled{
+  background-color: #555;
+}
+.quantityBtn {
+  background-color: #457b9d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.quantityBtn:hover:not(:disabled) {
+  background-color: #1d3557;
+}
+
+.quantityBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quantityDisplay {
+  min-width: 24px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #f1faee;
+}
+
+.deleteBtn {
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+  color: #ff4d4f;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.deleteBtn:hover {
+  color: #d93636;
+}
+
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modalContent {
+  position: relative;
+  background-color: #fff;
+  padding: 40px 60px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 20px;
+  color: #2e7d32;
+  font-weight: bold;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  min-width: 300px;
+}
+
+.closeModalBtn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #333;
+  transition: color 0.3s;
+}
+
+.closeModalBtn:hover {
+  color: #d32f2f;
+}
+
+
+.quantityControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.quantityControls button {
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.removeBtn {
+  background: transparent;
+  border: none;
+  color: red;
+  cursor: pointer;
+  font-size: 20px;
+  margin-left: 15px;
+}
+
+.errorMessage {
+  background-color: #ffe6e6;
+  color: #cc0000;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin: 15px 0;
+  box-shadow: 0 2px 8px rgba(204, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease-in-out;
+  max-width: 400px;
+}
+
+
+
+.errorModalOverlay {
+position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.errorModalContent{
+  position: relative;
+  background-color: #fff;
+  padding: 40px 60px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 20px;
+  color: red;
+  font-weight: bold;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  min-width: 300px;
+}
+
+
+
+/* სურათის კონტეინერი */
+.thumbWrap {
+  position: relative;
+  width: 80px;   /* სურვილისამებრ: 60-80px */
+  height: 100px;
+  flex: 0 0 auto;
+  margin-right: 12px;
+}
+
+/* სურათი შიგნით */
+.thumb {
+  width: 100%;
+  height: 100%;
+  /* object-fit: cover; */
+  border-radius: 6px;
+  /* display: block; */
+}
+
+/* ბეჯები ზემოთ — იგივე პოზიციები, რაც ბარათზე გაქვს */
+.saleBadge {
+  position: absolute;
+  top: -6px;
+  left: -10px;
+  z-index: 2;
+}
+
+.newBadge {
+  position: absolute;
+  top: -14px;
+  right: -8px;
+  z-index: 2;
+}
+
+
+/* ============ MOBILE (≤640px) ============ */
+@media (max-width: 770px) {
+  html, body { overflow-x: hidden; }
+
+  .checkoutContainer {
+    /* max-width: 100%; */
+    width: 360px;
+    margin: 0 auto;     /* ზევით ცოტა ჰედერისგან დაშორება */
+    margin-top: 170px;
+    /* padding: 80px; */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;     /* ორი სვეტი -> ერთი კოლონა */
+    gap: 16px;
+  }
+
+  .cartSummary {
+    width: 100%;
+    max-width: none;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 0;
+  }
+
+  .form {
+    width: 100%;
+    max-width: none;
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  /* საქონლის რიგები — კომპაქტური */
+  .cartItem {
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .cartItem img {
+    width: 56px;
+    height: 56px;
+    margin-right: 10px;
+  }
+  .cartItem strong { font-size: 15px; }
+  .cartItem p      { font-size: 12px; }
+
+  /* ინპუტები/ღილაკები — თითისთვის კომფორტული */
+  .input {
+    font-size: 16px;
+    padding: 10px 12px;
+    margin: 10px 0;
+  }
+  .submitBtn {
+    font-size: 16px;
+    padding: 12px;
+    margin-top: 12px;
+  }
+
+  /* რაოდენობა/მენეჯმენტი */
+  .controls { gap: 6px; }
+  .quantityBtn { padding: 6px 10px; font-size: 16px; }
+  .quantityDisplay { font-size: 15px; }
+
+  /* პატარა თუმბები Checkout სიაში */
+  .thumbWrap { width: 64px; height: 84px; margin-right: 10px; }
+  .thumb     { width: 100%; height: 100%; border-radius: 6px; object-fit: cover; }
+
+  /* მოდალური ფანჯრები ეკრანს არ გასცდეს */
+  .modalContent,
+  .errorModalContent {
+    width: min(92vw, 420px);
+    padding: 20px;
+    border-radius: 12px;
+    min-width: 0;
+  }
+}
+
+/* ============ VERY SMALL (≤380px) ============ */
+@media (max-width: 380px) {
+  .checkoutContainer {  gap: 12px; width: 360px; }
+  .cartItem img { width: 90px; height: 48px; }
+  .cartItem strong { font-size: 14px; }
+  .submitBtn { font-size: 15px; padding: 10px; }
+  .input { font-size: 15px; }
+}
+
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* xs: base styles */
+
+/* sm */
+@media (min-width: 480px){ /* small tweaks */ }
+
+/* md- */
+@media (min-width: 640px){ /* small/medium tweaks */ }
+
+/* md */
+@media (min-width: 768px){ /* medium screens */ }
+
+/* lg */
+@media (min-width: 1024px){ /* large screens */ }
+
+/* xl */
+@media (min-width: 1280px){ /* extra large screens */ }

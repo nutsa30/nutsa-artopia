@@ -1,0 +1,200 @@
+/* ===================== PRODUCTS PAGE (Home-ის ლეიაუთით) ===================== */
+
+/* ჰორიზონტალური სქროლი OFF */
+html, body, #root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
+/* Wrapper — Home .page-ის ანალოგი */
+.pageWrapper {
+  min-height: 100dvh;
+
+  /* navbar-ისგან ჰაერი (შეასწორე თუ სხვაა სიმაღლე) */
+  padding-top: 120px;
+
+  /* Home-ის კონტეინერის ლოგიკა */
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  padding-left: clamp(12px, 3vw, 24px);
+  padding-right: clamp(12px, 3vw, 24px);
+  padding-bottom: 16px;
+
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* ზედა ფილტრები */
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 20px;
+  width: 100%;
+}
+
+.selectDecor { width: 100%; }
+@media (min-width: 640px){
+  .selectDecor { width: auto; min-width: 360px; }
+}
+
+/* თუ გაქვს კატეგორიის ლეიბლი და საკონტროლოები */
+.categoryWrapper { display: flex; align-items: center; gap: 10px; font-size: 18px; color: #ddd; }
+.searchInput {
+  padding: 10px 20px;
+  border-radius: 12px;
+  background-color: #1f2e44;
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  width: 250px;
+}
+.searchInput::placeholder { color: #ccc; }
+
+/* === Products list — Home .grid-ის ქცევით === */
+.productsContainer {
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ====== Catalog grid (კარდს არ ვეხებით) — MOBILE FIRST ====== */
+.productsGrid,
+.catalogGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 562px){
+  .productsGrid,
+  .catalogGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+}
+@media (min-width: 768px){
+  .productsGrid,
+  .catalogGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+}
+@media (min-width: 1024px){
+  .productsGrid,
+  .catalogGrid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px; }
+}
+@media (min-width: 1280px){
+  .productsGrid,
+  .catalogGrid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; }
+}
+
+/* Overflow პრევენცია */
+.productsGrid, .catalogGrid, .cardWrap { min-width: 0; }
+.productsGrid > *, .catalogGrid > * { min-width: 0; }
+
+/* ინლაინის ამოსაღებად: wrapper-ის relative */
+.cardWrap { position: relative; }
+
+/* პაგინაცია */
+.paginationContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+  list-style-type: none;
+  width: 100%;
+}
+.paginationContainer a {
+  padding: 10px 20px;
+  margin: 0 5px;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+}
+.paginationContainer a:hover { background-color: #4caf50; }
+.paginationContainer .activePage {
+  background-color: #4caf50;
+  color: #fff;
+  font-weight: bold;
+  border: 2px solid #4caf50;
+  transform: none;
+}
+
+/* პატარა ეკრანზე პაგინაციის გამარტივება */
+@media (max-width: 640px) {
+  .pgItem { display: none; }          /* ყველა ნომერი დამალული */
+  .activePage { display: inline-flex; }/* აქტიური ნომერი ჩანდეს */
+  .pgPrev, .pgNext { display: inline-flex; } /* Prev/Next ყოველთვის */
+}
+
+
+/* === GAP TUNING — Products/Catalog grid === */
+.productsGrid,
+.catalogGrid { gap: 16px; }                       /* base */
+
+@media (min-width: 562px){
+  .productsGrid,
+  .catalogGrid { gap: 18px; }
+}
+@media (min-width: 768px){
+  .productsGrid,
+  .catalogGrid { gap: 20px; }
+}
+@media (min-width: 1024px){
+  .productsGrid,
+  .catalogGrid { gap: 22px; }
+}
+@media (min-width: 1280px){
+  .productsGrid,
+  .catalogGrid { gap: 24px; }
+}
+
+/* ≤480px-ზე ოდნავ შეკუმშული, რომ ყველაფერი დაეტიოს */
+@media (max-width: 480px){
+  .productsGrid,
+  .catalogGrid { gap: 14px; }
+}
+
+
+/* === GAP TUNING — Home grids (კომპონენტებს არ ვეხებით) === */
+.section :global([class*="HomeNewProducts"]) [class*="grid"],
+.section :global([class*="HomeSaleProducts"]) [class*="grid"] { gap: 16px !important; }
+
+@media (min-width: 562px){
+  .section :global([class*="HomeNewProducts"]) [class*="grid"],
+  .section :global([class*="HomeSaleProducts"]) [class*="grid"] { gap: 18px !important; }
+}
+@media (min-width: 900px){
+  .section :global([class*="HomeNewProducts"]) [class*="grid"],
+  .section :global([class*="HomeSaleProducts"]) [class*="grid"] { gap: 20px !important; }
+}
+@media (min-width: 1116px){
+  .section :global([class*="HomeNewProducts"]) [class*="grid"],
+  .section :global([class*="HomeSaleProducts"]) [class*="grid"] { gap: 22px !important; }
+}
+
+/* ≤480px — ოდნავ კომპაქტური */
+@media (max-width: 480px){
+  .section :global([class*="HomeNewProducts"]) [class*="grid"],
+  .section :global([class*="HomeSaleProducts"]) [class*="grid"] { gap: 14px !important; }
+}
+
+
+/* ≥1200px — სვეტები ოდნავ ვიწრო + მეტი ჰაერი */
+@media (min-width: 1000px) {
+  .productsGrid {
+    grid-template-columns: repeat(4 ,1fr); 
+    row-gap: 26px;
+  }
+}
+
+
+/* 768–1000px → 3 ბარათი ერთ ხაზზე (Products page) */
+@media (min-width: 768px) and (max-width: 1000px) {
+  .productsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+    .catalogGrid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+
+}
+

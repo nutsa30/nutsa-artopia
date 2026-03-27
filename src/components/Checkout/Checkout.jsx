@@ -1,0 +1,491 @@
+// src/components/Checkout/Checkout.jsx
+import React, { useState, useMemo, useEffect } from "react";
+import styles from "./Checkout.module.css";
+import { useCart } from "../CartContext/CartContext";
+import { useNavigate } from "react-router-dom";
+import StarburstBadge from "../StartburstBadge";
+import BrushBadge from "../BrushBadge";
+import { useLang } from "../../LanguageContext";
+
+const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
+
+const DEFAULT_PICKUP_ADDRESS_EN =
+  "Pickup at Artopia store, Simon Chikovani 45, Tbilisi";
+const DEFAULT_PICKUP_ADDRESS_KA =
+  "ადგილზე გატანა - არტოპია, სიმონ ჩიკოვანის 45, თბილისი";
+
+const isTbilisi = (str) => {
+  const lc = (str || "").trim().toLowerCase();
+  return lc === "tbilisi" || lc === "თბილისი";
+};
+
+const fmt = (n) => Number(n ?? 0).toFixed(2);
+
+const unitPrice = (it) => {
+  const price = Number(it?.price || 0);
+  const sale = Number(it?.sale || 0);
+  if (sale > 0 && sale <= 100) {
+    return +(price * (1 - sale / 100)).toFixed(2);
+  }
+  return +price.toFixed(2);
+};
+
+/* ---------------------- Labels ---------------------- */
+const LBL = {
+  ka: {
+    cartEmpty: "კალათა ცარიელია",
+    orderDetails: "შეკვეთის დეტალები",
+    newBadge: "ახალი",
+    subtotal: "შეკვეთის ჯამური ღირებულება",
+    discount30: "ფასდაკლება 30%",
+    deliveryFee: "მიტანის საფასური",
+    total: "ჯამი",
+    firstName: "სახელი",
+    lastName: "გვარი",
+    email: "იმეილი",
+    phone: "ტელეფონი",
+    city: "აირჩიეთ ქალაქი",
+    address: "მისამართი",
+    promo: "პრომო კოდი",
+    comment: "კომენტარი",
+    deliveryOption: "აირჩიეთ მიტანის ვარიანტი",
+    paymentMethod: "აირჩიეთ გადახდის მეთოდი",
+    payCard: "ბარათით გადახდა",
+    // optExpress: "ექსპრეს მიტანა",
+    optTomorrow: "მომდევნო დღე",
+    optPickup: "ადგილზე მისვლით",
+    optRegional: "რეგიონალური მიტანა (8 ₾)",
+    proceed: "გაგრძელება",
+    errOrderCreate: "შეკვეთის შექმნა ვერ მოხერხდა",
+    errChooseProduct: "გთხოვთ ჯერ აირჩიოთ პროდუქტი",
+    successPaid: "✅ შეკვეთა და ტესტ-გადახდა წარმატებით შესრულდა!",
+    successCreatedOnly: "✅ შეკვეთა შეიქმნა (ტესტ-გადახდა ვერ შესრულდა)",
+    successCreated: "✅ შეკვეთა შექმნილია.",
+    close: "დახურვა",
+  },
+  en: {
+    cartEmpty: "Your cart is empty",
+    orderDetails: "Order details",
+    newBadge: "New",
+    subtotal: "Subtotal",
+    discount30: "Pickup discount 30%",
+    deliveryFee: "Delivery fee",
+    total: "Total",
+    firstName: "First name",
+    lastName: "Last name",
+    email: "Email",
+    phone: "Phone",
+    city: "Choose city",
+    address: "Address",
+    promo: "Promo code",
+    comment: "Comment",
+    deliveryOption: "Choose delivery option",
+    paymentMethod: "Choose payment method",
+    payCard: "Pay by card",
+    // optExpress: "Express delivery",
+    optTomorrow: "Next-day delivery",
+    optPickup: "Store pickup",
+    optRegional: "Regional delivery (8 ₾)",
+    proceed: "Continue",
+    errOrderCreate: "Order creation failed",
+    errChooseProduct: "Please add product(s) first",
+    successPaid: "✅ Order + test payment completed successfully!",
+    successCreatedOnly: "✅ Order created (test payment failed)",
+    successCreated: "✅ Order created.",
+    close: "Close",
+  },
+};
+
+const CITIES_GE = [
+  "თბილისი","ბათუმი","რუსთავი","ქუთაისი","გორი","ფოთი","ზუგდიდი","მარნეული","ხაშური","სამტრედია","ზესტაფონი",
+  "თელავი","ქობულეთი","ახალციხე","სენაკი","ოზურგეთი","კასპი","ჭიათურა","გარდაბანი","ბორჯომი","საგარეჯო","ყვარელი",
+  "ბოლნისი","ტყიბული","ხონი","წყალტუბო","ახალქალაქი","მცხეთა","გურჯაანი","დუშეთი","ქარელი","ლანჩხუთი","ახმეტა",
+  "ლაგოდეხი","საჩხერე","დედოფლისწყარო","ვალე","თერჯოლა","წნორი","თეთრიწყარო","აბაშა","მარტვილი","ნინოწმინდა","წალკა",
+  "ვანი","ხობი","დმანისი","წალენჯიხა","ბაღდათი","ონი","ჩხოროწყუ","ამბროლაური","სიღნაღი","ჯვარი","ცაგერი",
+];
+
+const Checkout = () => {
+  const { cartItems, updateQuantity, removeFromCart } = useCart();
+  const navigate = useNavigate();
+  const { lang } = useLang();
+  const T = LBL[lang] || LBL.ka;
+  const DEFAULT_PICKUP_ADDRESS =
+    lang === "en" ? DEFAULT_PICKUP_ADDRESS_EN : DEFAULT_PICKUP_ADDRESS_KA;
+
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    city: "",
+    address: "",
+    deliveryOption: "",
+    // მხოლოდ ბარათი
+    paymentMethod: "card",
+    coupon_code: "",
+    comment: "",
+  });
+
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const subtotal = cartItems.reduce(
+    (s, it) => s + unitPrice(it) * (it.quantity || 0),
+    0
+  );
+
+  const deliveryOptions = useMemo(() => {
+    if (isTbilisi(formData.city)) {
+      return [
+        // { value: "immediateDelivery", label: T.optExpress },
+        { value: "deliveryTomorrow", label: T.optTomorrow },
+        { value: "storePickup", label: T.optPickup },
+      ];
+    }
+    if (formData.city) {
+      const regionalLabel = subtotal >= 50 ? "რეგიონალური მიტანა (უფასო)" : "რეგიონალური მიტანა (8 ₾)";
+      return [{ value: "regionalDelivery", label: regionalLabel }];
+    }
+    return [];
+  }, [formData.city, cartItems, lang, subtotal, T]);
+
+  // რეგიონი არჩეულია → ავტომატურად regionalDelivery
+  useEffect(() => {
+    if (formData.city && !isTbilisi(formData.city)) {
+      setFormData((prev) => ({ ...prev, deliveryOption: "regionalDelivery" }));
+    }
+  }, [formData.city]);
+
+  const preview = useMemo(() => {
+    const inTbilisi = isTbilisi(formData.city);
+    let delivery_fee = 0;
+    let extra_discount = 0;
+
+    if (inTbilisi) {
+      if (formData.deliveryOption === "storePickup") {
+        delivery_fee = 0;
+        // extra_discount = +(subtotal * 0.30).toFixed(2);
+      } else if (formData.deliveryOption === "deliveryTomorrow") {
+        delivery_fee = subtotal >= 30 ? 0 : 6;
+      } else if (formData.deliveryOption === "immediateDelivery") {
+        delivery_fee = subtotal >= 60 ? 0 : 10;
+      }
+    } else if (formData.city) {
+      delivery_fee = subtotal >= 50 ? 0 : 8;
+    }
+
+    const total = Math.max(0, +(subtotal - extra_discount + delivery_fee).toFixed(2));
+    return { subtotal: +subtotal.toFixed(2), delivery_fee, extra_discount, total };
+  }, [subtotal, formData.city, formData.deliveryOption]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (cartItems.length === 0) {
+      setError(T.errChooseProduct);
+      return;
+    }
+    setError("");
+
+    const draft = {
+      formData,
+      items: cartItems.map((it) => ({
+        id: it.id,
+        name: it.name,
+        price: it.price,
+        sale: it.sale || 0,
+        quantity: it.quantity,
+        image: it.image_url1 || null,
+      })),
+      totals: {
+        subtotal: Number(preview.subtotal),
+        delivery_fee: Number(preview.delivery_fee),
+        extra_discount: Number(preview.extra_discount),
+        total: Number(preview.total),
+      },
+      // სურვილის შემთხვევაში: pickup მისამართი (არააუცილებელია)
+      pickup_address: DEFAULT_PICKUP_ADDRESS,
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/payments/bog/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draft),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.redirect_url) {
+        throw new Error(`HTTP ${res.status} – redirect_url not provided`);
+      }
+
+      // გამოვიყენოთ order_id/state ფოლბექისთვის
+      try {
+        const u = new URL(data.redirect_url);
+        const orderId = u.searchParams.get("order_id");
+        if (orderId) sessionStorage.setItem("last_bog_order_id", orderId);
+      } catch {}
+
+      if (data.state) sessionStorage.setItem("last_bog_state", data.state);
+
+      window.location.href = data.redirect_url;
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "გადახდის ინიციალიზაცია ვერ მოხერხდა");
+    }
+  };
+
+  return (
+    <div className={`${styles.checkoutContainer} product-card`}>
+      <div className={styles.cartSummary}>
+        {cartItems.length === 0 ? (
+          <p>{T.cartEmpty}</p>
+        ) : (
+          <>
+            <h2>{T.orderDetails}</h2>
+            {cartItems.map((item) => {
+              const up = unitPrice(item);
+              const hasSale = Number(item?.sale || 0) > 0 && Number(item.sale) <= 100;
+              const line = up * (item.quantity || 0);
+              return (
+                <div key={item.id} className={styles.cartItem}>
+                  <div className={styles.thumbWrap}>
+                    {hasSale && (
+                      <StarburstBadge
+                        value={item.sale}
+                        size={44}
+                        className={styles.saleBadge}
+                      />
+                    )}
+                    {item?.is_new && (
+                      <BrushBadge
+                        text={T.newBadge}
+                        size={40}
+                        className={styles.newBadge}
+                      />
+                    )}
+                    <img
+                      src={item.image_url1 || "https://via.placeholder.com/60"}
+                      alt={item.name}
+                      className={styles.thumb}
+                    />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <span
+                      style={{
+                        display: "block",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                      title={item.name}
+                    >
+                      {item.name}
+                    </span>
+                    <div>
+                      {fmt(up)} ₾ × {item.quantity} = <b>{fmt(line)} ₾</b>
+                    </div>
+                    <div className={styles.controls}>
+                      <button
+                        onClick={() => updateQuantity(item.id, -1)}
+                        disabled={item.quantity === 1}
+                      >
+                        –
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.id, 1)}>+</button>
+                      <button onClick={() => removeFromCart(item.id)}>🗑</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className={styles.totalPrice}>
+              <div>
+                {T.subtotal}: <strong>{fmt(preview.subtotal)} ₾</strong>
+              </div>
+              {preview.extra_discount > 0 && (
+                <div>
+                  {T.discount30}: <strong>-{fmt(preview.extra_discount)} ₾</strong>
+                </div>
+              )}
+              {formData.deliveryOption && formData.deliveryOption !== "storePickup" && (
+                <div>
+                  {T.deliveryFee}: <strong>{fmt(preview.delivery_fee)} ₾</strong>
+                </div>
+              )}
+              <hr />
+              <div>
+                {T.total}: <strong>{fmt(preview.total)} ₾</strong>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <input
+          name="first_name"
+          placeholder={T.firstName}
+          value={formData.first_name}
+          onChange={handleChange}
+          className={styles.input}
+          required
+        />
+        <input
+          name="last_name"
+          placeholder={T.lastName}
+          value={formData.last_name}
+          onChange={handleChange}
+          className={styles.input}
+          required
+        />
+        <input
+          name="email"
+          type="email"
+          placeholder={T.email}
+          value={formData.email}
+          onChange={handleChange}
+          className={styles.input}
+          required
+        />
+        <input
+          name="phone"
+          placeholder={T.phone}
+          value={formData.phone}
+          onChange={handleChange}
+          className={styles.input}
+          required
+        />
+
+        <select
+          name="city"
+          value={formData.city}
+          onChange={handleChange}
+          className={styles.input}
+          required
+        >
+          <option value="">{T.city}</option>
+          {CITIES_GE.map((city, idx) => (
+            <option key={idx} value={city}>
+              {city}
+            </option>
+          ))}
+        </select>
+
+        <select
+          name="deliveryOption"
+          value={formData.deliveryOption}
+          onChange={handleChange}
+          className={styles.input}
+          required
+        >
+          <option value="">{T.deliveryOption}</option>
+          {deliveryOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+
+        {formData.deliveryOption !== "storePickup" && (
+          <input
+            name="address"
+            placeholder={T.address}
+            value={formData.address}
+            onChange={handleChange}
+            className={styles.input}
+            required
+          />
+        )}
+
+        {formData.deliveryOption !== "storePickup" && (
+          <input
+            name="coupon_code"
+            placeholder={T.promo}
+            value={formData.coupon_code}
+            onChange={handleChange}
+            className={styles.input}
+          />
+        )}
+
+        <textarea
+          name="comment"
+          placeholder={T.comment}
+          value={formData.comment}
+          onChange={handleChange}
+          className={styles.input}
+          rows={3}
+        />
+
+        {/* მხოლოდ ბარათი — ერთადერთი ვარიანტი */}
+        <select
+          name="paymentMethod"
+          value={formData.paymentMethod}
+          onChange={handleChange}
+          className={styles.input}
+          required
+        >
+          <option value="card">{T.payCard}</option>
+        </select>
+
+        {/* ღილაკი ყოველთვის „გაგრძელება“ */}
+        <button type="submit" className={styles.submitBtn}>
+          {T.proceed}
+        </button>
+      </form>
+
+      {error && <div className={styles.errorMessage}>{error}</div>}
+
+      {successMessage && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              color: "black",
+              background: "#fff",
+              borderRadius: 12,
+              padding: 20,
+              width: 420,
+              maxWidth: "92vw",
+              boxShadow: "0 10px 30px rgba(0,0,0,.2)",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 10 }}>
+              {successMessage}
+            </div>
+            <button
+              onClick={() => {
+                setSuccessMessage("");
+                navigate("/products");
+              }}
+              className={styles.submitBtn}
+              aria-label={T.close}
+              title={T.close}
+            >
+              {T.close}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Checkout;

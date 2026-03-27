@@ -1,0 +1,48 @@
+:root {
+  /* --backgroundColor1: #07193d; */
+  --backgroundColor1: #0056FF;
+  --accentColor: #c7d6f9;
+  --backgroundColor2:#f4f4f4;
+}
+
+
+.goBackButton {
+  background: none;
+  border: 1px solid var(--backgroundColor2);
+  background-color: var(--accentColor);
+  color: var(--backgroundColor1);
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin: 20px;
+  cursor: pointer;
+}
+
+
+.goBackButton:hover{
+  color: white;
+  background-color: var(--backgroundColor1);
+}
+
+
+
+.editBtn,
+.deleteBtn {
+  background: none;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.editBtn { color: #2563eb; }
+.deleteBtn { color: #ef4444; }
+
+
+.editBtn:hover{
+  color:  #143680;
+
+}
+
+.deleteBtn:hover{
+  color: #a62a2a;
+}
+

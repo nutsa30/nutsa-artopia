@@ -1,0 +1,129 @@
+
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: url('../../assets/background2.jpg') no-repeat center center / cover;
+}
+
+.glassBox {
+  width: 400px;
+  padding: 2rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.01); /* Transparent white */
+  backdrop-filter: blur(20px);          /* Glass blur */
+  -webkit-backdrop-filter: blur(20px);  /* Safari support */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+}
+
+
+.h2{
+    display: flex;
+    margin: auto;
+    margin-top: 10px;
+}
+.usernameInput, .passwordInput{
+    width: 200px;
+    display: flex;
+    margin: auto;
+    border: solid rgb(183, 180, 180) 1px;
+    border-radius: 20px;
+    padding: 10px;
+   
+
+}
+
+.passwordInput{
+     margin-bottom: 30px;
+}
+
+.forgotPassBtn{
+    border: none;
+    background-color: transparent;
+    color: white;
+    cursor: pointer;
+    width: 120px;
+    display: flex;
+    margin: auto;
+
+}
+
+.forgotPassBtn:hover{
+    border-bottom: 2px solid black;
+    width: 110px;
+}
+
+
+.loginBtn{
+    
+    width: 80px;
+    height: 25px;
+    border-radius: 50px;
+    display: flex;
+    margin: auto;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    background-color:rgba(0, 0, 139, 0.145);
+    border: none;
+    cursor: pointer;
+
+}
+
+
+.loginBtn:hover{
+    background-color: rgba(0, 0, 139, 0.8);
+}
+
+.signupPage{
+    display: flex;
+    margin: auto;
+    gap: 20px;
+}
+
+.registerBtn{
+       
+    width: 80px;
+    height: 25px;
+    border-radius: 50px;
+    display: flex;
+    margin: auto;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    background-color:rgba(0, 0, 139, 0.145);
+    border: none;
+    cursor: pointer;
+
+}
+
+.registerBtn:hover{
+    background-color: rgba(0, 0, 139, 0.8);
+}
+
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* xs: base styles */
+
+/* sm */
+@media (min-width: 480px){ /* small tweaks */ }
+
+/* md- */
+@media (min-width: 640px){ /* small/medium tweaks */ }
+
+/* md */
+@media (min-width: 768px){ /* medium screens */ }
+
+/* lg */
+@media (min-width: 1024px){ /* large screens */ }
+
+/* xl */
+@media (min-width: 1280px){ /* extra large screens */ }

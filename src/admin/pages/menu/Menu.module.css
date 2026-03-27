@@ -1,0 +1,97 @@
+
+
+.productList { margin-top: 30px; font-weight: 600; }
+
+.productItem { list-style: none; padding: 0; }
+
+.productListSimbol {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.productListInner {
+  display: flex;
+  justify-content: space-between;
+}
+
+.productListName { display: flex; flex-direction: column; }
+
+.pName { color: black; font-weight: bold; }
+
+.pDescription { color: gray; font-size: 13px; }
+
+.pCategory { color: #555; font-size: 13px; margin-top: 4px; }
+
+.price { font-weight: bold; color: #2563eb; }
+
+.stock { margin-top: 4px; }
+
+.productImage {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+
+.editBtn:hover{
+  background-color: #143783;
+}
+
+.searchInput {
+  width: 85%;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  outline: none;
+}
+
+
+.imageGroup {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.productImage {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-right: 8px;
+}
+
+.refresh{
+
+   width: 85%;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  outline: none;
+  background-color: white;
+  color: black;
+  cursor: pointer;
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+
+
+}
+
+.refresh:hover{
+  background-color: #143783;
+  color: white;
+
+}

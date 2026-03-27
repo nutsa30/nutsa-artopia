@@ -1,0 +1,95 @@
+.section {
+  margin: 24px 0 8px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.seeAll {
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #dbe2ea;
+  text-decoration: none;
+  color: #0f4f70;
+  background: #fff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1100px) {
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 780px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+
+.empty {
+  padding: 36px 14px;
+  text-align: center;
+  color: #6b7b87;
+  background: #f7f9fb;
+  border-radius: 14px;
+}
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 1100px) {
+  .skeletonGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 780px) {
+  .skeletonGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .skeletonGrid { grid-template-columns: 1fr; }
+}
+.skeletonCard {
+  height: 280px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #eef2f6, #f7f9fb, #eef2f6);
+  background-size: 200% 100%;
+  animation: sk 1.4s linear infinite;
+}
+@keyframes sk {
+  0% { background-position: 0% 0; }
+  100% { background-position: -200% 0; }
+}
+
+
+/* ====== @media skeleton (mobile-first) ====== */
+/* xs: base styles */
+
+/* sm */
+@media (min-width: 480px){ /* small tweaks */ }
+
+/* md- */
+@media (min-width: 640px){ /* small/medium tweaks */ }
+
+/* md */
+@media (min-width: 768px){ /* medium screens */ }
+
+/* lg */
+@media (min-width: 1024px){ /* large screens */ }
+
+/* xl */
+@media (min-width: 1280px){ /* extra large screens */ }
