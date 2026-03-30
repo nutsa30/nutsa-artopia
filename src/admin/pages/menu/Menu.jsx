@@ -121,6 +121,7 @@ const Menu = () => {
           description_ka: p.description ?? p.description_ka ?? "",
           description_en: "",
           is_new: !!p.is_new,
+          hide: !!p.hide,
         };
       });
 
@@ -415,13 +416,19 @@ selectedCategory === "ყველა" || p.category === selectedCategory
                       )}
                     </div>
 
-                    <div className={styles.stock}>
-                      {p.in_stock ? (
-                        <span style={{ color: "green" }}>✔️ მარაგშია</span>
-                      ) : (
-                        <span style={{ color: "red" }}>❌ არ არის მარაგში</span>
-                      )}
-                    </div>
+                  <div className={styles.stock}>
+  {p.in_stock ? (
+    <span style={{ color: "green" }}>✔️ მარაგშია</span>
+  ) : (
+    <span style={{ color: "red" }}>❌ არ არის მარაგში</span>
+  )}
+
+  {p.hide && (
+    <span style={{ color: "#555", marginLeft: 10 }}>
+      🚫 დამალულია
+    </span>
+  )}
+</div>
 
                     {/* რამდენიმე სურათი ლისტში (1–3 თამბნეილი + “+N”) */}
                     <div className={styles.images}>

@@ -270,6 +270,7 @@ category_id: editingProduct.category_id
         quantity: det.quantity ?? "",
         sale: det.sale ?? "",
         is_new: !!det.is_new,
+        hide: !!det.hide,
       }));
 
       const loaded = [];
