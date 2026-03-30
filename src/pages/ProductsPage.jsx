@@ -98,13 +98,13 @@ const compareProducts = (a, b) => {
   const aOut = aQty === 0;
   const bOut = bQty === 0;
 
-  // 🔥 OUT OF STOCK ყოველთვის ბოლოში
+  // ✅ ყოველთვის პირველ რიგში ეს
   if (aOut !== bOut) return aOut ? 1 : -1;
 
-  const aHasImg = !!a?.__hasRealImage;
-  const bHasImg = !!b?.__hasRealImage;
-
-  if (aHasImg !== bHasImg) return aHasImg ? -1 : 1;
+  // ⛔ დროებით საერთოდ ამოიღე ეს ბლოკი
+  // const aHasImg = !!a?.__hasRealImage;
+  // const bHasImg = !!b?.__hasRealImage;
+  // if (aHasImg !== bHasImg) return aHasImg ? -1 : 1;
 
   const aSale = hasSale(a) ? 1 : 0;
   const bSale = hasSale(b) ? 1 : 0;
@@ -114,18 +114,8 @@ const compareProducts = (a, b) => {
   const bNew = b?.is_new ? 1 : 0;
   if (aNew !== bNew) return bNew - aNew;
 
-  if (aSale && bSale) {
-    const saleDiff = Number(b.sale) - Number(a.sale);
-    if (saleDiff !== 0) return saleDiff;
-  }
-
-  const aTS = getTimestamp(a);
-  const bTS = getTimestamp(b);
-  if (aTS !== bTS) return bTS - aTS;
-
-  return String(a?.name || "").localeCompare(String(b?.name || ""), "ka");
+  return 0;
 };
-
 
 const ProductsPage = () => {
   const navigate = useNavigate();
