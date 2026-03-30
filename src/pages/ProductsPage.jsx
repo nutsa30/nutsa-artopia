@@ -12,13 +12,49 @@ import SEO from "../components/SEO";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
 const PRODUCTS_PER_PAGE = 20;
-
+const NO_IMAGE = "/noimage.jpeg";
 const slugify = (text = "") =>
   String(text || "")
     .toLowerCase()
     .replace(/[^a-z0-9ა-ჰ]+/gi, "-")
     .replace(/^-+|-+$/g, "");
+const getProductImages = (p) => {
+  const out = [];
 
+  if (Array.isArray(p?.images)) {
+    for (const it of p.images) {
+      if (typeof it === "string") out.push(it);
+      else if (it && typeof it.url === "string") out.push(it.url);
+    }
+  }
+
+  if (typeof p?.images === "string") {
+    try {
+      const parsed = JSON.parse(p.images);
+      if (Array.isArray(parsed)) {
+        for (const it of parsed) {
+          if (typeof it === "string") out.push(it);
+          else if (it && typeof it.url === "string") out.push(it.url);
+        }
+      }
+    } catch {}
+  }
+
+  for (let i = 1; i <= 6; i++) {
+    out.push(p?.[`image_url${i}`]);
+    out.push(p?.[`image${i}`]);
+    out.push(p?.[`img${i}`]);
+  }
+
+  return [...new Set(out.filter((u) => typeof u === "string" && u.trim()))];
+};
+
+const hasRealImage = (p) => getProductImages(p).length > 0;
+
+const getDisplayImage = (p) => {
+  const imgs = getProductImages(p);
+  return imgs[0] || NO_IMAGE;
+};
 const ProductsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -161,11 +197,18 @@ const handleBuyNow = (product, quantity) => {
       })
       .then((data) => {
         if (!mounted) return;
-        const list = Array.isArray(data) ? data : [];
-        setProducts(list);
+const list = Array.isArray(data) ? data : [];
 
-        const unique = [...new Set(list.map((p) => p.category).filter(Boolean))];
-        setCategories(unique);
+const normalized = list.map((p) => ({
+  ...p,
+  image_url1: getDisplayImage(p),
+  __hasRealImage: hasRealImage(p),
+}));
+
+setProducts(normalized);
+
+const unique = [...new Set(normalized.map((p) => p.category).filter(Boolean))];
+setCategories(unique);
       })
       .catch((err) => console.error(err))
       .finally(() => {
@@ -192,27 +235,40 @@ useEffect(() => {
     return Number.isFinite(ts) ? ts : 0;
   };
 
-  const compareProducts = (a, b) => {
-    const aSale = hasSale(a) ? 1 : 0;
-    const bSale = hasSale(b) ? 1 : 0;
-    if (aSale !== bSale) return bSale - aSale;
+const compareProducts = (a, b) => {
+  const aOut = !a?.in_stock || Number(a?.quantity ?? a?.details?.quantity ?? 0) <= 0;
+  const bOut = !b?.in_stock || Number(b?.quantity ?? b?.details?.quantity ?? 0) <= 0;
 
-    const aNew = a?.is_new ? 1 : 0;
-    const bNew = b?.is_new ? 1 : 0;
-    if (aNew !== bNew) return bNew - aNew;
+  // 1. ყველაზე ბოლოში — out of stock
+  if (aOut !== bOut) return aOut ? 1 : -1;
 
-    if (aSale && bSale) {
-      const aPct = a.sale;
-      const bPct = b.sale;
-      if (aPct !== bPct) return bPct - aPct;
-    }
+  const aNoImage = !a?.__hasRealImage;
+  const bNoImage = !b?.__hasRealImage;
 
-    const aTS = getTS(a);
-    const bTS = getTS(b);
-    if (aTS !== bTS) return bTS - aTS;
+  // 2. out of stock-მდე წინ — ფოტო არმქონე, მაგრამ მარაგში მყოფი
+  if (aNoImage !== bNoImage) return aNoImage ? 1 : -1;
 
-    return String(a?.name || "").localeCompare(String(b?.name || ""));
-  };
+  // ქვემოთ უკვე ძველი ლოგიკა
+  const aSale = hasSale(a) ? 1 : 0;
+  const bSale = hasSale(b) ? 1 : 0;
+  if (aSale !== bSale) return bSale - aSale;
+
+  const aNew = a?.is_new ? 1 : 0;
+  const bNew = b?.is_new ? 1 : 0;
+  if (aNew !== bNew) return bNew - aNew;
+
+  if (aSale && bSale) {
+    const aPct = a.sale;
+    const bPct = b.sale;
+    if (aPct !== bPct) return bPct - aPct;
+  }
+
+  const aTS = getTS(a);
+  const bTS = getTS(b);
+  if (aTS !== bTS) return bTS - aTS;
+
+  return String(a?.name || "").localeCompare(String(b?.name || ""));
+};
 
   const filteredProducts = useMemo(() => {
     const q = (searchTerm || "").toLowerCase();
