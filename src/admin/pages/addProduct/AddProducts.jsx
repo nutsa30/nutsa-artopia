@@ -171,7 +171,7 @@ useEffect(() => {
 }, [categories]);
   /** -------- Edit mode: state.product → base+EN detail merge -------- */
   useEffect(() => {
-    if (!editingProduct?.id) return;
+
 
     // 1) რაც გვაქვს state-დან (EN ველებს არ ვფარავთ)
     setForm((f) => ({
@@ -182,7 +182,13 @@ useEffect(() => {
       description_en: editingProduct.description_en ?? "",
       slug_ka: editingProduct.slug_ka ?? "",
       slug_en: editingProduct.slug_en ?? "",
-      category_id: editingProduct.category_id ? String(editingProduct.category_id) : "",
+category_id: editingProduct.category_id
+  ? String(editingProduct.category_id)
+  : (
+      categories.find(c => c.name === editingProduct.category_name)?.id
+        ? String(categories.find(c => c.name === editingProduct.category_name).id)
+        : ""
+    ),
       price: editingProduct.price ?? "",
       quantity: editingProduct.quantity ?? "",
       sale: editingProduct.sale ?? "",
