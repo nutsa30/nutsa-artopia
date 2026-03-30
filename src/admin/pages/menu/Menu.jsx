@@ -524,8 +524,8 @@ const handleEdit = (product) => {
   <EdgePager
     totalPages={totalPages}
     currentPage={safeCurrentPage}
-    onPageChange={({ selected }) => setCurrentPage(selected + 1)}
-  />
+onChange={(page) => setCurrentPage(page)}
+    />
 )}
           {loading && <span style={{ marginLeft: 8 }}>იტვირთება…</span>}
           {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
