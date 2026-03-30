@@ -49,8 +49,16 @@ const getProductImages = (p) => {
   return [...new Set(out.filter((u) => typeof u === "string" && u.trim()))];
 };
 
-const hasRealImage = (p) => getProductImages(p).length > 0;
+const hasRealImage = (p) => {
+  const imgs = getProductImages(p);
 
+  return imgs.some(
+    (url) =>
+      url &&
+      url !== NO_IMAGE &&
+      !url.includes("noimage")
+  );
+};
 const getDisplayImage = (p) => {
   const imgs = getProductImages(p);
   return imgs[0] || NO_IMAGE;
@@ -235,20 +243,24 @@ useEffect(() => {
     return Number.isFinite(ts) ? ts : 0;
   };
 
-const compareProducts = (a, b) => {
-  const aOut = !a?.in_stock || Number(a?.quantity ?? a?.details?.quantity ?? 0) <= 0;
-  const bOut = !b?.in_stock || Number(b?.quantity ?? b?.details?.quantity ?? 0) <= 0;
 
-  // 1. ყველაზე ბოლოში — out of stock
+const compareProducts = (a, b) => {
+  const getQty = (p) =>
+    Number(p?.quantity ?? p?.details?.quantity ?? 0);
+
+  const aOut = getQty(a) <= 0;
+  const bOut = getQty(b) <= 0;
+
+  // 1️⃣ ყველაზე ბოლოში — out of stock
   if (aOut !== bOut) return aOut ? 1 : -1;
 
-  const aNoImage = !a?.__hasRealImage;
-  const bNoImage = !b?.__hasRealImage;
+  const aHasImg = a?.__hasRealImage;
+  const bHasImg = b?.__hasRealImage;
 
-  // 2. out of stock-მდე წინ — ფოტო არმქონე, მაგრამ მარაგში მყოფი
-  if (aNoImage !== bNoImage) return aNoImage ? 1 : -1;
+  // 2️⃣ შემდეგ — ფოტო არმქონე (მაგრამ მარაგში)
+  if (aHasImg !== bHasImg) return aHasImg ? -1 : 1;
 
-  // ქვემოთ უკვე ძველი ლოგიკა
+  // 3️⃣ ქვემოთ შენი არსებული ლოგიკა
   const aSale = hasSale(a) ? 1 : 0;
   const bSale = hasSale(b) ? 1 : 0;
   if (aSale !== bSale) return bSale - aSale;
@@ -258,9 +270,7 @@ const compareProducts = (a, b) => {
   if (aNew !== bNew) return bNew - aNew;
 
   if (aSale && bSale) {
-    const aPct = a.sale;
-    const bPct = b.sale;
-    if (aPct !== bPct) return bPct - aPct;
+    if (a.sale !== b.sale) return b.sale - a.sale;
   }
 
   const aTS = getTS(a);

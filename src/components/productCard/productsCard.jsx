@@ -128,7 +128,7 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
         <img
           ref={imgRef}
           className={styles.image}
-          src={product.image_url1 || "https://via.placeholder.com/300x250.png?text=No+Image"}
+          src={product.image_url1 || "/noimage.jpeg"}
           alt={title || "product"}
         />
 

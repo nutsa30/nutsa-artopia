@@ -264,15 +264,11 @@ const inStock = maxQty > 0;
             </button>
           )}
 
-          {images.length > 0 ? (
-            <img
-              src={images[currentImageIndex]}
-              alt={title || product.name}
-              className={styles.productImage}
-            />
-          ) : (
-            <div className={styles.imgPlaceholder} />
-          )}
+<img
+  src={images.length > 0 ? images[currentImageIndex] : "/noimage.jpeg"}
+  alt={title || product.name}
+  className={styles.productImage}
+/>
 
           {images.length > 1 && (
             <button
