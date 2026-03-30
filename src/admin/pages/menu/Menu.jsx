@@ -178,12 +178,13 @@ useEffect(() => {
   // edit დაბრუნებისას არ ავიდეთ
   if (activeId) return;
 
-  if (containerRef.current) {
-    containerRef.current.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
+  const scroller =
+    document.scrollingElement || document.documentElement || document.body;
+
+  scroller.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
 }, [currentPage]);
 
   useEffect(() => {
