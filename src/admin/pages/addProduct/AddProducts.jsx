@@ -1,5 +1,5 @@
 // src/admin/pages/addProduct/AddProducts.jsx
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   getCategories,
   createProductForm,
@@ -114,7 +114,6 @@ export default function AddProducts() {
 
   /** -------- State -------- */
   const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
 
   const [form, setForm] = useState({
     name_ka: "",
@@ -124,7 +123,6 @@ export default function AddProducts() {
     slug_ka: "",
     slug_en: "",
     category_id: "",
-    subcategory_id: "",
     price: "",
     in_stock: true,
     sale: "",
@@ -138,8 +136,6 @@ export default function AddProducts() {
   const [catModalOpen, setCatModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
 
-  const [subModalOpen, setSubModalOpen] = useState(false);
-  const [newSubName, setNewSubName] = useState("");
 
   /** -------- Init (categories) -------- */
   useEffect(() => {
@@ -152,42 +148,6 @@ export default function AddProducts() {
       }
     })();
   }, [lang]);
-
-  /** -------- Subcategories fetch -------- */
-  const fetchSubcategoriesForCategory = async (categoryId) => {
-    if (!categoryId) {
-      setSubcategories([]);
-      return;
-    }
-    const cat = categories.find((c) => String(c.id) === String(categoryId));
-    const categoryKey = cat?.base_name || cat?.name;
-    if (!categoryKey) {
-      setSubcategories([]);
-      return;
-    }
-    try {
-      const res = await fetch(
-        `${API_BASE}/subcategories?category=${encodeURIComponent(categoryKey)}`,
-        { credentials: "include" }
-      );
-      const text = await res.text();
-      const data = safeJson(text);
-      if (!res.ok) throw new Error(data?.message || data?.error || text || "ქვეკატეგორიების წამოღება ვერ მოხერხდა");
-      setSubcategories(Array.isArray(data) ? data.filter((s) => s.is_active !== false) : []);
-    } catch {
-      setSubcategories([]);
-    }
-  };
-
-  useEffect(() => {
-    if (!form.category_id) {
-      setSubcategories([]);
-      setForm((f) => ({ ...f, subcategory_id: "" }));
-      return;
-    }
-    fetchSubcategoriesForCategory(form.category_id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.category_id, categories]);
 
   /** -------- Edit mode: state.product → base+EN detail merge -------- */
   useEffect(() => {
@@ -203,7 +163,6 @@ export default function AddProducts() {
       slug_ka: editingProduct.slug_ka ?? "",
       slug_en: editingProduct.slug_en ?? "",
       category_id: editingProduct.category_id ?? "",
-      subcategory_id: editingProduct.subcategory_id ?? "",
       price: editingProduct.price ?? "",
       in_stock: !!editingProduct.in_stock,
       sale: editingProduct.sale ?? "",
@@ -280,7 +239,6 @@ export default function AddProducts() {
         slug_ka: det.slug_ka || det.slug || "",
         slug_en: pickSlugEN(en) || "",
         category_id: det.category_id || "",
-        subcategory_id: det.subcategory_id || "",
         price: det.price ?? "",
         in_stock: !!det.in_stock,
         sale: det.sale ?? "",
@@ -303,56 +261,6 @@ export default function AddProducts() {
     })();
   }, [routeId, editingProduct]);
 
-  /** -------- Auto-match Category/Subcategory -------- */
-  useEffect(() => {
-    if (!editingProduct) return;
-    if (!categories.length) return;
-    if (form.category_id) return;
-
-    const catNameFromProduct =
-      editingProduct.category ||
-      editingProduct.category_name ||
-      editingProduct.categoryName ||
-      "";
-
-    if (!catNameFromProduct) return;
-
-    const match = categories.find(
-      (c) =>
-        sameName(c.name, catNameFromProduct) ||
-        sameName(c.base_name, catNameFromProduct)
-    );
-
-    if (match) {
-      setForm((f) => ({ ...f, category_id: String(match.id), subcategory_id: "" }));
-    }
-  }, [editingProduct, categories, form.category_id]);
-
-  useEffect(() => {
-    if (!editingProduct) return;
-    if (!form.category_id) return;
-    if (!subcategories.length) return;
-    if (form.subcategory_id) return;
-
-    const subNameFromProduct =
-      editingProduct.subcategory ||
-      editingProduct.sub_category ||
-      editingProduct.subCategory ||
-      editingProduct.subcategory_name ||
-      editingProduct.subCategoryName ||
-      "";
-
-    if (!subNameFromProduct) return;
-
-    const match = subcategories.find(
-      (s) => sameName(s.name, subNameFromProduct) || sameName(s.base_name, subNameFromProduct)
-    );
-
-    if (match) {
-      setForm((f) => ({ ...f, subcategory_id: String(match.id) }));
-    }
-  }, [editingProduct, form.category_id, subcategories, form.subcategory_id]);
-
   /** -------- Handlers -------- */
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -366,12 +274,10 @@ export default function AddProducts() {
   };
 
   const handlePickCategory = (e) => {
-    setForm((f) => ({ ...f, category_id: e.target.value, subcategory_id: "" }));
+setForm((f) => ({ ...f, category_id: e.target.value }));
   };
 
-  const handlePickSubcategory = (e) => {
-    setForm((f) => ({ ...f, subcategory_id: e.target.value }));
-  };
+
 
   // Images add
   const handleImages = (e) => {
@@ -452,41 +358,6 @@ export default function AddProducts() {
     }
   };
 
-  const createSubcategory = async (name) => {
-    const cat = categories.find((c) => String(c.id) === String(form.category_id));
-    const categoryKey = cat?.base_name || cat?.name;
-    if (!categoryKey) throw new Error("კატეგორია არასწორია");
-    const res = await fetch(`${API_BASE}/subcategories`, {
-      method: "POST",
-      credentials: "include",
-      headers: adminHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({
-        category: categoryKey,
-        name: name.trim(),
-        is_active: true,
-      }),
-    });
-    const text = await res.text();
-    const data = safeJson(text);
-    if (!res.ok) throw new Error(data?.message || data?.error || text || "ქვეკატეგორიის დამატება ვერ მოხერხდა");
-  };
-
-  const deleteSubcategory = async (id) => {
-    const res = await fetch(`${API_BASE}/subcategories/${id}`, {
-      method: "DELETE",
-      credentials: "include",
-      headers: adminHeaders(),
-    });
-    const text = await res.text();
-    const data = safeJson(text);
-    if (!res.ok) {
-      throw new Error(data?.message || data?.error || text || "ქვეკატეგორიის წაშლა ვერ მოხერხდა");
-    }
-  };
-
-  const refreshSubcategories = async () => {
-    await fetchSubcategoriesForCategory(form.category_id);
-  };
 
   /** -------- Compose FormData -------- */
   const buildFormData = async () => {
@@ -505,12 +376,9 @@ export default function AddProducts() {
     if (form.sale !== "") fd.append("sale", String(parseInt(form.sale, 10)));
 
     fd.append("category_id", String(form.category_id || ""));
-    if (form.subcategory_id) fd.append("subcategory_id", String(form.subcategory_id));
 
     const catObj = categories.find((c) => String(c.id) === String(form.category_id));
-    const subObj = subcategories.find((s) => String(s.id) === String(form.subcategory_id));
     if (catObj?.base_name) fd.append("category", catObj.base_name);
-    if (subObj?.name) fd.append("subcategory", subObj.name);
 
     for (let slot = 1; slot <= MAX_IMAGES; slot++) {
       const item = images[slot - 1];
@@ -575,7 +443,6 @@ export default function AddProducts() {
         slug_ka: "",
         slug_en: "",
         category_id: "",
-        subcategory_id: "",
         price: "",
         in_stock: true,
         sale: "",
@@ -591,10 +458,6 @@ export default function AddProducts() {
     }
   };
 
-  const canPickSubs = useMemo(
-    () => !!form.category_id && subcategories.length > 0,
-    [form.category_id, subcategories.length]
-  );
 
   return (
     <div className={styles.adminPanel}>
@@ -651,37 +514,8 @@ export default function AddProducts() {
             </button>
           </div>
 
-          <label style={M.lbl}>ქვეკატეგორია</label>
-          <select
-            name="subcategory_id"
-            value={form.subcategory_id}
-            onChange={handlePickSubcategory}
-            className={styles.input}
-            disabled={!form.category_id}
-          >
-            <option value="">
-              {!form.category_id
-                ? "ჯერ აირჩიე კატეგორია"
-                : (subcategories.length ? "აირჩიე ქვეკატეგორია (არჩევითი)" : "ამ კატეგორიას ქვეკატეგორია არ აქვს")}
-            </option>
-            {subcategories.map((ს) => (
-              <option key={ს.id} value={ს.id}>
-                {ს.name}
-              </option>
-            ))}
-          </select>
 
-          <div style={{ marginTop: 6, marginBottom: 12 }}>
-            <button
-              type="button"
-              onClick={() => setSubModalOpen(true)}
-              style={{ ...M.addBtn, opacity: form.category_id ? 1 : 0.5, pointerEvents: form.category_id ? "auto" : "none" }}
-              title={form.category_id ? "დამატება" : "ჯერ აირჩიე კატეგორია"}
-            >
-              + ქვეკატეგორიის დამატება
-            </button>
-          </div>
-
+        
           <input
             name="sale"
             value={form.sale}
@@ -791,8 +625,7 @@ export default function AddProducts() {
                     try {
                       await deleteCategory(c.id);
                       if (String(form.category_id) === String(c.id)) {
-                        setForm((f) => ({ ...f, category_id: "", subcategory_id: "" }));
-                        setSubcategories([]);
+                          setForm((f) => ({ ...f, category_id: "" }));
                       }
                       await refreshCategories();
                     } catch (e) {
@@ -825,69 +658,7 @@ export default function AddProducts() {
           </div>
         </div>
       </Modal>
-
-      {/* ქვეკატეგორიის მოდალი */}
-      <Modal open={subModalOpen} title="ქვეკატეგორიის დამატება" onClose={() => setSubModalOpen(false)}>
-        {!form.category_id ? (
-          <div style={M.muted}>ჯერ აირჩიე კატეგორია.</div>
-        ) : (
-          <div style={{ display: "grid", gap: 12 }}>
-            <div>
-              <div style={M.smallLbl}>დასახელება</div>
-              <input
-                value={newSubName}
-                onChange={(e) => setNewSubName(e.target.value)}
-                placeholder="სახელი"
-                style={M.input}
-              />
-            </div>
-            <div>
-              <div style={M.smallLbl}>არსებული ქვეკატეგორიები</div>
-              <div style={M.chips}>
-                {subcategories.length === 0 && <div style={M.muted}>ცარიელია</div>}
-                {subcategories.map((s) => (
-                  <Chip
-                    key={s.id}
-                    text={s.name}
-                    onRemove={async () => {
-                      if (!window.confirm(`წავშალოთ ქვეკატეგორია "${s.name}"?`)) return;
-                      try {
-                        await deleteSubcategory(s.id);
-                        if (String(form.subcategory_id) === String(s.id)) {
-                          setForm((f) => ({ ...f, subcategory_id: "" }));
-                        }
-                        await refreshSubcategories();
-                      } catch (e) {
-                        alert(e.message || "წაშლა ვერ მოხერხდა");
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button type="button" onClick={() => setSubModalOpen(false)} style={M.btnGhost}>დახურვა</button>
-              <button
-                type="button"
-                onClick={async () => {
-                  const n = (newSubName || "").trim();
-                  if (!n) return;
-                  try {
-                    await createSubcategory(n);
-                    setNewSubName("");
-                    await refreshSubcategories();
-                  } catch (e) {
-                    alert(e.message || "დამატება ვერ მოხერხდა");
-                  }
-                }}
-                style={M.btnPrimary}
-              >
-                შენახვა
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
+ 
     </div>
   );
 }

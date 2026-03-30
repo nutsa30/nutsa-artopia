@@ -67,16 +67,6 @@ const getCatName = (p) => {
   ).toString().trim();
 };
 
-// ქვეკატეგორიის სახელის ამოღება
-const getSubName = (p) => {
-  const s = p?.subcategory ?? p?.sub_category ?? p?.subCategory ?? p?.details?.subcategory;
-  return (
-    p?.subcategory_name ||
-    p?.subCategoryName ||
-    (typeof s === "string" ? s : s?.name || s?.base_name) ||
-    ""
-  ).toString().trim();
-};
 
 // ტექსტების ამოღება KA/EN (ლისტისთვის EN optional)
 const pickDescKA = (p) => (p.description_ka ?? p.description ?? "").trim();
@@ -97,9 +87,7 @@ const Menu = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState(["ყველა"]);
   const [selectedCategory, setSelectedCategory] = useState("ყველა");
-  const [subcategories, setSubcategories] = useState(["ყველა"]);
-  const [selectedSubcategory, setSelectedSubcategory] = useState("ყველა");
-
+ 
   const [selectedStock, setSelectedStock] = useState("all"); // all | in | out
   const [selectedSale, setSelectedSale] = useState("all");   // all | discounted | nodiscount
   const [selectedNew, setSelectedNew] = useState("all");     // all | new | old
@@ -130,10 +118,7 @@ const Menu = () => {
           sale: p.sale,
           in_stock: !!p.in_stock,
           category: getCatName(p),
-          subcategory: getSubName(p),
           category_id: p.category_id ?? p.category?.id ?? "",
-          subcategory_id:
-            p.subcategory_id ?? p.sub_category_id ?? p.subCategoryId ?? p.subcategory?.id ?? "",
           image_url1: imgs[0] || null,
           image_url2: imgs[1] || null,
           image_url3: imgs[2] || null,
@@ -186,7 +171,6 @@ const Menu = () => {
         pickDescKA(p),
         pickDescEN(p),
         p.category,
-        p.subcategory,
       ]
         .filter(Boolean)
         .join(" ")
@@ -196,9 +180,6 @@ const Menu = () => {
       const matchesCategory =
         selectedCategory === "ყველა" || getCatName(p) === selectedCategory;
 
-      const matchesSubcategory =
-        selectedSubcategory === "ყველა" ||
-        ((getSubName(p) || "").trim().toLowerCase() === (selectedSubcategory || "").trim().toLowerCase());
 
       const matchesStock =
         selectedStock === "all" ||
@@ -221,13 +202,12 @@ const Menu = () => {
       return (
         matchesSearch &&
         matchesCategory &&
-        matchesSubcategory &&
         matchesStock &&
         matchesSale &&
         matchesNew
       );
     });
-  }, [allProducts, searchTerm, selectedCategory, selectedSubcategory, selectedStock, selectedSale, selectedNew]);
+}, [allProducts, searchTerm, selectedCategory, selectedStock, selectedSale, selectedNew]);
 
   const visible = useMemo(
     () => filtered.slice(0, visibleCount),
@@ -238,8 +218,6 @@ const Menu = () => {
   const handleRefresh = () => {
     setSearchTerm("");
     setSelectedCategory("ყველა");
-    setSelectedSubcategory("ყველა");
-    setSubcategories(["ყველა"]);
     setSelectedStock("all");
     setSelectedSale("all");
     setSelectedNew("all");
@@ -260,23 +238,6 @@ const Menu = () => {
     }
   };
 
-  useEffect(() => {
-    const pool =
-      selectedCategory === "ყველა"
-        ? allProducts
-        : allProducts.filter((p) => getCatName(p) === selectedCategory);
-
-    const uniqSubs = Array.from(
-      new Set(
-        pool
-          .map((p) => (getSubName(p) || "").trim())
-          .filter(Boolean)
-      )
-    );
-
-    setSubcategories(["ყველა", ...uniqSubs]);
-    setSelectedSubcategory("ყველა");
-  }, [allProducts, selectedCategory]);
 
   // -------- Render --------
   return (
@@ -315,19 +276,6 @@ const Menu = () => {
             {categories.map((cat, idx) => (
               <option key={idx} value={cat}>
                 {cat}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={selectedSubcategory}
-            onChange={(e) => setSelectedSubcategory(e.target.value)}
-            className={styles.searchInput}
-            title="ქვეკატეგორია"
-          >
-            {subcategories.map((sub, idx) => (
-              <option key={idx} value={sub}>
-                {sub}
               </option>
             ))}
           </select>
@@ -431,10 +379,9 @@ const Menu = () => {
                       </span>
                     )}
 
-                    {(getCatName(p) || getSubName(p)) && (
+                    {getCatName(p)  && (
                       <div className={styles.pCategory}>
                         კატეგორია: {getCatName(p) || "—"}
-                        {getSubName(p) ? <span> → {getSubName(p)}</span> : null}
                       </div>
                     )}
 

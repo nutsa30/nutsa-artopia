@@ -42,8 +42,6 @@ const ProductsPage = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
-  const [selectedSubcategories, setSelectedSubcategories] = useState([]); // multi
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -140,154 +138,10 @@ const handleBuyNow = (product, quantity) => {
 
   navigate("/checkout");
 };
-  const getSubOf = (p) =>
-    p?.subcategory ??
-    p?.sub_category ??
-    p?.subCategory ??
-    p?.details?.subcategory ??
-    null;
 
-  // --- 1) პირველ რენდერზე ამოიკითხე კატეგორია + ქვეკატეგორია URL-დან ან localStorage-დან
-  useEffect(() => {
-    const safe = (v) => (typeof v === "string" ? v.trim() : "");
-    const safeArr = (v) => {
-      if (!v) return [];
-      try {
-        const parsed = JSON.parse(v);
-        if (Array.isArray(parsed)) {
-          return parsed.map(safe).filter(Boolean);
-        }
-      } catch {
-        // ignore
-      }
-      return String(v)
-        .split(",")
-        .map(safe)
-        .filter(Boolean);
-    };
 
-    const paramsQ = new URLSearchParams(location.search);
 
-    // კატეგორია
-    const catFromURL = safe(paramsQ.get("cat"));
-    const catFromLS = safe(localStorage.getItem("artopia.selectedCategory"));
-    const initialCat = catFromURL || catFromLS || "";
 
-    if (initialCat) {
-      setSelectedCategory(initialCat);
-    } else {
-      localStorage.removeItem("artopia.selectedCategory");
-    }
-
-    // ქვეკატეგორიები (single + multi)
-    const subFromURL = safe(paramsQ.get("sub"));
-    const subsFromURLRaw = safe(paramsQ.get("subs"));
-    const subsFromURL = subsFromURLRaw
-      ? subsFromURLRaw.split(",").map(safe).filter(Boolean)
-      : [];
-
-    const subFromLS = safe(localStorage.getItem("artopia.selectedSubcategory"));
-    const subsFromLS = safeArr(
-      localStorage.getItem("artopia.selectedSubcategories")
-    );
-
-    // პრიორიტეტი: URL.multi > URL.single > LS.multi > LS.single
-    if (subsFromURL.length > 0) {
-      setSelectedSubcategories(subsFromURL);
-      setSelectedSubcategory("");
-    } else if (subFromURL) {
-      setSelectedSubcategory(subFromURL);
-      setSelectedSubcategories([]);
-    } else if (subsFromLS.length > 0) {
-      setSelectedSubcategories(subsFromLS);
-      setSelectedSubcategory("");
-    } else if (subFromLS) {
-      setSelectedSubcategory(subFromLS);
-      setSelectedSubcategories([]);
-    } else {
-      setSelectedSubcategory("");
-      setSelectedSubcategories([]);
-      localStorage.removeItem("artopia.selectedSubcategory");
-      localStorage.removeItem("artopia.selectedSubcategories");
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // --- 2) ყოველ ცვლილებაზე ჩავწეროთ URL + localStorage (კატეგორია + ქვეკატეგორია/ები)
-  useEffect(() => {
-    const paramsQ = new URLSearchParams(location.search);
-
-    const currentCatInURL = paramsQ.get("cat") || "";
-    const currentSubInURL = paramsQ.get("sub") || "";
-    const currentSubsInURL = paramsQ.get("subs") || "";
-
-    const hasMultiSubs =
-      Array.isArray(selectedSubcategories) && selectedSubcategories.length > 0;
-
-    const subStr = hasMultiSubs ? "" : selectedSubcategory || "";
-    const subsStr = hasMultiSubs ? selectedSubcategories.join(",") : "";
-
-    // კატეგორია
-    if ((selectedCategory || "") !== currentCatInURL) {
-      if (selectedCategory) paramsQ.set("cat", selectedCategory);
-      else paramsQ.delete("cat");
-    }
-
-    // single sub
-    if (subStr !== currentSubInURL) {
-      if (subStr) paramsQ.set("sub", subStr);
-      else paramsQ.delete("sub");
-    }
-
-    // multi subs
-    if (subsStr !== currentSubsInURL) {
-      if (subsStr) paramsQ.set("subs", subsStr);
-      else paramsQ.delete("subs");
-    }
-
-    const newSearch = paramsQ.toString();
-    const currentSearch = location.search.startsWith("?")
-      ? location.search.slice(1)
-      : location.search;
-
-    // ⚠️ slug route-ზე path-ს არ ვეხებით, მხოლოდ query-ს ვაახლებთ
-    if (newSearch !== currentSearch) {
-      navigate(`${location.pathname}${newSearch ? `?${newSearch}` : ""}`, {
-        replace: true,
-      });
-    }
-
-    // localStorage update
-    if (selectedCategory) localStorage.setItem("artopia.selectedCategory", selectedCategory);
-    else localStorage.removeItem("artopia.selectedCategory");
-
-    if (hasMultiSubs) {
-      if (selectedSubcategories.length) {
-        localStorage.setItem(
-          "artopia.selectedSubcategories",
-          JSON.stringify(selectedSubcategories)
-        );
-      } else {
-        localStorage.removeItem("artopia.selectedSubcategories");
-      }
-      localStorage.removeItem("artopia.selectedSubcategory");
-    } else {
-      if (selectedSubcategory) {
-        localStorage.setItem("artopia.selectedSubcategory", selectedSubcategory);
-      } else {
-        localStorage.removeItem("artopia.selectedSubcategory");
-      }
-      localStorage.removeItem("artopia.selectedSubcategories");
-    }
-  }, [
-    selectedCategory,
-    selectedSubcategory,
-    selectedSubcategories,
-    navigate,
-    location.pathname,
-    location.search,
-  ]);
 
   // გვერდის შეცვლაზე ავტომატურად ავდივართ თავში
   useEffect(() => {
@@ -326,10 +180,9 @@ const handleBuyNow = (product, quantity) => {
   }, [lang]);
 
   // ფილტრის/ენის/ძებნის ცვლილებაზე – გვერდი 1-ზე
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCategory, selectedSubcategory, selectedSubcategories, searchTerm, lang]);
-
+useEffect(() => {
+  setCurrentPage(1);
+}, [selectedCategory, searchTerm, lang]);
   const hasSale = (p) =>
     typeof p?.sale === "number" && p.sale > 0 && p.sale <= 100;
 
@@ -361,42 +214,29 @@ const handleBuyNow = (product, quantity) => {
     return String(a?.name || "").localeCompare(String(b?.name || ""));
   };
 
-  // multi-subcategory support (OR logic)
   const filteredProducts = useMemo(() => {
     const q = (searchTerm || "").toLowerCase();
 
-    const subList = (selectedSubcategories || [])
-      .map((s) => String(s || "").toLowerCase().trim())
-      .filter(Boolean);
-    const hasMulti = subList.length > 0;
 
     return (products || []).filter((p) => {
       const pCat = String(p.category || p?.details?.category || "").trim();
       const pName = String(p.name || "").toLowerCase();
-      const pSub = String(getSubOf(p) || "").toLowerCase().trim();
 
       const matchesSearch = pName.includes(q);
 
-      const matchesSub = hasMulti
-        ? subList.includes(pSub)
-        : !selectedSubcategory ||
-          pSub === String(selectedSubcategory).toLowerCase().trim();
 
-      const matchesCategory = hasMulti
-        ? true
-        : selectedCategory
-        ? pCat === selectedCategory
-        : true;
+const matchesCategory =
+  selectedCategory
+    ? pCat === selectedCategory
+    : true;
 
-      return matchesCategory && matchesSearch && matchesSub;
-    });
-  }, [
-    products,
-    selectedCategory,
-    selectedSubcategory,
-    selectedSubcategories,
-    searchTerm,
-  ]);
+return matchesCategory && matchesSearch;
+      });
+}, [
+  products,
+  selectedCategory,
+  searchTerm,
+]);
 
   const sortedFilteredProducts = useMemo(
     () => [...filteredProducts].sort(compareProducts),
@@ -471,18 +311,6 @@ const handleBuyNow = (product, quantity) => {
               categories={categories}
               selectedCategory={selectedCategory}
               onCategoryChange={handleCategoryChange}
-              selectedSubcategory={selectedSubcategory}
-              onSubcategoryChange={(sub) => {
-                if (sub) setSearchTerm("");
-                setSelectedSubcategory(sub);
-                setSelectedSubcategories([]);
-              }}
-              selectedSubcategories={selectedSubcategories}
-              onSubcategoriesChange={(arr) => {
-                setSelectedSubcategories(arr);
-                setSelectedSubcategory("");
-                setCurrentPage(1);
-              }}
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
             />
