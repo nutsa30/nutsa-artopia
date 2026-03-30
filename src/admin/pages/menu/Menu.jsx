@@ -76,7 +76,6 @@ const Menu = () => {
   const [error, setError] = useState("");
 const PAGE_SIZE = 20;
 const PAGE_KEY = "admin_menu_page";
-const SCROLL_KEY = "admin_menu_scroll";
 
 const [currentPage, setCurrentPage] = useState(
   Number(localStorage.getItem(PAGE_KEY)) || 1
@@ -174,6 +173,11 @@ useEffect(() => {
 }, [currentPage]);
 
 useEffect(() => {
+  const activeId = localStorage.getItem(ACTIVE_PRODUCT_KEY);
+
+  // 👉 თუ edit-იდან ვბრუნდებით — არ ავიდეთ მაღლა
+  if (activeId) return;
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }, [currentPage]);
 
@@ -239,21 +243,19 @@ const visible = useMemo(() => {
 }, [filtered, safeCurrentPage]);
 useEffect(() => {
   const activeId = localStorage.getItem(ACTIVE_PRODUCT_KEY);
+  if (!activeId || visible.length === 0) return;
 
-  if (activeId) {
-    requestAnimationFrame(() => {
-      const el = document.getElementById(`product-${activeId}`);
-      if (el) {
-        el.scrollIntoView({
-          behavior: "auto",
-          block: "center", // 🔥 შუაში დაასვამს (ძალიან კარგია UX)
-        });
-      }
+  requestAnimationFrame(() => {
+    const el = document.getElementById(`product-${activeId}`);
+    if (el) {
+      el.scrollIntoView({
+        behavior: "auto",
+        block: "center",
+      });
       localStorage.removeItem(ACTIVE_PRODUCT_KEY);
-    });
-  }
+    }
+  });
 }, [visible]);
-
   // -------- Refresh: reset filters + reload --------
   const handleRefresh = () => {
     setSearchTerm("");
