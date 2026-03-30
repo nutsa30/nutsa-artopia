@@ -549,7 +549,7 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
     checked={form.hide}
     onChange={handleChange}
   />
-  დამალულია?
+  დამალვა
 </label>
           <input
             name="price"
