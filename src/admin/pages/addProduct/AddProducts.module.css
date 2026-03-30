@@ -1,168 +1,123 @@
 .adminPanel {
-  max-width:  80%;
+  max-width: 1100px;
   margin: 40px auto;
   padding: 24px;
-  background-color: #f9fafb;
+  background: #f9fafb;
+  border-radius: 16px;
+}
+
+.adminForm {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.adminFormContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 🔥 INFO CARD */
+.infoCard {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  font-family: "Segoe UI", sans-serif;
-  
 }
 
+.infoCard h2 {
+  margin: 0;
+  font-size: 22px;
+}
 
-.adminForm {
+.sub {
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.meta {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 20px;
+  margin-top: 10px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
- 
- 
-
 }
 
-
-
-.adminFormContainer{
+.meta div {
   display: flex;
-  gap: 12px;
   flex-direction: column;
-  min-width: 60%;
- 
-  
-  
-
-  
+  font-size: 13px;
+  color: #6b7280;
 }
 
-.input{
-  height: 50px;
+.meta b {
+  color: #111;
+  font-size: 15px;
 }
 
-
-
-.adminForm input,
-.adminForm textarea {
-  padding: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 1rem;
-  min-width: 300px;
-
-  
+.desc {
+  margin-top: 10px;
+  color: #444;
 }
 
-.adminForm button {
-  background-color: var(--accentColor);
-  color: var(--backgroundColor1);
-  border: none;
-  padding: 10px;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.adminForm button:hover {
-  background-color: var(--backgroundColor1);
-  color: white;
-}
-
-
-.cursorPointer {
-  width: 100%;
-  max-width: 500px;
-  height: auto;
-  min-height: 150px;
-  background-color: #f4f4f4;
-  border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 14px;
-  color:#666;
-  border: 1px dashed #ccc;
-  margin-bottom: 12px;
-  cursor: pointer;
+/* INPUT */
+.input {
   padding: 12px;
-}
-
-
-
-
-
-
-
-.adminForm {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
- 
- 
-
-}
-
-
-
-.adminFormContainer{
-  display: flex;
-  gap: 12px;
-  flex-direction: column;
-  min-width: 60%;
- 
-  
-  
-
-  
-}
-
-.input{
-  height: 50px;
-}
-
-
-
-.adminForm input,
-.adminForm textarea {
-  padding: 10px;
+  border-radius: 10px;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 1rem;
-  min-width: 300px;
-
-  
 }
 
-
-
-
-.cursorPointer{
-  width: 500px;
-  height: 500px;
-  background-color: #f4f4f4;
-  border-radius: 8px;
+/* CHECKBOX */
+.checkboxRow {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  font-size: 14px;
-  color:#666 ;
-  border:1px dashed #ccc ;
-  margin-bottom: 12px;
-  cursor: pointer;
-  overflow: hidden;
-
-
-
-  
+  gap: 20px;
 }
 
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
 
+.checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: #3b82f6;
+}
 
+/* BUTTON */
+.submitBtn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.submitBtn:hover {
+  background: #2563eb;
+}
+
+/* IMAGE */
+.imageSection {
+  flex: 1;
+}
+
+.uploadBox {
+  width: 100%;
+  height: 180px;
+  border: 2px dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  cursor: pointer;
+  background: white;
+}
 
 .previewContainer {
   display: flex;
@@ -181,62 +136,25 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 6px;
-  cursor: pointer;
+  border-radius: 8px;
 }
 
 .deleteBtn {
   position: absolute;
   top: -6px;
   right: -6px;
-  background-color: red;
+  background: red;
   color: white;
-  border: none;
   border-radius: 50%;
-  font-size: 14px;
-  cursor: pointer;
   width: 20px;
   height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-
-.zoomedImg {
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 8px;
-}
-
-.closeBtn {
-  position: absolute;
-  top: 30px;
-  right: 40px;
-  font-size: 28px;
-  color: white;
-  background: none;
   border: none;
   cursor: pointer;
 }
 
-.navBtn {
-  font-size: 30px;
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  margin: 0 30px;
+/* MOBILE */
+@media (max-width: 768px) {
+  .adminForm {
+    flex-direction: column;
+  }
 }

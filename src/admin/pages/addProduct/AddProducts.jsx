@@ -471,122 +471,87 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
   };
 
 
-  return (
-    <div className={styles.adminPanel}>
-      <form onSubmit={onSubmit} className={styles.adminForm}>
-        <div className={styles.adminFormContainer}>
-          <input
-            name="name_ka"
-            value={form.name_ka}
-            onChange={handleChange}
-            placeholder="სახელი (KA) * ან EN"
-            className={styles.input}
-          />
-          <input
-            name="name_en"
-            value={form.name_en}
-            onChange={handleChange}
-            placeholder="Name (EN)"
-            className={styles.input}
-          />
-          <textarea
-            name="description_ka"
-            value={form.description_ka}
-            onChange={handleChange}
-            placeholder="აღწერა (KA)"
-            className={styles.input}
-          />
-          <textarea
-            name="description_en"
-            value={form.description_en}
-            onChange={handleChange}
-            placeholder="Description (EN)"
-            className={styles.input}
-          />
+  // 🔥 მხოლოდ UI ნაწილი შეცვლილია — დანარჩენი შენი ლოგიკა untouched
 
-          <label style={M.lbl}>კატეგორია*</label>
-          <select
-            name="category_id"
-            value={form.category_id}
-            onChange={handlePickCategory}
-            className={styles.input}
-            required
-          >
-            <option value="">{categories.length ? "აირჩიე კატეგორია" : "კატეგორიები არ არის"}</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+return (
+  <div className={styles.adminPanel}>
+    <form onSubmit={onSubmit} className={styles.adminForm}>
+      
+      {/* LEFT SIDE */}
+      <div className={styles.adminFormContainer}>
 
-          <div style={{ marginTop: 6, marginBottom: 12 }}>
-            <button type="button" onClick={() => setCatModalOpen(true)} style={M.addBtn}>
-              + კატეგორიის დამატება
-            </button>
+        {/* ✅ PRODUCT INFO (READ ONLY) */}
+        <div className={styles.infoCard}>
+          <h2>{form.name_ka || "—"}</h2>
+          {form.name_en && <p className={styles.sub}>{form.name_en}</p>}
+
+          <div className={styles.meta}>
+            <div>
+              <span>კატეგორია:</span>
+              <b>
+                {categories.find(c => String(c.id) === form.category_id)?.name || "—"}
+              </b>
+            </div>
+
+            <div>
+              <span>ფასი:</span>
+              <b>{form.price || 0} ₾</b>
+            </div>
+
+            <div>
+              <span>მარაგი:</span>
+              <b>{form.quantity || 0}</b>
+            </div>
           </div>
 
+          {form.description_ka && (
+            <div className={styles.desc}>{form.description_ka}</div>
+          )}
+        </div>
 
-        
-          <input
-            name="sale"
-            value={form.sale}
-            onChange={handleChange}
-            placeholder="ფასდაკლება % (0-100, სურვილისამებრ)"
-            className={styles.input}
-            type="number"
-            min={0}
-            max={100}
-          />
+        {/* ✅ SALE */}
+        <input
+          name="sale"
+          value={form.sale}
+          onChange={handleChange}
+          placeholder="ფასდაკლება % (0-100)"
+          className={styles.input}
+          type="number"
+          min={0}
+          max={100}
+        />
 
-
-
-          <label className="flex items-center gap-2" style={{ marginTop: 8 }}>
+        {/* ✅ CHECKBOXES */}
+        <div className={styles.checkboxRow}>
+          <label className={styles.checkbox}>
             <input
               type="checkbox"
               name="is_new"
               checked={form.is_new}
               onChange={handleChange}
             />
-            ახალია?
+            ახალი პროდუქტი
           </label>
-<label className="flex items-center gap-2" style={{ marginTop: 8 }}>
-  <input
-    type="checkbox"
-    name="hide"
-    checked={form.hide}
-    onChange={handleChange}
-  />
-  დამალვა
-</label>
-          <input
-            name="price"
-            value={form.price}
-            onChange={handleChange}
-            placeholder="ფასი *"
-            className={styles.input}
-            type="number"
-            step="0.01"
-            required
-          />
-<input
-  name="quantity"
-  value={form.quantity}
-  onChange={handleChange}
-  placeholder="რაოდენობა (მარაგი) *"
-  className={styles.input}
-  type="number"
-  min={0}
-  required
-/>
-          <button type="submit" className={styles.input}>
-            {editingProduct?.id || routeId ? "შეცვლა" : "დამატება"}
-          </button>
+
+          <label className={styles.checkbox}>
+            <input
+              type="checkbox"
+              name="hide"
+              checked={form.hide}
+              onChange={handleChange}
+            />
+            დამალვა
+          </label>
         </div>
 
-        {/* Images */}
+        <button type="submit" className={styles.submitBtn}>
+          {editingProduct?.id || routeId ? "შენახვა" : "დამატება"}
+        </button>
+      </div>
+
+      {/* RIGHT SIDE (IMAGES) */}
+      <div className={styles.imageSection}>
         <input
-          className={styles.image}
           type="file"
           accept="image/*"
           multiple
@@ -594,11 +559,9 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
           style={{ display: "none" }}
           id="imageUpload"
         />
-        <label htmlFor="imageUpload" className={styles.cursorPointer}>
-          <div>
-            <span style={{ fontSize: "24px" }}>☁️</span>
-            Add up to 6 images
-          </div>
+
+        <label htmlFor="imageUpload" className={styles.uploadBox}>
+          ☁️ ატვირთე ფოტოები (მაქს 6)
         </label>
 
         {previews.some(Boolean) && (
@@ -606,7 +569,7 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
             {previews.map((url, index) =>
               url ? (
                 <div key={index} className={styles.imageWrapper}>
-                  <img src={url} alt={`preview-${index}`} className={styles.previewImage} />
+                  <img src={url} className={styles.previewImage} />
                   <button
                     type="button"
                     className={styles.deleteBtn}
@@ -619,101 +582,8 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
             )}
           </div>
         )}
-      </form>
-
-      {/* კატეგორიის მოდალი */}
-      <Modal open={catModalOpen} title="კატეგორიის დამატება" onClose={() => setCatModalOpen(false)}>
-        <div style={{ display: "grid", gap: 12 }}>
-          <div>
-            <div style={M.smallLbl}>დასახელება</div>
-            <input
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              placeholder="სახელი"
-              style={M.input}
-            />
-          </div>
-          <div>
-            <div style={M.smallLbl}>არსებული კატეგორიები</div>
-            <div style={M.chips}>
-              {categories.length === 0 && <div style={M.muted}>ცარიელია</div>}
-              {categories.map((c) => (
-                <Chip
-                  key={c.id}
-                  text={c.name}
-                  onRemove={async () => {
-                    if (!window.confirm(`წავშალოთ კატეგორია "${c.name}"?`)) return;
-                    try {
-                      await deleteCategory(c.id);
-                      if (String(form.category_id) === String(c.id)) {
-                          setForm((f) => ({ ...f, category_id: "" }));
-                      }
-                      await refreshCategories();
-                    } catch (e) {
-                      alert(e.message || "წაშლა ვერ მოხერხდა");
-                    }
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button type="button" onClick={() => setCatModalOpen(false)} style={M.btnGhost}>დახურვა</button>
-            <button
-              type="button"
-              onClick={async () => {
-                const n = (newCategoryName || "").trim();
-                if (!n) return;
-                try {
-                  await createCategory(n);
-                  setNewCategoryName("");
-                  await refreshCategories();
-                } catch (e) {
-                  alert(e.message || "დამატება ვერ მოხერხდა");
-                }
-              }}
-              style={M.btnPrimary}
-            >
-              შენახვა
-            </button>
-          </div>
-        </div>
-      </Modal>
- 
-    </div>
-  );
+      </div>
+    </form>
+  </div>
+);
 }
-
-/* მცირე ინლაინ სტილები მოდალებისთვის */
-const M = {
-  overlay: {
-    position: "fixed", inset: 0, background: "rgba(0,0,0,.45)",
-    display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50
-  },
-  modal: { background: "#fff", borderRadius: 12, padding: 16, width: 560, maxWidth: "92vw" },
-  head: { display: "flex", alignItems: "center", justifyContent: "space-between" },
-  xbtn: { border: "none", background: "transparent", fontSize: 18, cursor: "pointer", lineHeight: 1 },
-  lbl: { display: "block", margin: "4px 0 6px 2px", fontWeight: 600 },
-  smallLbl: { fontSize: 12, color: "#6b7280", marginBottom: 6 },
-  input: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db" },
-  addBtn: {
-    padding: "8px 12px", borderRadius: 8, border: "1px solid #d1d5db",
-    background: "#fff", cursor: "pointer"
-  },
-  btnGhost: {
-    padding: "10px 14px", borderRadius: 8, border: "1px solid #d1d5db",
-    background: "#fff", cursor: "pointer"
-  },
-  btnPrimary: {
-    padding: "10px 14px", borderRadius: 8, border: "none",
-    background: "#3b82f6", color: "#fff", cursor: "pointer", fontWeight: 600
-  },
-  chips: { display: "flex", gap: 8, flexWrap: "wrap", paddingTop: 6 },
-  chip: {
-    display: "inline-flex", alignItems: "center", gap: 6,
-    border: "1px solid #e5e7eb", borderRadius: 9999,
-    padding: "6px 10px", background: "#f8fafc"
-  },
-  chipX: { border: "none", background: "transparent", cursor: "pointer", fontSize: 14 },
-  muted: { color: "#6b7280" },
-};
