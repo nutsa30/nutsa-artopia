@@ -92,9 +92,13 @@ const normalizeProduct = (product) => {
 };
 
 const compareProducts = (a, b) => {
-  const aOut = normalizeQuantity(a?.quantity) === 0;
-  const bOut = normalizeQuantity(b?.quantity) === 0;
+  const aQty = normalizeQuantity(a?.quantity);
+  const bQty = normalizeQuantity(b?.quantity);
 
+  const aOut = aQty === 0;
+  const bOut = bQty === 0;
+
+  // 🔥 OUT OF STOCK ყოველთვის ბოლოში
   if (aOut !== bOut) return aOut ? 1 : -1;
 
   const aHasImg = !!a?.__hasRealImage;
@@ -119,11 +123,9 @@ const compareProducts = (a, b) => {
   const bTS = getTimestamp(b);
   if (aTS !== bTS) return bTS - aTS;
 
-  return String(a?.name || a?.name_ka || a?.name_en || "").localeCompare(
-    String(b?.name || b?.name_ka || b?.name_en || ""),
-    "ka"
-  );
+  return String(a?.name || "").localeCompare(String(b?.name || ""), "ka");
 };
+
 
 const ProductsPage = () => {
   const navigate = useNavigate();
