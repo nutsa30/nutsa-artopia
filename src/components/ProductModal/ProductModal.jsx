@@ -118,8 +118,21 @@ const [stockMessage, setStockMessage] = useState("");
 
   onAddToCart(safeProduct, quantity);
 };
-  const handleBuyNowClick = () =>
-    onBuyNow(product, quantity);
+const handleBuyNowClick = () => {
+  const safeProduct = {
+    ...product,
+    quantity:
+      product?.quantity ??
+      details?.quantity ??
+      0,
+    in_stock:
+      product?.in_stock ??
+      details?.in_stock ??
+      false,
+  };
+
+  onBuyNow(safeProduct, quantity);
+};
 
   const hasSale =
     typeof product?.sale === "number" &&

@@ -94,6 +94,28 @@ const ProductsPage = () => {
 
   const { addToCart } = useCart();
 
+const getAvailableQty = (p) => {
+  const qty = Number(p?.quantity ?? p?.details?.quantity);
+
+  if (Number.isFinite(qty) && qty >= 0) {
+    return qty;
+  }
+
+  const inStockFlag =
+    p?.in_stock === true ||
+    p?.in_stock === "true" ||
+    p?.details?.in_stock === true ||
+    p?.details?.in_stock === "true";
+
+  return inStockFlag ? 1 : 0;
+};
+
+const withStockSnapshot = (p) => ({
+  ...p,
+  quantity: getAvailableQty(p),
+  in_stock: getAvailableQty(p) > 0,
+});
+  
   // ===== scroll-to-top helper =====
   const scrollToTop = () => {
     const scroller =
@@ -117,14 +139,9 @@ const ProductsPage = () => {
   };
 
 const handleAddToCart = (product, quantity) => {
-  const maxQty =
-    product?.quantity ??
-    product?.details?.quantity ??
-    0;
+  const safeProduct = withStockSnapshot(product);
+  const maxQty = safeProduct.quantity;
 
-  console.log("ADD TO CART QTY:", maxQty); // debug
-
-  // ❌ არ არის მარაგში
   if (maxQty <= 0) {
     alert(
       lang === "en"
@@ -134,7 +151,6 @@ const handleAddToCart = (product, quantity) => {
     return;
   }
 
-  // ⚠️ აჭარბებს მარაგს
   if (quantity > maxQty) {
     alert(
       lang === "en"
@@ -142,20 +158,20 @@ const handleAddToCart = (product, quantity) => {
         : `მარაგში მხოლოდ ${maxQty} ცალია.`
     );
 
-    addToCart(product, maxQty);
+    addToCart(safeProduct, maxQty);
     setShowCartOpen(true);
     return;
   }
 
-  addToCart(product, quantity);
+  addToCart(safeProduct, quantity);
   setShowCartOpen(true);
 };
 
+
+
 const handleBuyNow = (product, quantity) => {
-  const maxQty =
-    product?.quantity ??
-    product?.details?.quantity ??
-    0;
+  const safeProduct = withStockSnapshot(product);
+  const maxQty = safeProduct.quantity;
 
   if (maxQty <= 0) {
     alert(
@@ -177,12 +193,11 @@ const handleBuyNow = (product, quantity) => {
   const safeQuantity = Math.min(quantity, maxQty);
 
   for (let i = 0; i < safeQuantity; i++) {
-    addToCart(product);
+    addToCart(safeProduct);
   }
 
   navigate("/checkout");
 };
-
 
 
 
