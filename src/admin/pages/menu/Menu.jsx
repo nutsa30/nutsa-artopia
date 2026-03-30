@@ -3,6 +3,7 @@ import styles from "./Menu.module.css";
 import { useNavigate } from "react-router-dom";
 import EdgePager from "../../../components/pagination/EdgePager";
 
+const ACTIVE_PRODUCT_KEY = "admin_active_product";
 const FILTERS_KEY = "admin_menu_filters";
 const API_BASE =
   (import.meta?.env?.VITE_API_BASE ?? "").trim() ||
@@ -236,17 +237,23 @@ const visible = useMemo(() => {
   const end = start + PAGE_SIZE;
   return filtered.slice(start, end);
 }, [filtered, safeCurrentPage]);
-
 useEffect(() => {
-  const savedY = Number(localStorage.getItem(SCROLL_KEY) || 0);
+  const activeId = localStorage.getItem(ACTIVE_PRODUCT_KEY);
 
-  if (savedY > 0) {
+  if (activeId) {
     requestAnimationFrame(() => {
-      window.scrollTo({ top: savedY, behavior: "auto" });
-      localStorage.removeItem(SCROLL_KEY); // 👈 ძალიან მნიშვნელოვანია
+      const el = document.getElementById(`product-${activeId}`);
+      if (el) {
+        el.scrollIntoView({
+          behavior: "auto",
+          block: "center", // 🔥 შუაში დაასვამს (ძალიან კარგია UX)
+        });
+      }
+      localStorage.removeItem(ACTIVE_PRODUCT_KEY);
     });
   }
-}, []);
+}, [visible]);
+
   // -------- Refresh: reset filters + reload --------
   const handleRefresh = () => {
     setSearchTerm("");
@@ -264,7 +271,7 @@ localStorage.removeItem(SCROLL_KEY);
   // -------- Actions --------
 const handleEdit = (product) => {
   localStorage.setItem(PAGE_KEY, String(currentPage));
-  localStorage.setItem(SCROLL_KEY, String(window.scrollY));
+localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
   navigate(`/admin/addProducts/${product.id}`, { state: { product } });
 };
 
@@ -374,8 +381,12 @@ const handleEdit = (product) => {
               : null;
 
             return (
-              <li key={p.id} className={styles.productListSimbol}>
-                <div className={styles.productListInner}>
+<li
+  key={p.id}
+  id={`product-${p.id}`} // 🔥 ეს დაამატე
+  className={styles.productListSimbol}
+>
+<div className={styles.productListInner}>
                   <div className={styles.productListName}>
                     <div
                       style={{
