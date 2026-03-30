@@ -130,7 +130,7 @@ const Menu = () => {
       const uniqCats = Array.from(
         new Set(
           trimmed
-            .map((p) => p.category || "")
+          .map((p) => p.category_name || p.category || "")
           .filter(Boolean)
             .map((s) => s.trim())
         )
@@ -370,9 +370,9 @@ selectedCategory === "ყველა" || p.category === selectedCategory
                       </span>
                     )}
 
-               {p.category && (
+{(p.category_name || p.category) && (
   <div className={styles.pCategory}>
-    კატეგორია: {p.category || "—"}
+    კატეგორია: {p.category_name || p.category || "—"}
   </div>
 )}
 
