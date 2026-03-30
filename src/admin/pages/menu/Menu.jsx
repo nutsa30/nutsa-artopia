@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./Menu.module.css";
 import { useNavigate } from "react-router-dom";
-import EdgePager from "../../components/pagination/EdgePager";
+import EdgePager from "../../../components/pagination/EdgePager";
 
 const FILTERS_KEY = "admin_menu_filters";
 const API_BASE =
