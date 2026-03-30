@@ -436,7 +436,6 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
 
     if (!form.name_ka.trim() && !form.name_en.trim())
       return alert("სახელი (KA ან EN) სავალდებულოა");
-    if (!form.category_id) return alert("აირჩიე კატეგორია");
     if (!form.price) return alert("ფასი სავალდებულოა");
 
     try {
