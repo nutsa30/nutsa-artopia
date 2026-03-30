@@ -240,12 +240,14 @@ const visible = useMemo(() => {
 
 useEffect(() => {
   const savedY = Number(localStorage.getItem(SCROLL_KEY) || 0);
+
   if (savedY > 0) {
     requestAnimationFrame(() => {
       window.scrollTo({ top: savedY, behavior: "auto" });
+      localStorage.removeItem(SCROLL_KEY); // 👈 ძალიან მნიშვნელოვანია
     });
   }
-}, [visible]);
+}, []);
   // -------- Refresh: reset filters + reload --------
   const handleRefresh = () => {
     setSearchTerm("");
@@ -524,7 +526,10 @@ const handleEdit = (product) => {
   <EdgePager
     totalPages={totalPages}
     currentPage={safeCurrentPage}
-onChange={(page) => setCurrentPage(page)}
+onChange={(page) => {
+  setCurrentPage(page);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}}
     />
 )}
           {loading && <span style={{ marginLeft: 8 }}>იტვირთება…</span>}
