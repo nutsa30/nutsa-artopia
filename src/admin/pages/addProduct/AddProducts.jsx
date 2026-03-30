@@ -149,7 +149,16 @@ const [form, setForm] = useState({
       }
     })();
   }, [lang]);
+useEffect(() => {
+  if (!categories.length) return;
+  if (!form.category_id) return;
 
+  // force re-render select-ისთვის
+  setForm((f) => ({
+    ...f,
+    category_id: String(f.category_id),
+  }));
+}, [categories]);
   /** -------- Edit mode: state.product → base+EN detail merge -------- */
   useEffect(() => {
     if (!editingProduct?.id) return;
@@ -163,7 +172,7 @@ const [form, setForm] = useState({
       description_en: editingProduct.description_en ?? "",
       slug_ka: editingProduct.slug_ka ?? "",
       slug_en: editingProduct.slug_en ?? "",
-      category_id: editingProduct.category_id ?? "",
+      category_id: editingProduct.category_id ? String(editingProduct.category_id) : "",
       price: editingProduct.price ?? "",
       quantity: editingProduct.quantity ?? "",
       sale: editingProduct.sale ?? "",
@@ -240,7 +249,7 @@ const [form, setForm] = useState({
         description_en: pickDescEN(en) || "",
         slug_ka: det.slug_ka || det.slug || "",
         slug_en: pickSlugEN(en) || "",
-        category_id: det.category_id || "",
+        category_id: det.category_id ? String(det.category_id) : "",
         price: det.price ?? "",
         quantity: det.quantity ?? "",
         sale: det.sale ?? "",
