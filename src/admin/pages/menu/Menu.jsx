@@ -71,10 +71,15 @@ const Menu = () => {
 
   // სრული მონაცემების კეში (ერთი ქოლით)
   const [allProducts, setAllProducts] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(50);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+const PAGE_SIZE = 20;
+const PAGE_KEY = "admin_menu_page";
+const SCROLL_KEY = "admin_menu_scroll";
 
+const [currentPage, setCurrentPage] = useState(
+  Number(localStorage.getItem(PAGE_KEY)) || 1
+);
   // ფილტრები
 const savedFilters = JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}");
 
@@ -143,12 +148,7 @@ const abortRef = useRef(null);
 
 setCategories(["ყველა", ...sortedCats, "სხვა"]);
 
-      setVisibleCount(50);
-    } catch (e) {
-      if (e.name !== "AbortError") {
-        console.error("⛔ products load:", e);
-        setError("ვერ ჩაიტვირთა პროდუქტების სია.");
-      }
+  
     } finally {
       setLoading(false);
     }
@@ -166,6 +166,14 @@ setCategories(["ყველა", ...sortedCats, "სხვა"]);
       selectedNew,
     })
   );
+}, [searchTerm, selectedCategory, selectedStock, selectedSale, selectedNew]);
+
+useEffect(() => {
+  localStorage.setItem(PAGE_KEY, String(currentPage));
+}, [currentPage]);
+
+useEffect(() => {
+  setCurrentPage(1);
 }, [searchTerm, selectedCategory, selectedStock, selectedSale, selectedNew]);
 
 
@@ -220,11 +228,24 @@ const matchesStock =
     });
 }, [allProducts, searchTerm, selectedCategory, selectedStock, selectedSale, selectedNew]);
 
-  const visible = useMemo(
-    () => filtered.slice(0, visibleCount),
-    [filtered, visibleCount]
-  );
+const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
 
+const safeCurrentPage = Math.min(currentPage, totalPages);
+
+const visible = useMemo(() => {
+  const start = (safeCurrentPage - 1) * PAGE_SIZE;
+  const end = start + PAGE_SIZE;
+  return filtered.slice(start, end);
+}, [filtered, safeCurrentPage]);
+
+useEffect(() => {
+  const savedY = Number(localStorage.getItem(SCROLL_KEY) || 0);
+  if (savedY > 0) {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: savedY, behavior: "auto" });
+    });
+  }
+}, [visible]);
   // -------- Refresh: reset filters + reload --------
   const handleRefresh = () => {
     setSearchTerm("");
@@ -232,14 +253,21 @@ const matchesStock =
     setSelectedStock("all");
     setSelectedSale("all");
     setSelectedNew("all");
-    setVisibleCount(50);
     fetchProductsOnce();
+    setCurrentPage(1);
+localStorage.removeItem(PAGE_KEY);
+localStorage.removeItem(SCROLL_KEY);
     localStorage.removeItem(FILTERS_KEY);
   };
 
   // -------- Actions --------
- const handleEdit = (product) =>
- navigate(`/admin/addProducts/${product.id}`, { state: { product } });
+const handleEdit = (product) => {
+  localStorage.setItem(PAGE_KEY, String(currentPage));
+  localStorage.setItem(SCROLL_KEY, String(window.scrollY));
+  navigate(`/admin/addProducts/${product.id}`, { state: { product } });
+};
+
+
   const handleDelete = async (id) => {
     try {
       await fetch(`${API}/${id}`, { method: "DELETE" });
@@ -492,14 +520,13 @@ const matchesStock =
 
         {/* “Load more” */}
         <div style={{ marginTop: 16 }}>
-          {visible.length < filtered.length && (
-            <button
-              onClick={() => setVisibleCount((c) => c + 50)}
-              className="editBtn"
-            >
-              მეტის ჩატვირთვა
-            </button>
-          )}
+      {totalPages > 1 && (
+  <EdgePager
+    totalPages={totalPages}
+    currentPage={safeCurrentPage}
+    onPageChange={({ selected }) => setCurrentPage(selected + 1)}
+  />
+)}
           {loading && <span style={{ marginLeft: 8 }}>იტვირთება…</span>}
           {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
         </div>

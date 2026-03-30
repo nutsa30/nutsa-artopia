@@ -248,10 +248,10 @@ useEffect(() => {
 
 
 const sortedCats = uniqueCategories
-  .filter((c) => c !== "სხვა" && c !== "ყველა")
+  .filter((c) => c !== "სხვა")
   .sort((a, b) => a.localeCompare(b, "ka"));
 
-setCategories(["ყველა", ...sortedCats, "სხვა"]);
+setCategories([...sortedCats, "სხვა"]);
 
       })
       .catch((err) => {
@@ -293,9 +293,10 @@ setCategories(["ყველა", ...sortedCats, "სხვა"]);
         categoryKa.includes(q) ||
         categoryEn.includes(q);
 
-      const matchesCategory = selectedCategory
-        ? productCategory === selectedCategory
-        : true;
+      const matchesCategory =
+  !selectedCategory ||
+  selectedCategory === "ყველა" ||
+  productCategory === selectedCategory;
 
       return matchesCategory && matchesSearch;
     });
