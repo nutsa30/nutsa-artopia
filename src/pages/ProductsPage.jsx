@@ -94,25 +94,16 @@ const ProductsPage = () => {
 
   const { addToCart } = useCart();
 
-const getAvailableQty = (p) => {
-  const raw = p?.quantity ?? p?.details?.quantity;
 
-  const qty = Number(raw);
-
-  if (Number.isFinite(qty) && qty > 0) {
-    return qty;
-  }
-
-  return 0;
-};
 
 const withStockSnapshot = (p) => {
-  const qty = getAvailableQty(p);
+  const raw = p?.quantity ?? p?.details?.quantity;
+  const qty = Number(raw);
 
   return {
     ...p,
-    quantity: qty,
-    in_stock: qty > 0,
+    quantity: Number.isFinite(qty) ? qty : 0,
+    // ❗ in_stock საერთოდ აღარ ვეხებით
   };
 };
   // ===== scroll-to-top helper =====
@@ -141,8 +132,12 @@ const handleAddToCart = (product, quantity) => {
   const safeProduct = withStockSnapshot(product);
   const maxQty = safeProduct.quantity;
 
-  if (maxQty <= 0) {
-    alert(
+if (
+  safeProduct?.in_stock === false ||
+  safeProduct?.in_stock === "false" ||
+  maxQty <= 0
+) {
+  alert(
       lang === "en"
         ? "This product is out of stock."
         : "პროდუქტი არ არის მარაგში."
@@ -172,7 +167,11 @@ const handleBuyNow = (product, quantity) => {
   const safeProduct = withStockSnapshot(product);
   const maxQty = safeProduct.quantity;
 
-  if (maxQty <= 0) {
+  if (
+    safeProduct?.in_stock === false ||
+    safeProduct?.in_stock === "false" ||
+    maxQty <= 0
+  ) {
     alert(
       lang === "en"
         ? "This product is out of stock."
