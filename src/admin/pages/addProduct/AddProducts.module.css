@@ -140,16 +140,8 @@
 }
 
 .deleteBtn {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: red;
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  border: none;
-  cursor: pointer;
+  background: transparent;
+  color: red;
 }
 
 /* MOBILE */

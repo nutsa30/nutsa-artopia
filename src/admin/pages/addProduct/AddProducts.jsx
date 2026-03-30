@@ -489,7 +489,10 @@ return (
             <div>
               <span>კატეგორია:</span>
               <b>
-                {categories.find(c => String(c.id) === form.category_id)?.name || "—"}
+{categories.find(c => String(c.id) === form.category_id)?.name 
+  || editingProduct?.category_name 
+  || editingProduct?.category 
+  || "—"}
               </b>
             </div>
 
