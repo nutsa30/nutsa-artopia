@@ -127,6 +127,7 @@ const [form, setForm] = useState({
   quantity: "",
   sale: "",
   is_new: false,
+  hide: false,
 });
 
   const [images, setImages] = useState([]);   // [{file,isNew}|{removed}]
@@ -167,6 +168,7 @@ const [form, setForm] = useState({
       quantity: editingProduct.quantity ?? "",
       sale: editingProduct.sale ?? "",
       is_new: !!editingProduct.is_new,
+      hide: !!editingProduct.hide,
     }));
 
     // 2) სურათები state-დან
@@ -242,6 +244,7 @@ const [form, setForm] = useState({
         price: det.price ?? "",
         quantity: det.quantity ?? "",
         sale: det.sale ?? "",
+        is_new: !!det.is_new,
         is_new: !!det.is_new,
       }));
 
@@ -372,6 +375,7 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
 
     fd.append("price", String(parseFloat(form.price || 0)));
     fd.append("is_new", form.is_new ? "true" : "false");
+    fd.append("hide", form.hide ? "true" : "false");
     if (form.sale !== "") fd.append("sale", String(parseInt(form.sale, 10)));
 
     fd.append("category_id", String(form.category_id || ""));
@@ -446,6 +450,7 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
         quantity: "",
         sale: "",
         is_new: false,
+        hide: false,
       });
       setImages([]);
       setPreviews([]);
@@ -537,7 +542,15 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
             />
             ახალია?
           </label>
-
+<label className="flex items-center gap-2" style={{ marginTop: 8 }}>
+  <input
+    type="checkbox"
+    name="hide"
+    checked={form.hide}
+    onChange={handleChange}
+  />
+  დამალულია?
+</label>
           <input
             name="price"
             value={form.price}
