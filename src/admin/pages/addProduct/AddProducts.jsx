@@ -149,6 +149,16 @@ const [form, setForm] = useState({
       }
     })();
   }, [lang]);
+
+useEffect(() => {
+  if (!form.name_en && form.name_ka) {
+    setForm(f => ({
+      ...f,
+      name_en: f.name_ka
+    }));
+  }
+}, [form.name_ka]);
+
 useEffect(() => {
   if (!categories.length) return;
   if (!form.category_id) return;
@@ -507,11 +517,29 @@ return (
             </div>
           </div>
 
-          {form.description_ka && (
-            <div className={styles.desc}>{form.description_ka}</div>
-          )}
+<textarea
+  name="description_ka"
+  value={form.description_ka}
+  onChange={handleChange}
+  placeholder="აღწერა (ქართული)"
+  className={styles.input}
+/>
         </div>
+<input
+  name="name_en"
+  value={form.name_en}
+  onChange={handleChange}
+  placeholder="ინგლისური სახელი"
+  className={styles.input}
+/>
 
+<textarea
+  name="description_en"
+  value={form.description_en}
+  onChange={handleChange}
+  placeholder="აღწერა (ინგლისური)"
+  className={styles.input}
+/>
         {/* ✅ SALE */}
         <input
           name="sale"

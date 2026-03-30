@@ -150,3 +150,17 @@
     flex-direction: column;
   }
 }
+.descBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.readonlyBox {
+  padding: 12px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 14px;
+}
