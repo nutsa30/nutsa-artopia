@@ -248,8 +248,20 @@ const compareProducts = (a, b) => {
   const getQty = (p) =>
     Number(p?.quantity ?? p?.details?.quantity ?? 0);
 
-  const aOut = getQty(a) <= 0;
-  const bOut = getQty(b) <= 0;
+  const isOut = (p) => {
+    const qty = getQty(p);
+
+    const inStockFlag =
+      p?.in_stock === true ||
+      p?.in_stock === "true" ||
+      p?.details?.in_stock === true ||
+      p?.details?.in_stock === "true";
+
+    return !inStockFlag || qty <= 0;
+  };
+
+  const aOut = isOut(a);
+  const bOut = isOut(b);
 
   // 1️⃣ ყველაზე ბოლოში — out of stock
   if (aOut !== bOut) return aOut ? 1 : -1;
@@ -260,7 +272,7 @@ const compareProducts = (a, b) => {
   // 2️⃣ შემდეგ — ფოტო არმქონე (მაგრამ მარაგში)
   if (aHasImg !== bHasImg) return aHasImg ? -1 : 1;
 
-  // 3️⃣ ქვემოთ შენი არსებული ლოგიკა
+  // 3️⃣ დანარჩენი ლოგიკა უცვლელი
   const aSale = hasSale(a) ? 1 : 0;
   const bSale = hasSale(b) ? 1 : 0;
   if (aSale !== bSale) return bSale - aSale;
@@ -279,7 +291,6 @@ const compareProducts = (a, b) => {
 
   return String(a?.name || "").localeCompare(String(b?.name || ""));
 };
-
   const filteredProducts = useMemo(() => {
     const q = (searchTerm || "").toLowerCase();
 
