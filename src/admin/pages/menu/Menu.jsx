@@ -5,8 +5,7 @@ import { useNavigate } from "react-router-dom";
 const API_BASE =
   (import.meta?.env?.VITE_API_BASE ?? "").trim() ||
   "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
-const API = `${API_BASE}/products`;
-
+const API = `${API_BASE}/products/admin`;
 /* ---------------- Helpers ---------------- */
 
 // ყველა შესაძლო წყაროდან აგროვებს product-ის ფოტოებს
