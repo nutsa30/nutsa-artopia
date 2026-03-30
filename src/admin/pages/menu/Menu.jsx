@@ -172,6 +172,9 @@ useEffect(() => {
   localStorage.setItem(PAGE_KEY, String(currentPage));
 }, [currentPage]);
 
+useEffect(() => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}, [currentPage]);
 
   useEffect(() => {
     fetchProductsOnce();
@@ -524,7 +527,6 @@ const handleEdit = (product) => {
     currentPage={safeCurrentPage}
 onChange={(page) => {
   setCurrentPage(page);
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }}
     />
 )}

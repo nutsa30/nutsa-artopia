@@ -2,17 +2,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "./EdgePager.module.css";
 
-/**
- * EdgePager
- *
- * Desktop: left window = 5, right = 2
- * Mobile:  left window = 3, right = 1
- *
- * ლოგიკა:
- * - ვაჩვენებთ "მსუქან" ფანჯარას (N გვერდი) currentPage-ის გარშემო
- * - ბოლოში ყოველთვის ბოლო right გვერდი
- * - თუ ფანჯარა და ბოლო გვერდები ერთმანეთთან აეკრა → სამწერტილი აღარ ჩანს
- */
 export default function EdgePager({ totalPages, currentPage, onChange }) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -24,52 +13,50 @@ export default function EdgePager({ totalPages, currentPage, onChange }) {
     return () => mq.removeEventListener?.("change", upd);
   }, []);
 
-  const edgeConfig = useMemo(() => {
+  const config = useMemo(() => {
     return isMobile
-      ? { left: 3, right: 1 } // mobile window + last 1
-      : { left: 5, right: 2 }; // desktop window + last 2
+      ? { siblingCount: 1 } // mobile
+      : { siblingCount: 2 }; // desktop
   }, [isMobile]);
 
   const items = useMemo(() => {
-    if (totalPages <= 0) return [];
+    if (totalPages <= 1) return [];
 
-    const { left: windowSize, right: rightCount } = edgeConfig;
-
-    // თუ სულ ცოტა გვერდია — ყველაფერი ვაჩვენოთ, სამწერტილის გარეშე
-    if (totalPages <= windowSize + rightCount) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-
-    // ფანჯარა (windowSize) უნდა ჩაიტიოს [1, totalPages - rightCount] დიაპაზონში
-    const maxStart = Math.max(1, totalPages - rightCount - windowSize + 1);
-    let start = currentPage - windowSize + 1; // ისე, რომ currentPage ფანჯრის ბოლოში ჯდეს
-    if (start < 1) start = 1;
-    if (start > maxStart) start = maxStart;
-
-    const end = start + windowSize - 1;
+    const { siblingCount } = config;
 
     const pages = [];
-    for (let p = start; p <= end && p <= totalPages; p++) {
-      pages.push(p);
-    }
 
-    // ბოლო rightCount გვერდი
-    const rightStart = totalPages - rightCount + 1;
-    const rightPages = [];
-    for (let p = rightStart; p <= totalPages; p++) {
-      if (!pages.includes(p)) rightPages.push(p);
-    }
+    const left = Math.max(currentPage - siblingCount, 1);
+    const right = Math.min(currentPage + siblingCount, totalPages);
 
-    // თუ ფანჯარასა და ბოლოში არსებულ გვერდებს შორის არის gap → სამწერტილი
-    if (
-      rightPages.length > 0 &&
-      pages[pages.length - 1] < rightPages[0] - 1
-    ) {
+    const showLeftDots = left > 2;
+    const showRightDots = right < totalPages - 1;
+
+    // always first
+    pages.push(1);
+
+    if (showLeftDots) {
       pages.push("…");
     }
 
-    return pages.concat(rightPages);
-  }, [edgeConfig, totalPages, currentPage]);
+    // middle pages
+    for (let i = left; i <= right; i++) {
+      if (i !== 1 && i !== totalPages) {
+        pages.push(i);
+      }
+    }
+
+    if (showRightDots) {
+      pages.push("…");
+    }
+
+    // always last
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+
+    return pages;
+  }, [totalPages, currentPage, config]);
 
   const goto = (p) => {
     if (!onChange) return;
@@ -97,8 +84,7 @@ export default function EdgePager({ totalPages, currentPage, onChange }) {
           <button
             type="button"
             key={`p${it}`}
-            data-page={it}
-            className={`${styles.pgBtn} ${styles.pgItem} ${
+            className={`${styles.pgBtn} ${
               it === currentPage ? styles.isActive : ""
             }`}
             onClick={() => goto(it)}

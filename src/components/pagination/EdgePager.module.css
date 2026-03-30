@@ -1,16 +1,20 @@
 /* src/components/pagination/EdgePager.module.css */
+
 :root {
-  --pg-item: 40px;     /* ღილაკის მინ. სიგანე/სიმაღლე */
-  --pg-gap: 8px;       /* დაშორება */
-  --pg-radius: 12px;   /* კუთხეები */
-  --pg-font: 14px;     /* ფონტის ზომა */
-  --pg-padx: 12px;     /* ჰორიზონტალური padding */
-  --pg-color: #111827; /* ტექსტი */
-  --pg-bg: #ffffff;    /* ფონი */
-  --pg-border: #e5e7eb; /* ჩარჩო */
-  --pg-act-bg: #16608A; /* აქტიური ფონი */
-  --pg-act-fg: #fff;    /* აქტიური ტექსტი */
-  --pg-act-br: #16608A; /* აქტიური ჩარჩო */
+  --pg-item: 40px;
+  --pg-gap: 8px;
+  --pg-radius: 12px;
+  --pg-font: 14px;
+  --pg-padx: 12px;
+  --pg-color: #111827;
+  --pg-bg: #ffffff;
+  --pg-border: #e5e7eb;
+
+  --pg-hover-bg: #f9fafb;
+
+  --pg-act-bg: #16608A;
+  --pg-act-fg: #fff;
+  --pg-act-br: #16608A;
 }
 
 .pagination {
@@ -18,8 +22,9 @@
   gap: var(--pg-gap);
   align-items: center;
   flex-wrap: wrap;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  margin: 50px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  margin: 40px 0;
+  justify-content: center; /* 🔥 center UX */
 }
 
 .pgBtn {
@@ -31,21 +36,27 @@
   background: var(--pg-bg);
   color: var(--pg-color);
   font-size: var(--pg-font);
-  line-height: 1;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   cursor: pointer;
-  user-select: none;
-  transition: transform .06s ease, background .2s ease, color .2s ease, border-color .2s ease;
+  transition: all 0.2s ease;
+}
+
+.pgBtn:hover:not(:disabled):not(.isActive) {
+  background: var(--pg-hover-bg);
 }
 
 .pgBtn:disabled {
-  opacity: .45;
+  opacity: 0.4;
   cursor: default;
 }
 
-.pgBtn:active { transform: scale(0.98); }
+.pgBtn:active {
+  transform: scale(0.96);
+}
 
 .isActive {
   background: var(--pg-act-bg);
@@ -55,18 +66,13 @@
 }
 
 .ellipsis {
-  min-width: auto;
-  height: var(--pg-item);
   padding: 0 6px;
-    color: #ffffff;
-  border: none;
-  background: transparent;
-  display: inline-flex;
+  opacity: 0.6;
+  display: flex;
   align-items: center;
-  justify-content: center;
 }
 
-/* --- Responsive tuning: შეცვალე შენი სურვილით --- */
+/* ---------- Mobile ---------- */
 @media (max-width: 768px) {
   :root {
     --pg-item: 36px;
@@ -77,27 +83,8 @@
 
 @media (max-width: 480px) {
   :root {
-    --pg-item: 34px;
+    --pg-item: 32px;
     --pg-font: 12px;
-    --pg-gap: 6px;
+    --pg-gap: 4px;
   }
 }
-
-
-/* ====== @media skeleton (mobile-first) ====== */
-/* xs: base styles */
-
-/* sm */
-@media (min-width: 480px){ /* small tweaks */ }
-
-/* md- */
-@media (min-width: 640px){ /* small/medium tweaks */ }
-
-/* md */
-@media (min-width: 768px){ /* medium screens */ }
-
-/* lg */
-@media (min-width: 1024px){ /* large screens */ }
-
-/* xl */
-@media (min-width: 1280px){ /* extra large screens */ }
