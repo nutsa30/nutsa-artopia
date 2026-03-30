@@ -172,10 +172,6 @@ useEffect(() => {
   localStorage.setItem(PAGE_KEY, String(currentPage));
 }, [currentPage]);
 
-useEffect(() => {
-  setCurrentPage(1);
-}, [searchTerm, selectedCategory, selectedStock, selectedSale, selectedNew]);
-
 
   useEffect(() => {
     fetchProductsOnce();
