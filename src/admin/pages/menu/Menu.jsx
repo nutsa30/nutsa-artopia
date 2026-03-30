@@ -135,7 +135,11 @@ const Menu = () => {
             .map((s) => s.trim())
         )
       );
-      setCategories(["ყველა", ...uniqCats]);
+      const sortedCats = uniqCats
+  .filter((c) => c !== "სხვა")
+  .sort((a, b) => a.localeCompare(b, "ka"));
+
+setCategories(["ყველა", ...sortedCats, "სხვა"]);
 
       setVisibleCount(50);
     } catch (e) {

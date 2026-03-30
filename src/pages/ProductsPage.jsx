@@ -235,7 +235,11 @@ const ProductsPage = () => {
           ),
         ];
 
-        setCategories(uniqueCategories);
+        const sortedCats = uniqueCategories
+  .filter((c) => c !== "სხვა")
+  .sort((a, b) => a.localeCompare(b, "ka"));
+
+setCategories(["ყველა", ...sortedCats, "სხვა"]);
       })
       .catch((err) => {
         console.error("Failed to fetch products:", err);
