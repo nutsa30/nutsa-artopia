@@ -248,17 +248,12 @@ const compareProducts = (a, b) => {
   const getQty = (p) =>
     Number(p?.quantity ?? p?.details?.quantity ?? 0);
 
-  const isOut = (p) => {
-    const qty = getQty(p);
-
-    const inStockFlag =
-      p?.in_stock === true ||
-      p?.in_stock === "true" ||
-      p?.details?.in_stock === true ||
-      p?.details?.in_stock === "true";
-
-    return !inStockFlag || qty <= 0;
-  };
+const isOut = (p) => {
+  return !(
+    p?.in_stock === true ||
+    p?.in_stock === "true"
+  );
+};
 
   const aOut = isOut(a);
   const bOut = isOut(b);
