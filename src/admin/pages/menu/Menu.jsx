@@ -109,7 +109,7 @@ const Menu = () => {
           sale: p.sale,
           quantity: p.quantity ?? 0,
           in_stock: (p.quantity ?? 0) > 0,
-          category: p.category_name ?? "", // 🔥 დაამატე ეს
+          category: p.category_name || p.category || "",
           category_id: p.category_id ?? "", // 🔥 ეს საკმარისია
           image_url1: imgs[0] || null,
           image_url2: imgs[1] || null,
