@@ -81,7 +81,7 @@ const getTimestamp = (product) => {
 };
 
 const normalizeProduct = (product) => {
-  const quantity = normalizeQuantity(product?.quantity ?? product?.details?.quantity ?? 0);
+  const quantity = normalizeQuantity(product?.quantity ?? 0);
 
   return {
     ...product,
