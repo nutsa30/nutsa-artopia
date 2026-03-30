@@ -11,53 +11,39 @@ export default function ProtectRoute({ children }) {
   const [checked, setChecked] = React.useState(false);
   const [allowed, setAllowed] = React.useState(false);
 
-  React.useEffect(() => {
-    let cancelled = false;
+React.useEffect(() => {
+  let cancelled = false;
 
-    (async () => {
-      const mode = localStorage.getItem("AUTH_MODE"); // "token" | "session"
-      const token =
-        localStorage.getItem("ADMIN_TOKEN") ||
-        localStorage.getItem("admin_token") ||
-        "";
+  const mode = localStorage.getItem("AUTH_MODE"); // "token" | "session"
+  const token =
+    localStorage.getItem("ADMIN_TOKEN") ||
+    localStorage.getItem("admin_token") ||
+    "";
 
-      if (!token && mode !== "session") {
-        if (!cancelled) {
-          localStorage.removeItem("isLoggedIn");
-          setAllowed(false);
-          setChecked(true);
-        }
-        return;
-      }
+  if (!token && mode !== "session") {
+    if (!cancelled) {
+      localStorage.removeItem("isLoggedIn");
+      setAllowed(false);
+      setChecked(true);
+    }
+    return;
+  }
 
-      try {
-        const res = await fetch(`${API_BASE}/auth/me`, {
-          method: "GET",
-          credentials: "omit",
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+  // ✅ მთავარი ლოგიკა (მარტივი და სტაბილური)
+  if (token) {
+    localStorage.setItem("isLoggedIn", "true");
+    setAllowed(true);
+  } else {
+    localStorage.removeItem("isLoggedIn");
+    setAllowed(false);
+  }
 
-        if (cancelled) return;
+  if (!cancelled) setChecked(true);
 
-        if (res.ok) {
-          localStorage.setItem("isLoggedIn", "true");
-          setAllowed(true);
-        } else {
-          localStorage.clear();
-          setAllowed(false);
-        }
-      } catch {
-        localStorage.clear();
-        setAllowed(false);
-      } finally {
-        if (!cancelled) setChecked(true);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [location.pathname]);
+  return () => {
+    cancelled = true;
+  };
+}, [location.pathname]);
 
   // 👉 როცა admin-ში დავდივართ, ბოლო ბილიკი შევინახოთ
   React.useEffect(() => {

@@ -4,7 +4,7 @@ import ProductFilter from "../components/productCard/ProductFilter";
 import styles from "./ProductsPage.module.css";
 import ProductModal from "../components/ProductModal/ProductModal";
 import { useCart } from "../components/CartContext/CartContext";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams, useSearchParams } from "react-router-dom";
 import EdgePager from "../components/pagination/EdgePager";
 import { useLang } from "../LanguageContext";
 import SEO from "../components/SEO";
@@ -122,6 +122,7 @@ const compareProducts = (a, b) => {
 const ProductsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const params = useParams();
   const { lang } = useLang();
   const { addToCart } = useCart();
@@ -140,8 +141,12 @@ const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState("");
+const [currentPage, setCurrentPage] = useState(
+  Number(searchParams.get("page")) || 1
+);
+  const [selectedCategory, setSelectedCategory] = useState(
+  searchParams.get("category") || "ყველა"
+);
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -207,6 +212,11 @@ const ProductsPage = () => {
     scrollToTop();
   }, [currentPage]);
 
+useEffect(() => {
+  const pageFromUrl = Number(searchParams.get("page")) || 1;
+  setCurrentPage(pageFromUrl);
+}, [searchParams]);
+
   useEffect(() => {
     let mounted = true;
     const url = `${API_BASE}/products?lang=${lang}`;
@@ -262,9 +272,6 @@ setCategories(["ყველა", ...sortedCats, "სხვა"]);
     };
   }, [lang]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCategory, searchTerm, lang]);
 
   const filteredProducts = useMemo(() => {
     const q = String(searchTerm || "").trim().toLowerCase();
@@ -315,6 +322,13 @@ useEffect(() => {
     offset - PRODUCTS_PER_PAGE,
     offset
   );
+
+  useEffect(() => {
+    const catFromUrl = searchParams.get("category") || "ყველა";
+    setSelectedCategory(catFromUrl);
+}, [searchParams]);
+
+
 useEffect(() => {
   console.log(
     "[CURRENT PAGE DATA]",
@@ -327,18 +341,37 @@ useEffect(() => {
     }))
   );
 }, [currentPageData]);
-  const handlePageClick = ({ selected }) => {
-    setCurrentPage(selected + 1);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(scrollToTop);
-    });
-  };
 
-  const handleCategoryChange = (newCategory) => {
-    setSelectedCategory(newCategory);
-    setCurrentPage(1);
-  };
+const handlePageClick = ({ selected }) => {
+  const newPage = selected + 1;
+  setCurrentPage(newPage);
 
+  const params = new URLSearchParams(searchParams);
+  params.set("page", newPage);
+
+  setSearchParams(params);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(scrollToTop);
+  });
+};
+
+const handleCategoryChange = (newCategory) => {
+  setSelectedCategory(newCategory);
+  setCurrentPage(1);
+
+  const params = new URLSearchParams(location.search);
+
+if (newCategory && newCategory !== "ყველა") {
+  params.set("category", newCategory);
+} else {
+  params.delete("category");
+}
+
+params.set("page", 1);
+
+setSearchParams(params);
+};
   const handleProductClick = (product) => {
     const slug = slugify(product?.name || product?.name_ka || product?.name_en || "");
     if (!slug) return;
@@ -453,12 +486,18 @@ currentPageData.map((product, index) => {
                   sortedFilteredProducts.length / PRODUCTS_PER_PAGE
                 )}
                 currentPage={currentPage}
-                onChange={(page) => {
-                  setCurrentPage(page);
-                  requestAnimationFrame(() => {
-                    requestAnimationFrame(scrollToTop);
-                  });
-                }}
+         onChange={(page) => {
+  setCurrentPage(page);
+
+  const params = new URLSearchParams(searchParams);
+  params.set("page", page);
+
+  setSearchParams(params);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(scrollToTop);
+  });
+}}
                 onPageChange={handlePageClick}
               />
             )}

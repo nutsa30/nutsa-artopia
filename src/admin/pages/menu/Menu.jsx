@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./Menu.module.css";
 import { useNavigate } from "react-router-dom";
 
+
+const FILTERS_KEY = "admin_menu_filters";
 const API_BASE =
   (import.meta?.env?.VITE_API_BASE ?? "").trim() ||
   "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
@@ -74,15 +76,15 @@ const Menu = () => {
   const [error, setError] = useState("");
 
   // ფილტრები
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categories, setCategories] = useState(["ყველა"]);
-  const [selectedCategory, setSelectedCategory] = useState("ყველა");
- 
-  const [selectedStock, setSelectedStock] = useState("all"); // all | in | out
-  const [selectedSale, setSelectedSale] = useState("all");   // all | discounted | nodiscount
-  const [selectedNew, setSelectedNew] = useState("all");     // all | new | old
+const savedFilters = JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}");
 
-  const abortRef = useRef(null);
+const [searchTerm, setSearchTerm] = useState(savedFilters.searchTerm || "");
+const [selectedCategory, setSelectedCategory] = useState(savedFilters.selectedCategory || "ყველა");
+const [selectedStock, setSelectedStock] = useState(savedFilters.selectedStock || "all");
+const [selectedSale, setSelectedSale] = useState(savedFilters.selectedSale || "all");
+const [selectedNew, setSelectedNew] = useState(savedFilters.selectedNew || "all");
+const [categories, setCategories] = useState(["ყველა"]); 
+const abortRef = useRef(null);
 
   // -------- ერთიანი ჩატვირთვა (მხოლოდ KA) --------
   const fetchProductsOnce = async () => {
@@ -152,6 +154,21 @@ setCategories(["ყველა", ...sortedCats, "სხვა"]);
     }
   };
 
+
+  useEffect(() => {
+  localStorage.setItem(
+    FILTERS_KEY,
+    JSON.stringify({
+      searchTerm,
+      selectedCategory,
+      selectedStock,
+      selectedSale,
+      selectedNew,
+    })
+  );
+}, [searchTerm, selectedCategory, selectedStock, selectedSale, selectedNew]);
+
+
   useEffect(() => {
     fetchProductsOnce();
     return () => abortRef.current?.abort();
@@ -173,14 +190,13 @@ setCategories(["ყველა", ...sortedCats, "სხვა"]);
         .toLowerCase();
 
       const matchesSearch = !needle || haystack.includes(needle);
-      const matchesCategory =
-selectedCategory === "ყველა" || p.category === selectedCategory
-
-      const matchesStock =
-        selectedStock === "all" ||
-        (selectedStock === "in" && p.in_stock) ||
-        (selectedStock === "out" && !p.in_stock);
-
+ const matchesCategory =
+  selectedCategory === "ყველა" || p.category === selectedCategory;
+const matchesStock =
+  selectedStock === "all" ||
+  (selectedStock === "in" && p.in_stock && !p.hide) ||
+  (selectedStock === "out" && !p.in_stock && !p.hide) ||
+  (selectedStock === "hidden" && p.hide);
       const hasSale =
         typeof p.sale === "number" && p.sale > 0 && p.sale <= 100;
       const matchesSale =
@@ -218,6 +234,7 @@ selectedCategory === "ყველა" || p.category === selectedCategory
     setSelectedNew("all");
     setVisibleCount(50);
     fetchProductsOnce();
+    localStorage.removeItem(FILTERS_KEY);
   };
 
   // -------- Actions --------
@@ -282,9 +299,10 @@ selectedCategory === "ყველა" || p.category === selectedCategory
             className={styles.searchInput}
             title="მარაგი"
           >
-            <option value="all">მარაგში + ამოწურული</option>
-            <option value="in">მხოლოდ მარაგში</option>
-            <option value="out">მხოლოდ ამოწურული</option>
+   <option value="all">მარაგში + ამოწურული + დამალული</option>
+<option value="in">მხოლოდ მარაგში</option>
+<option value="out">მხოლოდ ამოწურული</option>
+<option value="hidden">მხოლოდ დამალული</option>
           </select>
 
           {/* ფასდაკლების ფილტრი */}
