@@ -98,13 +98,16 @@ const compareProducts = (a, b) => {
   const aOut = aQty === 0;
   const bOut = bQty === 0;
 
-  // ✅ ყოველთვის პირველ რიგში ეს
-  if (aOut !== bOut) return aOut ? 1 : -1;
+  console.log("[COMPARE]", {
+    a: a?.name,
+    aQty,
+    aOut,
+    b: b?.name,
+    bQty,
+    bOut,
+  });
 
-  // ⛔ დროებით საერთოდ ამოიღე ეს ბლოკი
-  // const aHasImg = !!a?.__hasRealImage;
-  // const bHasImg = !!b?.__hasRealImage;
-  // if (aHasImg !== bHasImg) return aHasImg ? -1 : 1;
+  if (aOut !== bOut) return aOut ? 1 : -1;
 
   const aSale = hasSale(a) ? 1 : 0;
   const bSale = hasSale(b) ? 1 : 0;
@@ -116,7 +119,6 @@ const compareProducts = (a, b) => {
 
   return 0;
 };
-
 const ProductsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -289,13 +291,35 @@ const ProductsPage = () => {
     () => [...filteredProducts].sort(compareProducts),
     [filteredProducts]
   );
-
+useEffect(() => {
+  console.log(
+    "[SORTED PRODUCTS]",
+    sortedFilteredProducts.map((p, index) => ({
+      index,
+      name: p?.name,
+      quantity: p?.quantity,
+      normalizedQuantity: normalizeQuantity(p?.quantity),
+      image: p?.image_url1,
+    }))
+  );
+}, [sortedFilteredProducts]);
   const offset = currentPage * PRODUCTS_PER_PAGE;
   const currentPageData = sortedFilteredProducts.slice(
     offset - PRODUCTS_PER_PAGE,
     offset
   );
-
+useEffect(() => {
+  console.log(
+    "[CURRENT PAGE DATA]",
+    currentPageData.map((p, index) => ({
+      index,
+      name: p?.name,
+      quantity: p?.quantity,
+      normalizedQuantity: normalizeQuantity(p?.quantity),
+      image: p?.image_url1,
+    }))
+  );
+}, [currentPageData]);
   const handlePageClick = ({ selected }) => {
     setCurrentPage(selected + 1);
     requestAnimationFrame(() => {
@@ -367,25 +391,35 @@ const ProductsPage = () => {
           <>
             <div className={`${styles.productsGrid} ${styles.catalogGrid}`}>
               {currentPageData.length > 0 ? (
-                currentPageData.map((product) => (
-                  <div
-                    key={product._id || product.id}
-                    onClick={() => handleProductClick(product)}
-                    className={styles.cardWrap}
-                  >
-                    <ProductCard
-                      product={product}
-                      onAddToCart={(e, quantity, sourceProduct = product) => {
-                        e.stopPropagation();
-                        handleAddToCart(sourceProduct, quantity);
-                      }}
-                      onBuyNow={(e, quantity, sourceProduct = product) => {
-                        e.stopPropagation();
-                        handleBuyNow(sourceProduct, quantity);
-                      }}
-                    />
-                  </div>
-                ))
+currentPageData.map((product, index) => {
+  console.log("[RENDER ORDER]", {
+    index,
+    name: product?.name,
+    quantity: product?.quantity,
+    normalizedQuantity: normalizeQuantity(product?.quantity),
+    image: product?.image_url1,
+  });
+
+  return (
+    <div
+      key={product._id || product.id}
+      onClick={() => handleProductClick(product)}
+      className={styles.cardWrap}
+    >
+      <ProductCard
+        product={product}
+        onAddToCart={(e, quantity, sourceProduct = product) => {
+          e.stopPropagation();
+          handleAddToCart(sourceProduct, quantity);
+        }}
+        onBuyNow={(e, quantity, sourceProduct = product) => {
+          e.stopPropagation();
+          handleBuyNow(sourceProduct, quantity);
+        }}
+      />
+    </div>
+  );
+})
               ) : (
                 <div className={styles.emptyState}>
                   {lang === "en"
