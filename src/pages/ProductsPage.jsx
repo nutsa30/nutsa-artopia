@@ -106,12 +106,15 @@ const getAvailableQty = (p) => {
   return 0;
 };
 
-const withStockSnapshot = (p) => ({
-  ...p,
-  quantity: getAvailableQty(p),
-  in_stock: getAvailableQty(p) > 0,
-});
-  
+const withStockSnapshot = (p) => {
+  const qty = getAvailableQty(p);
+
+  return {
+    ...p,
+    quantity: qty,
+    in_stock: qty > 0,
+  };
+};
   // ===== scroll-to-top helper =====
   const scrollToTop = () => {
     const scroller =
