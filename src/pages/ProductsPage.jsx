@@ -24,19 +24,19 @@ const normalizeQuantity = (value) => {
   return Number.isFinite(num) && num > 0 ? Math.floor(num) : 0;
 };
 
-const getProductImages = (p) => {
+const getProductImages = (product) => {
   const out = [];
 
-  if (Array.isArray(p?.images)) {
-    for (const it of p.images) {
+  if (Array.isArray(product?.images)) {
+    for (const it of product.images) {
       if (typeof it === "string") out.push(it);
       else if (it && typeof it.url === "string") out.push(it.url);
     }
   }
 
-  if (typeof p?.images === "string") {
+  if (typeof product?.images === "string") {
     try {
-      const parsed = JSON.parse(p.images);
+      const parsed = JSON.parse(product.images);
       if (Array.isArray(parsed)) {
         for (const it of parsed) {
           if (typeof it === "string") out.push(it);
@@ -49,52 +49,51 @@ const getProductImages = (p) => {
   }
 
   for (let i = 1; i <= 6; i += 1) {
-    out.push(p?.[`image_url${i}`]);
-    out.push(p?.[`image${i}`]);
-    out.push(p?.[`img${i}`]);
+    out.push(product?.[`image_url${i}`]);
+    out.push(product?.[`image${i}`]);
+    out.push(product?.[`img${i}`]);
   }
 
-  return [...new Set(out.filter((u) => typeof u === "string" && u.trim()))];
+  return [...new Set(out.filter((url) => typeof url === "string" && url.trim()))];
 };
 
-const hasRealImage = (p) => {
-  const imgs = getProductImages(p);
-  return imgs.some(
+const getDisplayImage = (product) => {
+  const images = getProductImages(product);
+  return images[0] || NO_IMAGE;
+};
+
+const hasRealImage = (product) => {
+  const images = getProductImages(product);
+  return images.some(
     (url) => url && url !== NO_IMAGE && !String(url).toLowerCase().includes("noimage")
   );
 };
 
-const getDisplayImage = (p) => {
-  const imgs = getProductImages(p);
-  return imgs[0] || NO_IMAGE;
-};
-
-const hasSale = (p) => {
-  const sale = Number(p?.sale);
+const hasSale = (product) => {
+  const sale = Number(product?.sale);
   return Number.isFinite(sale) && sale > 0 && sale <= 100;
 };
 
-const getTimestamp = (p) => {
-  const raw = p?.discountUpdatedAt || p?.updatedAt || p?.createdAt || null;
+const getTimestamp = (product) => {
+  const raw = product?.discountUpdatedAt || product?.updatedAt || product?.createdAt || null;
   const ts = raw ? new Date(raw).getTime() : 0;
   return Number.isFinite(ts) ? ts : 0;
 };
 
-const normalizeProduct = (p) => {
-  const quantity = normalizeQuantity(p?.quantity ?? p?.details?.quantity ?? 0);
+const normalizeProduct = (product) => {
+  const quantity = normalizeQuantity(product?.quantity ?? product?.details?.quantity ?? 0);
 
   return {
-    ...p,
+    ...product,
     quantity,
-    in_stock: quantity > 0,
-    image_url1: getDisplayImage(p),
-    __hasRealImage: hasRealImage(p),
+    image_url1: getDisplayImage(product),
+    __hasRealImage: hasRealImage(product),
   };
 };
 
 const compareProducts = (a, b) => {
-  const aOut = normalizeQuantity(a?.quantity) <= 0;
-  const bOut = normalizeQuantity(b?.quantity) <= 0;
+  const aOut = normalizeQuantity(a?.quantity) === 0;
+  const bOut = normalizeQuantity(b?.quantity) === 0;
 
   if (aOut !== bOut) return aOut ? 1 : -1;
 
@@ -120,7 +119,10 @@ const compareProducts = (a, b) => {
   const bTS = getTimestamp(b);
   if (aTS !== bTS) return bTS - aTS;
 
-  return String(a?.name || "").localeCompare(String(b?.name || ""), "ka");
+  return String(a?.name || a?.name_ka || a?.name_en || "").localeCompare(
+    String(b?.name || b?.name_ka || b?.name_en || ""),
+    "ka"
+  );
 };
 
 const ProductsPage = () => {
@@ -128,8 +130,8 @@ const ProductsPage = () => {
   const location = useLocation();
   const params = useParams();
   const { lang } = useLang();
-  const topRef = useRef(null);
   const { addToCart } = useCart();
+  const topRef = useRef(null);
 
   const slugFromUrl = params?.slug ? String(params.slug) : null;
   const isProductRoute = !!slugFromUrl;
@@ -175,7 +177,7 @@ const ProductsPage = () => {
     const maxQty = safeProduct.quantity;
     const requestedQty = Math.max(1, Math.floor(Number(quantity) || 1));
 
-    if (maxQty <= 0) {
+    if (maxQty === 0) {
       alert(
         lang === "en"
           ? "This product is out of stock."
@@ -193,7 +195,7 @@ const ProductsPage = () => {
     const maxQty = safeProduct.quantity;
     const requestedQty = Math.max(1, Math.floor(Number(quantity) || 1));
 
-    if (maxQty <= 0) {
+    if (maxQty === 0) {
       alert(
         lang === "en"
           ? "This product is out of stock."
@@ -220,9 +222,7 @@ const ProductsPage = () => {
 
     fetch(url)
       .then((res) => {
-        if (!res.ok) {
-          throw new Error(`${res.status} ${res.statusText}`);
-        }
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
         return res.json();
       })
       .then((data) => {
@@ -240,6 +240,7 @@ const ProductsPage = () => {
               .filter(Boolean)
           ),
         ];
+
         setCategories(uniqueCategories);
       })
       .catch((err) => {
@@ -267,13 +268,15 @@ const ProductsPage = () => {
   const filteredProducts = useMemo(() => {
     const q = String(searchTerm || "").trim().toLowerCase();
 
-    return products.filter((p) => {
-      const pCat = String(p?.category || p?.details?.category || "").trim();
+    return products.filter((product) => {
+      const productCategory = String(
+        product?.category || product?.details?.category || ""
+      ).trim();
 
-      const nameKa = String(p?.name || p?.name_ka || "").toLowerCase();
-      const nameEn = String(p?.name_en || "").toLowerCase();
-      const categoryKa = String(p?.category || "").toLowerCase();
-      const categoryEn = String(p?.category_en || "").toLowerCase();
+      const nameKa = String(product?.name || product?.name_ka || "").toLowerCase();
+      const nameEn = String(product?.name_en || "").toLowerCase();
+      const categoryKa = String(product?.category || "").toLowerCase();
+      const categoryEn = String(product?.category_en || "").toLowerCase();
 
       const matchesSearch =
         !q ||
@@ -282,7 +285,9 @@ const ProductsPage = () => {
         categoryKa.includes(q) ||
         categoryEn.includes(q);
 
-      const matchesCategory = selectedCategory ? pCat === selectedCategory : true;
+      const matchesCategory = selectedCategory
+        ? productCategory === selectedCategory
+        : true;
 
       return matchesCategory && matchesSearch;
     });
@@ -324,9 +329,11 @@ const ProductsPage = () => {
     }
 
     const found =
-      products.find((p) => {
-        const pSlug = slugify(p?.name || p?.name_ka || p?.name_en || "");
-        return pSlug === slugFromUrl;
+      products.find((product) => {
+        const productSlug = slugify(
+          product?.name || product?.name_ka || product?.name_en || ""
+        );
+        return productSlug === slugFromUrl;
       }) || null;
 
     setSelectedProduct(found);
@@ -413,8 +420,8 @@ const ProductsPage = () => {
                   sortedFilteredProducts.length / PRODUCTS_PER_PAGE
                 )}
                 currentPage={currentPage}
-                onChange={(p) => {
-                  setCurrentPage(p);
+                onChange={(page) => {
+                  setCurrentPage(page);
                   requestAnimationFrame(() => {
                     requestAnimationFrame(scrollToTop);
                   });

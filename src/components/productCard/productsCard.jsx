@@ -97,18 +97,14 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
   const subcategory = pick(subKA, subEN);
 
   // მარაგი
-  const stockSnapshot = useMemo(() => {
-    const rawQty = details?.quantity ?? product?.quantity ?? 0;
-    const parsedQty = Number(rawQty);
-    const quantity = Number.isFinite(parsedQty) && parsedQty > 0 ? parsedQty : 0;
+// მარაგი (მხოლოდ quantity-ზე)
+const quantity = useMemo(() => {
+  const rawQty = details?.quantity ?? product?.quantity ?? 0;
+  const parsedQty = Number(rawQty);
+  return Number.isFinite(parsedQty) && parsedQty > 0 ? parsedQty : 0;
+}, [product?.quantity, details?.quantity]);
 
-    return {
-      quantity,
-      inStock: quantity > 0,
-    };
-  }, [product?.quantity, details?.quantity]);
-
-  const inStock = stockSnapshot.inStock;
+const inStock = quantity > 0;
 
   const addOne = (e) => {
     e.stopPropagation();

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styles from "./ProductModal.module.css";
 import StarburstBadge from "../StartburstBadge";
 import BrushBadge from "../BrushBadge";
 import { useLang } from "../../LanguageContext";
 import SEO from "../SEO";
+
+const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
 
 const LBL = {
   ka: {
@@ -32,15 +34,17 @@ const LBL = {
   },
 };
 
-const getSubOf = (p) =>
-  p?.subcategory ??
-  p?.sub_category ??
-  p?.subCategory ??
-  p?.details?.subcategory ??
-  null;
+const normalizeQuantity = (value) => {
+  const num = Number(value);
+  return Number.isFinite(num) && num > 0 ? Math.floor(num) : 0;
+};
 
-const API_BASE =
-  "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
+const getSubOf = (product) =>
+  product?.subcategory ??
+  product?.sub_category ??
+  product?.subCategory ??
+  product?.details?.subcategory ??
+  null;
 
 const ProductModal = ({
   product,
@@ -54,10 +58,10 @@ const ProductModal = ({
   const T = LBL[lang] || LBL.ka;
 
   const pick = (ka, en) =>
-    lang === "en" ? en ?? ka ?? "" : ka ?? en ?? "";
+    lang === "en" ? (en ?? ka ?? "") : (ka ?? en ?? "");
 
   const [quantity, setQuantity] = useState(1);
-const [stockMessage, setStockMessage] = useState("");
+  const [stockMessage, setStockMessage] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [details, setDetails] = useState(null);
 
@@ -70,69 +74,88 @@ const [stockMessage, setStockMessage] = useState("");
     product.image_url6,
   ].filter(Boolean);
 
+  useEffect(() => {
+    if (!product?.id) return;
+
+    let ignore = false;
+
+    (async () => {
+      try {
+        const response = await fetch(`${API_BASE}/products/${product.id}?lang=${lang}`);
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (!ignore) setDetails(data || {});
+      } catch {
+        // ignore
+      }
+    })();
+
+    return () => {
+      ignore = true;
+    };
+  }, [product?.id, lang]);
+
+  const maxQty = useMemo(
+    () => normalizeQuantity(details?.quantity ?? product?.quantity ?? 0),
+    [details?.quantity, product?.quantity]
+  );
+
+  const inStock = maxQty > 0;
+
+  useEffect(() => {
+    setQuantity((prev) => {
+      if (maxQty === 0) return 1;
+      return Math.min(prev, maxQty);
+    });
+  }, [maxQty]);
+
   const increment = () => {
- const maxQty =
-  product?.quantity ??
-  details?.quantity ??
-  0;
+    if (quantity >= maxQty) {
+      setStockMessage(
+        lang === "en"
+          ? `Only ${maxQty} item(s) available in stock.`
+          : `მარაგში მხოლოდ ${maxQty} ცალია.`
+      );
+      return;
+    }
 
-  if (quantity >= maxQty) {
-    setStockMessage(
-      lang === "en"
-        ? `Only ${maxQty} item(s) available in stock.`
-        : `მარაგში მხოლოდ ${maxQty} ცალია.`
-    );
-    return;
-  }
+    setStockMessage("");
+    setQuantity((prev) => prev + 1);
+  };
 
-  setStockMessage("");
-  setQuantity((q) => q + 1);
-};
- const decrement = () => {
-  setStockMessage("");
-  setQuantity((q) => (q > 1 ? q - 1 : q));
-};
+  const decrement = () => {
+    setStockMessage("");
+    setQuantity((prev) => (prev > 1 ? prev - 1 : prev));
+  };
 
   const prevImage = (e) => {
     e.stopPropagation();
-    setCurrentImageIndex((idx) =>
-      idx === 0 ? images.length - 1 : idx - 1
-    );
+    setCurrentImageIndex((idx) => (idx === 0 ? images.length - 1 : idx - 1));
   };
 
   const nextImage = (e) => {
     e.stopPropagation();
-    setCurrentImageIndex((idx) =>
-      idx === images.length - 1 ? 0 : idx + 1
-    );
+    setCurrentImageIndex((idx) => (idx === images.length - 1 ? 0 : idx + 1));
   };
 
   const handleAddToCartClick = () => {
-  const safeProduct = {
-    ...product,
-    quantity:
-      product?.quantity ??
-      details?.quantity ??
-      0,
+    const safeProduct = {
+      ...product,
+      quantity: maxQty,
+    };
+
+    onAddToCart(safeProduct, quantity);
   };
 
-  onAddToCart(safeProduct, quantity);
-};
-const handleBuyNowClick = () => {
-  const safeProduct = {
-    ...product,
-    quantity:
-      product?.quantity ??
-      details?.quantity ??
-      0,
-    in_stock:
-      product?.in_stock ??
-      details?.in_stock ??
-      false,
-  };
+  const handleBuyNowClick = () => {
+    const safeProduct = {
+      ...product,
+      quantity: maxQty,
+    };
 
-  onBuyNow(safeProduct, quantity);
-};
+    onBuyNow(safeProduct, quantity);
+  };
 
   const hasSale =
     typeof product?.sale === "number" &&
@@ -140,83 +163,44 @@ const handleBuyNowClick = () => {
     product.sale <= 100;
 
   const discounted = hasSale
-    ? (
-        Number(product.price || 0) *
-        (1 - product.sale / 100)
-      ).toFixed(2)
+    ? (Number(product.price || 0) * (1 - product.sale / 100)).toFixed(2)
     : null;
 
   const isNew = !!product?.is_new;
-const maxQty =
-  product?.quantity ??
-  details?.quantity ??
-  0;
 
-const inStock = maxQty > 0;
-  const propCategory = (
-    product?.category ?? product?.details?.category ?? ""
-  ).trim() || null;
+  const propCategory =
+    (product?.category ?? product?.details?.category ?? "").trim() || null;
   const propSub = getSubOf(product);
 
-  const detCategory =
-    (details?.category ?? "").trim() || null;
+  const detCategory = (details?.category ?? "").trim() || null;
   const detSub =
     details?.subcategory ??
     details?.sub_category ??
     details?.subCategory ??
     null;
 
-  const categoryToShow =
-    propCategory || detCategory || "";
+  const categoryToShow = propCategory || detCategory || "";
   const subToShow = propSub || detSub || "";
-
-  useEffect(() => {
-    if (!product?.id) return;
-    let ignore = false;
-    (async () => {
-      try {
-        const r = await fetch(
-          `${API_BASE}/products/${product.id}?lang=${lang}`
-        );
-        if (!r.ok) return;
-        const data = await r.json();
-        if (!ignore) setDetails(data || {});
-      } catch {
-        /* ignore */
-      }
-    })();
-    return () => {
-      ignore = true;
-    };
-  }, [product?.id, lang]);
 
   const title = (
     details?.name ??
-    pick(
-      product?.name ?? product?.name_ka,
-      product?.name_en
-    )
+    pick(product?.name ?? product?.name_ka, product?.name_en)
   ).trim();
 
   const description = (
     details?.description ??
-    pick(
-      product?.description ?? product?.description_ka,
-      product?.description_en
-    )
+    pick(product?.description ?? product?.description_ka, product?.description_en)
   ).trim();
 
   const seoDescription =
     description && description.length > 160
-      ? description.slice(0, 157) + "..."
+      ? `${description.slice(0, 157)}...`
       : description ||
         (lang === "en"
           ? "View this product on Artopia."
           : "ნახე ეს პროდუქტი Artopia-ზე.");
 
-  const seoImage =
-    images[0] ||
-    "https://artopia.ge/social-preview.png";
+  const seoImage = images[0] || "https://artopia.ge/social-preview.png";
 
   return (
     <div
@@ -224,7 +208,6 @@ const inStock = maxQty > 0;
       onClick={onClose}
       aria-label="product-modal"
     >
-      {/* ✅ SEO მხოლოდ მაშინ, როცა URL-ითაა გახსნილი /products/:id */}
       {enableSeo && canonicalUrl ? (
         <SEO
           title={title || (lang === "en" ? "Product" : "პროდუქტი")}
@@ -258,6 +241,7 @@ const inStock = maxQty > 0;
               className={styles.SaleBadge}
             />
           )}
+
           {isNew && (
             <BrushBadge
               text={T.new}
@@ -277,11 +261,11 @@ const inStock = maxQty > 0;
             </button>
           )}
 
-<img
-  src={images.length > 0 ? images[currentImageIndex] : "/noimage.jpeg"}
-  alt={title || product.name}
-  className={styles.productImage}
-/>
+          <img
+            src={images.length > 0 ? images[currentImageIndex] : "/noimage.jpeg"}
+            alt={title || product.name}
+            className={styles.productImage}
+          />
 
           {images.length > 1 && (
             <button
@@ -295,10 +279,7 @@ const inStock = maxQty > 0;
           )}
 
           {images.length > 1 && (
-            <div
-              className={styles.dotsBar}
-              aria-label="image navigation"
-            >
+            <div className={styles.dotsBar} aria-label="image navigation">
               {images.map((_, i) => {
                 const active = i === currentImageIndex;
                 return (
@@ -312,11 +293,7 @@ const inStock = maxQty > 0;
                       setCurrentImageIndex(i);
                     }}
                   >
-                    <span
-                      className={
-                        active ? styles.dotActive : styles.dot
-                      }
-                    />
+                    <span className={active ? styles.dotActive : styles.dot} />
                   </button>
                 );
               })}
@@ -330,9 +307,7 @@ const inStock = maxQty > 0;
           {categoryToShow || subToShow ? (
             <p className={styles.category}>
               {T.category}: {categoryToShow || T.unknown}
-              {subToShow ? (
-                <span> → {String(subToShow).trim()}</span>
-              ) : null}
+              {subToShow ? <span> → {String(subToShow).trim()}</span> : null}
             </p>
           ) : (
             <p className={styles.category}>
@@ -348,12 +323,8 @@ const inStock = maxQty > 0;
 
           {hasSale ? (
             <div className={styles.priceRow}>
-              <span className={styles.oldPrice}>
-                {product.price} ₾
-              </span>
-              <span className={styles.newPrice}>
-                {discounted} ₾
-              </span>
+              <span className={styles.oldPrice}>{product.price} ₾</span>
+              <span className={styles.newPrice}>{discounted} ₾</span>
             </div>
           ) : (
             <p className={styles.price}>
@@ -363,10 +334,9 @@ const inStock = maxQty > 0;
 
           <div className={styles.quantityControl}>
             {stockMessage && (
-  <div className={styles.stockWarning}>
-    {stockMessage}
-  </div>
-)}
+              <div className={styles.stockWarning}>{stockMessage}</div>
+            )}
+
             <button
               onClick={decrement}
               className={styles.qtyBtn}
@@ -376,14 +346,15 @@ const inStock = maxQty > 0;
             >
               –
             </button>
-            <span className={styles.qtyDisplay}>
-              {quantity}
-            </span>
+
+            <span className={styles.qtyDisplay}>{quantity}</span>
+
             <button
               onClick={increment}
               className={styles.qtyBtn}
               aria-label="+"
               title="+"
+              disabled={!inStock}
             >
               +
             </button>

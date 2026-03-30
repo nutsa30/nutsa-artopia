@@ -115,19 +115,19 @@ export default function AddProducts() {
   /** -------- State -------- */
   const [categories, setCategories] = useState([]);
 
-  const [form, setForm] = useState({
-    name_ka: "",
-    name_en: "",
-    description_ka: "",
-    description_en: "",
-    slug_ka: "",
-    slug_en: "",
-    category_id: "",
-    price: "",
-    in_stock: true,
-    sale: "",
-    is_new: false,
-  });
+const [form, setForm] = useState({
+  name_ka: "",
+  name_en: "",
+  description_ka: "",
+  description_en: "",
+  slug_ka: "",
+  slug_en: "",
+  category_id: "",
+  price: "",
+  quantity: "",
+  sale: "",
+  is_new: false,
+});
 
   const [images, setImages] = useState([]);   // [{file,isNew}|{removed}]
   const [previews, setPreviews] = useState([]); // [url|null]
@@ -164,7 +164,7 @@ export default function AddProducts() {
       slug_en: editingProduct.slug_en ?? "",
       category_id: editingProduct.category_id ?? "",
       price: editingProduct.price ?? "",
-      in_stock: !!editingProduct.in_stock,
+      quantity: editingProduct.quantity ?? "",
       sale: editingProduct.sale ?? "",
       is_new: !!editingProduct.is_new,
     }));
@@ -240,7 +240,7 @@ export default function AddProducts() {
         slug_en: pickSlugEN(en) || "",
         category_id: det.category_id || "",
         price: det.price ?? "",
-        in_stock: !!det.in_stock,
+        quantity: det.quantity ?? "",
         sale: det.sale ?? "",
         is_new: !!det.is_new,
       }));
@@ -371,7 +371,6 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
     fd.append("slug_en", form.slug_en ?? "");
 
     fd.append("price", String(parseFloat(form.price || 0)));
-    fd.append("in_stock", form.in_stock ? "true" : "false");
     fd.append("is_new", form.is_new ? "true" : "false");
     if (form.sale !== "") fd.append("sale", String(parseInt(form.sale, 10)));
 
@@ -444,7 +443,7 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
         slug_en: "",
         category_id: "",
         price: "",
-        in_stock: true,
+        quantity: "",
         sale: "",
         is_new: false,
       });
@@ -527,15 +526,7 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
             max={100}
           />
 
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="in_stock"
-              checked={form.in_stock}
-              onChange={handleChange}
-            />
-            მარაგშია?
-          </label>
+
 
           <label className="flex items-center gap-2" style={{ marginTop: 8 }}>
             <input
@@ -557,7 +548,16 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
             step="0.01"
             required
           />
-
+<input
+  name="quantity"
+  value={form.quantity}
+  onChange={handleChange}
+  placeholder="რაოდენობა (მარაგი) *"
+  className={styles.input}
+  type="number"
+  min={0}
+  required
+/>
           <button type="submit" className={styles.input}>
             {editingProduct?.id || routeId ? "შეცვლა" : "დამატება"}
           </button>
