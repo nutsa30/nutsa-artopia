@@ -13,8 +13,20 @@ const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
 
 /* UI ტექსტები */
 const LBL = {
-  ka: { new: "ახალი", addToCart: "კალათაში დამატება", buyNow: "ყიდვა", outOfStock: "არ არის მარაგში", category: "კატეგორია" },
-  en: { new: "New", addToCart: "Add to cart", buyNow: "Buy now", outOfStock: "Out of stock", category: "Category" },
+  ka: {
+    new: "ახალი",
+    addToCart: "კალათაში დამატება",
+    buyNow: "ყიდვა",
+    outOfStock: "არ არის მარაგში",
+    category: "კატეგორია",
+  },
+  en: {
+    new: "New",
+    addToCart: "Add to cart",
+    buyNow: "Buy now",
+    outOfStock: "Out of stock",
+    category: "Category",
+  },
 };
 
 export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
@@ -35,23 +47,20 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
   }, [product?.sale]);
 
   const price = Number(product?.price || 0);
-  const discounted = hasSale ? +(price * (1 - Number(product.sale) / 100)).toFixed(2) : price;
+  const discounted = hasSale
+    ? +(price * (1 - Number(product.sale) / 100)).toFixed(2)
+    : price;
 
-  // ----- detail fetch (ერთხელ თითო product-ზე) -----
+  // დეტალების წამოღება (quantity-სთვის მთავარი)
   useEffect(() => {
     let ignore = false;
     if (!pid) return;
 
-    // მოვიდეს ინგლისურადაც და ქართულადაც სწორი ველი ბექიდან
     (async () => {
       try {
-  const r = await fetch(
-  `${API_BASE}/products/${pid}?lang=${lang}`,
- 
-);
-
-
+        const r = await fetch(`${API_BASE}/products/${pid}?lang=${lang}`);
         if (!r.ok) return;
+
         const data = await r.json();
         if (!ignore) setDetails(data || {});
       } catch {
@@ -59,73 +68,97 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
       }
     })();
 
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, [pid, lang]);
 
-  // ----- ენა-მეგობრული გეთერები -----
-  const pick = (ka, en) => (lang === "en" ? (en ?? ka ?? "") : (ka ?? en ?? ""));
+  // ენა helper
+  const pick = (ka, en) =>
+    lang === "en" ? en ?? ka ?? "" : ka ?? en ?? "";
 
-  // name
-  const nameKA = product?.name ?? details?.name ?? details?.name_ka;
-  const nameEN = product?.name_en ?? details?.name_en;
-  const title = pick(nameKA, nameEN) || ""; // საბოლოო სათაური
+  // title
+  const title = pick(
+    product?.name ?? details?.name ?? details?.name_ka,
+    product?.name_en ?? details?.name_en
+  );
 
-  // description (თუ გინდა, გამოიყენე სადმე)
-  const descKA = product?.description ?? details?.description ?? details?.description_ka;
-  const descEN = product?.description_en ?? details?.description_en;
-  const description = pick(descKA, descEN);
+  // category
+  const category = pick(
+    product?.category ?? details?.category ?? details?.category_ka,
+    product?.category_en ?? details?.category_en
+  );
 
-  // category + subcategory
-  const catKA = product?.category ?? details?.category ?? details?.category_ka;
-  const catEN = product?.category_en ?? details?.category_en;
-  const category = pick(catKA, catEN);
-
-  const subKA =
+  const subcategory = pick(
     product?.subcategory ??
-    product?.sub_category ??
-    details?.subcategory ??
-    details?.sub_category ??
-    details?.subcategory_ka ??
-    details?.sub_category_ka;
+      product?.sub_category ??
+      details?.subcategory ??
+      details?.sub_category ??
+      details?.subcategory_ka,
+    product?.subcategory_en ?? details?.subcategory_en
+  );
 
-  const subEN =
-    product?.subcategory_en ??
-    product?.sub_category_en ??
-    details?.subcategory_en ??
-    details?.sub_category_en;
+  // ✅ მთავარი FIX — ერთიანი quantity
+  const quantity = useMemo(() => {
+    const raw = details?.quantity ?? product?.quantity ?? 0;
+    const num = Number(raw);
+    return Number.isFinite(num) && num > 0 ? Math.floor(num) : 0;
+  }, [details?.quantity, product?.quantity]);
 
-  const subcategory = pick(subKA, subEN);
+  const inStock = quantity > 0;
 
-  // მარაგი
-// მარაგი (მხოლოდ quantity-ზე)
-const quantity = useMemo(() => {
-  const rawQty = details?.quantity ?? product?.quantity ?? 0;
-  const parsedQty = Number(rawQty);
-  return Number.isFinite(parsedQty) && parsedQty > 0 ? parsedQty : 0;
-}, [product?.quantity, details?.quantity]);
-
-const inStock = quantity > 0;
-
+  // ✅ მთავარი FIX — იგივე quantity გადაეცემა parent-ს
   const addOne = (e) => {
     e.stopPropagation();
-    onAddToCart(e, 1);
+
+    if (!inStock) return;
+
+    const safeProduct = {
+      ...product,
+      quantity, // 🔥 კრიტიკული ფიქსი
+    };
+
+    onAddToCart(e, 1, safeProduct);
+
     playSound(popSfx, 0.4);
     flyToCart(imgRef.current);
+
     e.currentTarget.animate(
-      [{ transform: "scale(1)" }, { transform: "scale(1.1)" }, { transform: "scale(1)" }],
+      [
+        { transform: "scale(1)" },
+        { transform: "scale(1.1)" },
+        { transform: "scale(1)" },
+      ],
       { duration: 180, easing: "ease-out" }
     );
   };
 
   const buyOne = (e) => {
     e.stopPropagation();
-    onBuyNow(e, 1);
+
+    if (!inStock) return;
+
+    const safeProduct = {
+      ...product,
+      quantity, // 🔥 იგივე აქაც
+    };
+
+    onBuyNow(e, 1, safeProduct);
   };
 
   return (
     <>
-      {hasSale && <StarburstBadge value={Number(product.sale)} size={96} className={styles.SaleBadge} />}
-      {product?.is_new && <BrushBadge text={T.new} className={styles.NewBadge} />}
+      {hasSale && (
+        <StarburstBadge
+          value={Number(product.sale)}
+          size={96}
+          className={styles.SaleBadge}
+        />
+      )}
+
+      {product?.is_new && (
+        <BrushBadge text={T.new} className={styles.NewBadge} />
+      )}
 
       <div className={`${styles.productCard} product-card`}>
         <img
@@ -135,26 +168,29 @@ const inStock = quantity > 0;
           alt={title || "product"}
         />
 
-        {/* სათაური */}
         {title ? <h3>{title}</h3> : <h3>—</h3>}
-        {/* კატეგორია → ქვეკატეგორია (მხოლოდ როცა გვაქვს რაიმე) */}
 
-        {/* კატეგორია → ქვეკატეგორია (მხოლოდ როცა გვაქვს რაიმე) */}
         {(category || subcategory) && (
           <p className={styles.category}>
             {T.category}: {category || "—"}
-            {subcategory ? <span> → {String(subcategory).trim()}</span> : null}
+            {subcategory ? <span> → {subcategory}</span> : null}
           </p>
         )}
 
         <div className={styles.priceRow}>
           {hasSale ? (
             <>
-              <span className={styles.priceOld}>{price.toFixed(2)} ₾</span>
-              <span className={styles.priceNew}>{discounted.toFixed(2)} ₾</span>
+              <span className={styles.priceOld}>
+                {price.toFixed(2)} ₾
+              </span>
+              <span className={styles.priceNew}>
+                {discounted.toFixed(2)} ₾
+              </span>
             </>
           ) : (
-            <span className={styles.priceNew}>{price.toFixed(2)} ₾</span>
+            <span className={styles.priceNew}>
+              {price.toFixed(2)} ₾
+            </span>
           )}
         </div>
 
@@ -169,7 +205,9 @@ const inStock = quantity > 0;
               </button>
             </div>
           ) : (
-            <div className={styles.outOfStock}>{T.outOfStock}</div>
+            <div className={styles.outOfStock}>
+              {T.outOfStock}
+            </div>
           )}
         </div>
       </div>
