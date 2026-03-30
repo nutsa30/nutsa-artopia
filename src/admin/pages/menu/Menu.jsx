@@ -10,7 +10,6 @@ const API_BASE =
   "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const API = `${API_BASE}/products/admin`;
 /* ---------------- Helpers ---------------- */
-
 // ყველა შესაძლო წყაროდან აგროვებს product-ის ფოტოებს
 const productImages = (p) => {
   const out = [];
@@ -69,6 +68,7 @@ const pickDescEN = (p) => (p.description_en ?? "").trim();
 
 const Menu = () => {
   const navigate = useNavigate();
+    const containerRef = useRef(null); // ✅ აქ უნდა იყოს
 
   // სრული მონაცემების კეში (ერთი ქოლით)
   const [allProducts, setAllProducts] = useState([]);
@@ -175,10 +175,15 @@ useEffect(() => {
 useEffect(() => {
   const activeId = localStorage.getItem(ACTIVE_PRODUCT_KEY);
 
-  // 👉 თუ edit-იდან ვბრუნდებით — არ ავიდეთ მაღლა
+  // edit დაბრუნებისას არ ავიდეთ
   if (activeId) return;
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (containerRef.current) {
+    containerRef.current.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
 }, [currentPage]);
 
   useEffect(() => {
@@ -296,7 +301,7 @@ localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
         go back
       </button>
 
-      <div style={{ padding: "2rem" }}>
+<div ref={containerRef} style={{ padding: "2rem" }}>
         <h3 className={styles.productList}>📦 პროდუქტების სია</h3>
 
         {/* ფილტრების პანელი */}
