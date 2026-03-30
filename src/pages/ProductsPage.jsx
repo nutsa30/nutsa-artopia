@@ -1,4 +1,3 @@
-// src/pages/ProductsPage.jsx
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import ProductCard from "../components/productCard/productsCard";
 import ProductFilter from "../components/productCard/ProductFilter";
@@ -13,11 +12,18 @@ import SEO from "../components/SEO";
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
 const PRODUCTS_PER_PAGE = 20;
 const NO_IMAGE = "/noimage.jpeg";
+
 const slugify = (text = "") =>
   String(text || "")
     .toLowerCase()
     .replace(/[^a-z0-9ა-ჰ]+/gi, "-")
     .replace(/^-+|-+$/g, "");
+
+const normalizeQuantity = (value) => {
+  const num = Number(value);
+  return Number.isFinite(num) && num > 0 ? Math.floor(num) : 0;
+};
+
 const getProductImages = (p) => {
   const out = [];
 
@@ -37,10 +43,12 @@ const getProductImages = (p) => {
           else if (it && typeof it.url === "string") out.push(it.url);
         }
       }
-    } catch {}
+    } catch {
+      // ignore invalid JSON
+    }
   }
 
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 6; i += 1) {
     out.push(p?.[`image_url${i}`]);
     out.push(p?.[`image${i}`]);
     out.push(p?.[`img${i}`]);
@@ -51,34 +59,86 @@ const getProductImages = (p) => {
 
 const hasRealImage = (p) => {
   const imgs = getProductImages(p);
-
   return imgs.some(
-    (url) =>
-      url &&
-      url !== NO_IMAGE &&
-      !url.includes("noimage")
+    (url) => url && url !== NO_IMAGE && !String(url).toLowerCase().includes("noimage")
   );
 };
+
 const getDisplayImage = (p) => {
   const imgs = getProductImages(p);
   return imgs[0] || NO_IMAGE;
 };
+
+const hasSale = (p) => {
+  const sale = Number(p?.sale);
+  return Number.isFinite(sale) && sale > 0 && sale <= 100;
+};
+
+const getTimestamp = (p) => {
+  const raw = p?.discountUpdatedAt || p?.updatedAt || p?.createdAt || null;
+  const ts = raw ? new Date(raw).getTime() : 0;
+  return Number.isFinite(ts) ? ts : 0;
+};
+
+const normalizeProduct = (p) => {
+  const quantity = normalizeQuantity(p?.quantity ?? p?.details?.quantity ?? 0);
+
+  return {
+    ...p,
+    quantity,
+    in_stock: quantity > 0,
+    image_url1: getDisplayImage(p),
+    __hasRealImage: hasRealImage(p),
+  };
+};
+
+const compareProducts = (a, b) => {
+  const aOut = normalizeQuantity(a?.quantity) <= 0;
+  const bOut = normalizeQuantity(b?.quantity) <= 0;
+
+  if (aOut !== bOut) return aOut ? 1 : -1;
+
+  const aHasImg = !!a?.__hasRealImage;
+  const bHasImg = !!b?.__hasRealImage;
+
+  if (aHasImg !== bHasImg) return aHasImg ? -1 : 1;
+
+  const aSale = hasSale(a) ? 1 : 0;
+  const bSale = hasSale(b) ? 1 : 0;
+  if (aSale !== bSale) return bSale - aSale;
+
+  const aNew = a?.is_new ? 1 : 0;
+  const bNew = b?.is_new ? 1 : 0;
+  if (aNew !== bNew) return bNew - aNew;
+
+  if (aSale && bSale) {
+    const saleDiff = Number(b.sale) - Number(a.sale);
+    if (saleDiff !== 0) return saleDiff;
+  }
+
+  const aTS = getTimestamp(a);
+  const bTS = getTimestamp(b);
+  if (aTS !== bTS) return bTS - aTS;
+
+  return String(a?.name || "").localeCompare(String(b?.name || ""), "ka");
+};
+
 const ProductsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const params = useParams(); // <-- /products/:slug
+  const params = useParams();
   const { lang } = useLang();
   const topRef = useRef(null);
+  const { addToCart } = useCart();
 
   const slugFromUrl = params?.slug ? String(params.slug) : null;
   const isProductRoute = !!slugFromUrl;
 
-  // 🌐 SEO (Products list page)
   const productsTitle = lang === "en" ? "Products" : "პროდუქცია";
   const productsDescription =
     lang === "en"
       ? "Browse Artopia products: art supplies, stationery, school accessories, office items and kids’ creative toys."
-      : "Brendi Artopia გთავაზობს სამხატვრო, საკანცელარიო, სასკოლო და საბავშვო პროდუქციას. შეარჩიე ფანქრები, საღებავები, რვეულები, ჩანთები, სათამაშოები და სხვა ნივთები ერთ ონლაინ მაღაზიაში.";
+      : "Brendi Artopia გთავაზობთ სამხატვრო, საკანცელარიო, სასკოლო და საბავშვო პროდუქციას. შეარჩიე ფანქრები, საღებავები, რვეულები, ჩანთები, სათამაშოები და სხვა ნივთები ერთ ონლაინ მაღაზიაში.";
   const productsUrl = "https://artopia.ge/products";
 
   const [products, setProducts] = useState([]);
@@ -90,24 +150,7 @@ const ProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showCartOpen, setShowCartOpen] = useState(false);
 
-  const { addToCart } = useCart();
-
-
-
-const getStockSnapshot = (p) => {
-  const rawQty = p?.quantity ?? p?.details?.quantity ?? 0;
-  const parsedQty = Number(rawQty);
-  const quantity = Number.isFinite(parsedQty) && parsedQty > 0 ? parsedQty : 0;
-
-  return {
-    ...p,
-    quantity,
-    in_stock: quantity > 0,
-  };
-};
-  // ===== scroll-to-top helper =====
   const scrollToTop = () => {
     const scroller =
       document.scrollingElement || document.documentElement || document.body;
@@ -125,92 +168,90 @@ const getStockSnapshot = (p) => {
     if (topRef.current?.scrollIntoView) {
       topRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
   };
 
-const handleAddToCart = (product, quantity = 1) => {
-  const safeProduct = getStockSnapshot(product);
-  const maxQty = safeProduct.quantity;
+  const handleAddToCart = (product, quantity = 1) => {
+    const safeProduct = normalizeProduct(product);
+    const maxQty = safeProduct.quantity;
+    const requestedQty = Math.max(1, Math.floor(Number(quantity) || 1));
 
-  if (maxQty <= 0) {
-    alert(
-      lang === "en"
-        ? "This product is out of stock."
-        : "პროდუქტი არ არის მარაგში."
-    );
-    return;
-  }
+    if (maxQty <= 0) {
+      alert(
+        lang === "en"
+          ? "This product is out of stock."
+          : "პროდუქტი არ არის მარაგში."
+      );
+      return;
+    }
 
-  const safeQuantity = Math.min(Number(quantity) || 1, maxQty);
+    const safeQuantity = Math.min(requestedQty, maxQty);
+    addToCart(safeProduct, safeQuantity);
+  };
 
-  addToCart(safeProduct, safeQuantity);
-  setShowCartOpen(true);
-};
+  const handleBuyNow = (product, quantity = 1) => {
+    const safeProduct = normalizeProduct(product);
+    const maxQty = safeProduct.quantity;
+    const requestedQty = Math.max(1, Math.floor(Number(quantity) || 1));
 
+    if (maxQty <= 0) {
+      alert(
+        lang === "en"
+          ? "This product is out of stock."
+          : "პროდუქტი არ არის მარაგში."
+      );
+      return;
+    }
 
+    const safeQuantity = Math.min(requestedQty, maxQty);
+    addToCart(safeProduct, safeQuantity);
+    navigate("/checkout");
+  };
 
-
-const handleBuyNow = (product, quantity = 1) => {
-  const safeProduct = getStockSnapshot(product);
-  const maxQty = safeProduct.quantity;
-
-  if (maxQty <= 0) {
-    alert(
-      lang === "en"
-        ? "This product is out of stock."
-        : "პროდუქტი არ არის მარაგში."
-    );
-    return;
-  }
-
-  const safeQuantity = Math.min(Number(quantity) || 1, maxQty);
-
-  addToCart(safeProduct, safeQuantity);
-  navigate("/checkout");
-};
-
-
-
-  // გვერდის შეცვლაზე ავტომატურად ავდივართ თავში
   useEffect(() => {
     scrollToTop();
   }, [currentPage]);
 
-  // პროდუქტების მიღება არჩეული ენის მიხედვით + ლოდერი
   useEffect(() => {
     let mounted = true;
     const url = `${API_BASE}/products?lang=${lang}`;
-    const showDelay = setTimeout(() => mounted && setIsLoading(true), 120);
+    const showDelay = setTimeout(() => {
+      if (mounted) setIsLoading(true);
+    }, 120);
 
     fetch(url)
       .then((res) => {
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        if (!res.ok) {
+          throw new Error(`${res.status} ${res.statusText}`);
+        }
         return res.json();
       })
       .then((data) => {
         if (!mounted) return;
-const list = Array.isArray(data) ? data : [];
 
-const normalized = list.map((p) => {
-  const stock = getStockSnapshot(p);
+        const list = Array.isArray(data) ? data : [];
+        const normalized = list.map(normalizeProduct);
 
-  return {
-    ...stock,
-    image_url1: getDisplayImage(stock),
-    __hasRealImage: hasRealImage(stock),
-  };
-});
+        setProducts(normalized);
 
-setProducts(normalized);
-
-const unique = [...new Set(normalized.map((p) => p.category).filter(Boolean))];
-setCategories(unique);
+        const uniqueCategories = [
+          ...new Set(
+            normalized
+              .map((p) => String(p?.category || "").trim())
+              .filter(Boolean)
+          ),
+        ];
+        setCategories(uniqueCategories);
       })
-      .catch((err) => console.error(err))
+      .catch((err) => {
+        console.error("Failed to fetch products:", err);
+        if (mounted) {
+          setProducts([]);
+          setCategories([]);
+        }
+      })
       .finally(() => {
         clearTimeout(showDelay);
-        mounted && setIsLoading(false);
+        if (mounted) setIsLoading(false);
       });
 
     return () => {
@@ -219,78 +260,33 @@ setCategories(unique);
     };
   }, [lang]);
 
-  // ფილტრის/ენის/ძებნის ცვლილებაზე – გვერდი 1-ზე
-useEffect(() => {
-  setCurrentPage(1);
-}, [selectedCategory, searchTerm, lang]);
-  const hasSale = (p) =>
-    typeof p?.sale === "number" && p.sale > 0 && p.sale <= 100;
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchTerm, lang]);
 
-  const getTS = (p) => {
-    const raw = p?.discountUpdatedAt || p?.updatedAt || p?.createdAt || null;
-    const ts = raw ? new Date(raw).getTime() : 0;
-    return Number.isFinite(ts) ? ts : 0;
-  };
-
-
-const compareProducts = (a, b) => {
-
-const isOut = (p) => getStockSnapshot(p).quantity <= 0;
-
-  const aOut = isOut(a);
-  const bOut = isOut(b);
-
-  // 1️⃣ ყველაზე ბოლოში — out of stock
-  if (aOut !== bOut) return aOut ? 1 : -1;
-
-  const aHasImg = a?.__hasRealImage;
-  const bHasImg = b?.__hasRealImage;
-
-  // 2️⃣ შემდეგ — ფოტო არმქონე (მაგრამ მარაგში)
-  if (aHasImg !== bHasImg) return aHasImg ? -1 : 1;
-
-  // 3️⃣ დანარჩენი ლოგიკა უცვლელი
-  const aSale = hasSale(a) ? 1 : 0;
-  const bSale = hasSale(b) ? 1 : 0;
-  if (aSale !== bSale) return bSale - aSale;
-
-  const aNew = a?.is_new ? 1 : 0;
-  const bNew = b?.is_new ? 1 : 0;
-  if (aNew !== bNew) return bNew - aNew;
-
-  if (aSale && bSale) {
-    if (a.sale !== b.sale) return b.sale - a.sale;
-  }
-
-  const aTS = getTS(a);
-  const bTS = getTS(b);
-  if (aTS !== bTS) return bTS - aTS;
-
-  return String(a?.name || "").localeCompare(String(b?.name || ""));
-};
   const filteredProducts = useMemo(() => {
-    const q = (searchTerm || "").toLowerCase();
+    const q = String(searchTerm || "").trim().toLowerCase();
 
+    return products.filter((p) => {
+      const pCat = String(p?.category || p?.details?.category || "").trim();
 
-    return (products || []).filter((p) => {
-      const pCat = String(p.category || p?.details?.category || "").trim();
-      const pName = String(p.name || "").toLowerCase();
+      const nameKa = String(p?.name || p?.name_ka || "").toLowerCase();
+      const nameEn = String(p?.name_en || "").toLowerCase();
+      const categoryKa = String(p?.category || "").toLowerCase();
+      const categoryEn = String(p?.category_en || "").toLowerCase();
 
-      const matchesSearch = pName.includes(q);
+      const matchesSearch =
+        !q ||
+        nameKa.includes(q) ||
+        nameEn.includes(q) ||
+        categoryKa.includes(q) ||
+        categoryEn.includes(q);
 
+      const matchesCategory = selectedCategory ? pCat === selectedCategory : true;
 
-const matchesCategory =
-  selectedCategory
-    ? pCat === selectedCategory
-    : true;
-
-return matchesCategory && matchesSearch;
-      });
-}, [
-  products,
-  selectedCategory,
-  searchTerm,
-]);
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, selectedCategory, searchTerm]);
 
   const sortedFilteredProducts = useMemo(
     () => [...filteredProducts].sort(compareProducts),
@@ -303,7 +299,6 @@ return matchesCategory && matchesSearch;
     offset
   );
 
-  // pagination handler
   const handlePageClick = ({ selected }) => {
     setCurrentPage(selected + 1);
     requestAnimationFrame(() => {
@@ -316,23 +311,20 @@ return matchesCategory && matchesSearch;
     setCurrentPage(1);
   };
 
-  // ✅ კლიკზე: მხოლოდ slug-იანი URL
   const handleProductClick = (product) => {
     const slug = slugify(product?.name || product?.name_ka || product?.name_en || "");
     if (!slug) return;
     navigate(`/products/${slug}${location.search || ""}`);
   };
 
-  // ✅ URL-დან მოდალის გახსნა (როცა /products/:slug-ზე ვართ)
   useEffect(() => {
     if (!slugFromUrl) {
       setSelectedProduct(null);
       return;
     }
 
-    // ჯერ products list-დან ვეძებთ slug match-ით
     const found =
-      (products || []).find((p) => {
+      products.find((p) => {
         const pSlug = slugify(p?.name || p?.name_ka || p?.name_en || "");
         return pSlug === slugFromUrl;
       }) || null;
@@ -340,22 +332,23 @@ return matchesCategory && matchesSearch;
     setSelectedProduct(found);
   }, [slugFromUrl, products]);
 
-  // ✅ დახურვაზე ბრუნდება /products-ზე (query-ს ინარჩუნებს)
   const handleCloseModal = () => {
     setSelectedProduct(null);
     navigate(`/products${location.search || ""}`, { replace: true });
   };
 
-  // canonical URL მოდალისთვის (slug-ით)
   const productCanonicalUrl = slugFromUrl
     ? `https://artopia.ge/products/${slugFromUrl}`
     : "";
 
   return (
     <>
-      {/* list page SEO მხოლოდ მაშინ, როცა დეტალზე არ ვართ */}
       {!isProductRoute && (
-        <SEO title={productsTitle} description={productsDescription} url={productsUrl} />
+        <SEO
+          title={productsTitle}
+          description={productsDescription}
+          url={productsUrl}
+        />
       )}
 
       <div ref={topRef} className={styles.pageWrapper}>
@@ -381,27 +374,28 @@ return matchesCategory && matchesSearch;
                     onClick={() => handleProductClick(product)}
                     className={styles.cardWrap}
                   >
-       <ProductCard
-  product={product}
-  onAddToCart={(e, quantity, sourceProduct = product) => {
-    e.stopPropagation();
-    handleAddToCart(sourceProduct, quantity);
-  }}
-  onBuyNow={(e, quantity, sourceProduct = product) => {
-    e.stopPropagation();
-    handleBuyNow(sourceProduct, quantity);
-  }}
-/>
+                    <ProductCard
+                      product={product}
+                      onAddToCart={(e, quantity, sourceProduct = product) => {
+                        e.stopPropagation();
+                        handleAddToCart(sourceProduct, quantity);
+                      }}
+                      onBuyNow={(e, quantity, sourceProduct = product) => {
+                        e.stopPropagation();
+                        handleBuyNow(sourceProduct, quantity);
+                      }}
+                    />
                   </div>
                 ))
               ) : (
                 <div className={styles.emptyState}>
-                  {lang === "en" ? "No products found." : "პროდუქტები ვერ მოიძებნა."}
+                  {lang === "en"
+                    ? "No products found."
+                    : "პროდუქტები ვერ მოიძებნა."}
                 </div>
               )}
             </div>
 
-            {/* ✅ მოდალი: იხსნება slug route-ზე */}
             {selectedProduct && (
               <ProductModal
                 product={selectedProduct}
@@ -415,7 +409,9 @@ return matchesCategory && matchesSearch;
 
             {sortedFilteredProducts.length > PRODUCTS_PER_PAGE && (
               <EdgePager
-                totalPages={Math.ceil(sortedFilteredProducts.length / PRODUCTS_PER_PAGE)}
+                totalPages={Math.ceil(
+                  sortedFilteredProducts.length / PRODUCTS_PER_PAGE
+                )}
                 currentPage={currentPage}
                 onChange={(p) => {
                   setCurrentPage(p);
