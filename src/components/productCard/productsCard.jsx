@@ -134,6 +134,7 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
 
         {/* სათაური */}
         {title ? <h3>{title}</h3> : <h3>—</h3>}
+        {/* კატეგორია → ქვეკატეგორია (მხოლოდ როცა გვაქვს რაიმე) */}
 
         {/* კატეგორია → ქვეკატეგორია (მხოლოდ როცა გვაქვს რაიმე) */}
         {(category || subcategory) && (
