@@ -95,19 +95,15 @@ const ProductsPage = () => {
   const { addToCart } = useCart();
 
 const getAvailableQty = (p) => {
-  const qty = Number(p?.quantity ?? p?.details?.quantity);
+  const raw = p?.quantity ?? p?.details?.quantity;
 
-  if (Number.isFinite(qty) && qty >= 0) {
+  const qty = Number(raw);
+
+  if (Number.isFinite(qty) && qty > 0) {
     return qty;
   }
 
-  const inStockFlag =
-    p?.in_stock === true ||
-    p?.in_stock === "true" ||
-    p?.details?.in_stock === true ||
-    p?.details?.in_stock === "true";
-
-  return inStockFlag ? 1 : 0;
+  return 0;
 };
 
 const withStockSnapshot = (p) => ({
