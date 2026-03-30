@@ -56,16 +56,7 @@ const TH = {
   },
 };
 
-// კატეგორიის სახელის ამოღება ნებისმიერი სტრუქტურიდან
-const getCatName = (p) => {
-  const c = p?.category;
-  return (
-    p?.category_name ||
-    p?.categoryName ||
-    (typeof c === "string" ? c : c?.name || c?.base_name) ||
-    ""
-  ).toString().trim();
-};
+
 
 
 // ტექსტების ამოღება KA/EN (ლისტისთვის EN optional)
@@ -116,9 +107,10 @@ const Menu = () => {
           name: p.name ?? p.title ?? "",
           price: p.price,
           sale: p.sale,
-          in_stock: !!p.in_stock,
-          category: getCatName(p),
-          category_id: p.category_id ?? p.category?.id ?? "",
+          quantity: p.quantity ?? 0,
+          in_stock: (p.quantity ?? 0) > 0,
+          category: p.category_name ?? "", // 🔥 დაამატე ეს
+          category_id: p.category_id ?? "", // 🔥 ეს საკმარისია
           image_url1: imgs[0] || null,
           image_url2: imgs[1] || null,
           image_url3: imgs[2] || null,
@@ -138,8 +130,8 @@ const Menu = () => {
       const uniqCats = Array.from(
         new Set(
           trimmed
-            .map((p) => getCatName(p) || p.category || "")
-            .filter(Boolean)
+            .map((p) => p.category || "")
+          .filter(Boolean)
             .map((s) => s.trim())
         )
       );
@@ -178,8 +170,7 @@ const Menu = () => {
 
       const matchesSearch = !needle || haystack.includes(needle);
       const matchesCategory =
-        selectedCategory === "ყველა" || getCatName(p) === selectedCategory;
-
+selectedCategory === "ყველა" || p.category === selectedCategory
 
       const matchesStock =
         selectedStock === "all" ||
@@ -379,11 +370,11 @@ const Menu = () => {
                       </span>
                     )}
 
-                    {getCatName(p)  && (
-                      <div className={styles.pCategory}>
-                        კატეგორია: {getCatName(p) || "—"}
-                      </div>
-                    )}
+               {p.category && (
+  <div className={styles.pCategory}>
+    კატეგორია: {p.category || "—"}
+  </div>
+)}
 
                     <div className={styles.price}>
                       {hasSale ? (

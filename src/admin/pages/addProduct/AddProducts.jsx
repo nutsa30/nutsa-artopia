@@ -245,7 +245,6 @@ const [form, setForm] = useState({
         quantity: det.quantity ?? "",
         sale: det.sale ?? "",
         is_new: !!det.is_new,
-        is_new: !!det.is_new,
       }));
 
       const loaded = [];
