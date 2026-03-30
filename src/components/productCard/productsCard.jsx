@@ -97,11 +97,18 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
   const subcategory = pick(subKA, subEN);
 
   // მარაგი
-  const inStock =
-    product?.in_stock === true ||
-    product?.in_stock === "true" ||
-    details?.in_stock === true ||
-    details?.in_stock === "true";
+  const stockSnapshot = useMemo(() => {
+    const rawQty = details?.quantity ?? product?.quantity ?? 0;
+    const parsedQty = Number(rawQty);
+    const quantity = Number.isFinite(parsedQty) && parsedQty > 0 ? parsedQty : 0;
+
+    return {
+      quantity,
+      inStock: quantity > 0,
+    };
+  }, [product?.quantity, details?.quantity]);
+
+  const inStock = stockSnapshot.inStock;
 
   const addOne = (e) => {
     e.stopPropagation();

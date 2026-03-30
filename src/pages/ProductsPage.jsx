@@ -96,14 +96,15 @@ const ProductsPage = () => {
 
 
 
-const withStockSnapshot = (p) => {
-  const raw = p?.quantity ?? p?.details?.quantity;
-  const qty = Number(raw);
+const getStockSnapshot = (p) => {
+  const rawQty = p?.quantity ?? p?.details?.quantity ?? 0;
+  const parsedQty = Number(rawQty);
+  const quantity = Number.isFinite(parsedQty) && parsedQty > 0 ? parsedQty : 0;
 
   return {
     ...p,
-    quantity: Number.isFinite(qty) ? qty : 0,
-    // ❗ in_stock საერთოდ აღარ ვეხებით
+    quantity,
+    in_stock: quantity > 0,
   };
 };
   // ===== scroll-to-top helper =====
@@ -128,16 +129,12 @@ const withStockSnapshot = (p) => {
     document.body.scrollTop = 0;
   };
 
-const handleAddToCart = (product, quantity) => {
-  const safeProduct = withStockSnapshot(product);
+const handleAddToCart = (product, quantity = 1) => {
+  const safeProduct = getStockSnapshot(product);
   const maxQty = safeProduct.quantity;
 
-if (
-  safeProduct?.in_stock === false ||
-  safeProduct?.in_stock === "false" ||
-  maxQty <= 0
-) {
-  alert(
+  if (maxQty <= 0) {
+    alert(
       lang === "en"
         ? "This product is out of stock."
         : "პროდუქტი არ არის მარაგში."
@@ -145,33 +142,20 @@ if (
     return;
   }
 
-  if (quantity > maxQty) {
-    alert(
-      lang === "en"
-        ? `Only ${maxQty} item(s) available in stock.`
-        : `მარაგში მხოლოდ ${maxQty} ცალია.`
-    );
+  const safeQuantity = Math.min(Number(quantity) || 1, maxQty);
 
-    addToCart(safeProduct, maxQty);
-    setShowCartOpen(true);
-    return;
-  }
-
-  addToCart(safeProduct, quantity);
+  addToCart(safeProduct, safeQuantity);
   setShowCartOpen(true);
 };
 
 
 
-const handleBuyNow = (product, quantity) => {
-  const safeProduct = withStockSnapshot(product);
+
+const handleBuyNow = (product, quantity = 1) => {
+  const safeProduct = getStockSnapshot(product);
   const maxQty = safeProduct.quantity;
 
-  if (
-    safeProduct?.in_stock === false ||
-    safeProduct?.in_stock === "false" ||
-    maxQty <= 0
-  ) {
+  if (maxQty <= 0) {
     alert(
       lang === "en"
         ? "This product is out of stock."
@@ -180,23 +164,11 @@ const handleBuyNow = (product, quantity) => {
     return;
   }
 
-  if (quantity > maxQty) {
-    alert(
-      lang === "en"
-        ? `Only ${maxQty} item(s) available in stock.`
-        : `მარაგში მხოლოდ ${maxQty} ცალია.`
-    );
-  }
+  const safeQuantity = Math.min(Number(quantity) || 1, maxQty);
 
-  const safeQuantity = Math.min(quantity, maxQty);
-
-  for (let i = 0; i < safeQuantity; i++) {
-    addToCart(safeProduct);
-  }
-
+  addToCart(safeProduct, safeQuantity);
   navigate("/checkout");
 };
-
 
 
 
@@ -220,11 +192,15 @@ const handleBuyNow = (product, quantity) => {
         if (!mounted) return;
 const list = Array.isArray(data) ? data : [];
 
-const normalized = list.map((p) => ({
-  ...p,
-  image_url1: getDisplayImage(p),
-  __hasRealImage: hasRealImage(p),
-}));
+const normalized = list.map((p) => {
+  const stock = getStockSnapshot(p);
+
+  return {
+    ...stock,
+    image_url1: getDisplayImage(stock),
+    __hasRealImage: hasRealImage(stock),
+  };
+});
 
 setProducts(normalized);
 
@@ -258,15 +234,8 @@ useEffect(() => {
 
 
 const compareProducts = (a, b) => {
-  const getQty = (p) =>
-    Number(p?.quantity ?? p?.details?.quantity ?? 0);
 
-const isOut = (p) => {
-  return !(
-    p?.in_stock === true ||
-    p?.in_stock === "true"
-  );
-};
+const isOut = (p) => getStockSnapshot(p).quantity <= 0;
 
   const aOut = isOut(a);
   const bOut = isOut(b);
@@ -412,17 +381,17 @@ return matchesCategory && matchesSearch;
                     onClick={() => handleProductClick(product)}
                     className={styles.cardWrap}
                   >
-                    <ProductCard
-                      product={product}
-                      onAddToCart={(e, quantity) => {
-                        e.stopPropagation();
-                        handleAddToCart(product, quantity);
-                      }}
-                      onBuyNow={(e, quantity) => {
-                        e.stopPropagation();
-                        handleBuyNow(product, quantity);
-                      }}
-                    />
+       <ProductCard
+  product={product}
+  onAddToCart={(e, quantity, sourceProduct = product) => {
+    e.stopPropagation();
+    handleAddToCart(sourceProduct, quantity);
+  }}
+  onBuyNow={(e, quantity, sourceProduct = product) => {
+    e.stopPropagation();
+    handleBuyNow(sourceProduct, quantity);
+  }}
+/>
                   </div>
                 ))
               ) : (
