@@ -1,7 +1,6 @@
 // src/components/productCard/ProductsCard.jsx
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import styles from "./ProductsCard.module.css";
-import StarburstBadge from "../StartburstBadge";
 import { useFlyToCart } from "../useFlyToCart";
 import { useCartUiRefs } from "../Navbar/Navbar";
 import { playSound } from "../../utils/playSound";
@@ -147,19 +146,19 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
 
   return (
     <>
-      {hasSale && (
-        <StarburstBadge
-          value={Number(product.sale)}
-          size={96}
-          className={styles.SaleBadge}
-        />
-      )}
+
 
 <div className={`${styles.productCard} product-card`}>
 
   {product?.is_new && (
     <div className={styles.ribbon}>
       <span>{T.new}</span>
+    </div>
+  )}
+
+    {hasSale && (
+    <div className={styles.saleTag}>
+      <span>-{Number(product.sale)}%</span>
     </div>
   )}
         <img

@@ -124,7 +124,6 @@ button {
 .buyNow:hover { background-color: rgba(40, 167, 69, 0.8); }
 
 /* ბეიჯები ფოტოზე ზემოთ, მაგრამ დროპდაუნზე ქვემოთ (z=2) */
-.SaleBadge { position: absolute; top: 10px; left: 12px; z-index: 2; pointer-events: none; }
 
 .outOfStock {
   width: 100%;
@@ -314,3 +313,82 @@ transition: transform 180ms cubic-bezier(.22,.68,.32,1);
   box-shadow: 0 6px 12px rgba(0,0,0,0.25);
 }
 
+/* ===== SALE TAG (RIGHT SIDE) ===== */
+.saleTag {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 92px;
+  height: 56px;
+  z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.saleTag span {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: 92px;
+  height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(135deg, #ff2d2d 0%, #e10600 100%);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+
+  clip-path: polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%);
+  transform: rotate(-38deg);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+@media (max-width: 640px) {
+  .saleTag {
+    top: -8px;
+    right: -8px;
+    width: 76px;
+    height: 46px;
+  }
+
+  .saleTag span {
+    width: 76px;
+    height: 46px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .saleTag {
+    top: -6px;
+    right: -6px;
+    width: 64px;
+    height: 40px;
+  }
+
+  .saleTag span {
+    width: 64px;
+    height: 40px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 360px) {
+  .saleTag {
+    top: -4px;
+    right: -4px;
+    width: 56px;
+    height: 34px;
+  }
+
+  .saleTag span {
+    width: 56px;
+    height: 34px;
+    font-size: 13px;
+  }
+}
