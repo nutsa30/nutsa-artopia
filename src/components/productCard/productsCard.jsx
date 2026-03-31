@@ -155,13 +155,13 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
         />
       )}
 
-    {product?.is_new && (
-  <div className={styles.ribbon}>
-    <span>{T.new}</span>
-  </div>
-)}
+<div className={`${styles.productCard} product-card`}>
 
-      <div className={`${styles.productCard} product-card`}>
+  {product?.is_new && (
+    <div className={styles.ribbon}>
+      <span>{T.new}</span>
+    </div>
+  )}
         <img
           ref={imgRef}
           className={styles.image}

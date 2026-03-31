@@ -32,6 +32,8 @@
 
   /* LAYERING ROOT: ქარდი ნულის ფენაზე */
   z-index: 0;
+  will-change: transform;
+transform-origin: center;
 }
 .productCard:hover {
   transform: translateY(-4px) scale(1.03);
@@ -285,10 +287,9 @@ button {
   pointer-events: none;
 transition: transform 180ms cubic-bezier(.22,.68,.32,1);
   transform-origin: top left;
+  will-change: transform;
 }
-.productCard:hover .ribbon {
-  transform: scale(1.03);
-}
+
 .ribbon span {
   position: absolute;
   display: flex;
