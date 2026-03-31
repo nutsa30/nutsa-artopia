@@ -345,7 +345,7 @@ transition: transform 180ms cubic-bezier(.22,.68,.32,1);
   letter-spacing: -0.02em;
 
   clip-path: polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%);
-  transform: rotate(-38deg);
+  transform: rotate(142deg);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 @media (max-width: 640px) {
