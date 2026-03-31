@@ -178,13 +178,13 @@ const Navbar = () => {
         })}
 
         {/* Cart Icon */}
-        <div
-          className={styles.navItem}
-          onClick={() => setShowCartOpen(!showCartOpen)}
-          role="button"
-          aria-label={L.cartAria}
-          aria-expanded={showCartOpen}
-        >
+     <div
+  className={styles.navItem}
+  onClick={() => setShowCartOpen((prev) => !prev)}
+  role="button"
+  aria-label={L.cartAria}
+  aria-expanded={showCartOpen}
+>
           <CartIcon ref={cartRef} aria-label={L.cartAria} />
           {itemCount > 0 && <span className={styles.cartCount}>{itemCount}</span>}
         </div>

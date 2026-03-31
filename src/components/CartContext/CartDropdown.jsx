@@ -95,11 +95,13 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
 
   const getItemId = (item) => item?.id ?? item?._id ?? item?.name;
 
-  const getMaxQty = (item) => {
-    const pid = item?.id ?? item?._id;
-    if (!pid) return 0;
-    return normalizeQuantity(stockById[pid]);
-  };
+const getMaxQty = (item) => {
+  const pid = item?.id ?? item?._id;
+  if (!pid) return null;
+  return stockById[pid] !== undefined
+    ? normalizeQuantity(stockById[pid])
+    : null;
+};
 
   const handleIncrease = (item) => {
     const id = getItemId(item);
@@ -134,10 +136,13 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
 
   const Overlay = showCartOpen
     ? createPortal(
-        <div
-          className={styles.overlay}
-          onClick={() => setShowCartOpen(false)}
-        />,
+   <div
+  className={styles.overlay}
+  onClick={(e) => {
+    e.stopPropagation();
+    setShowCartOpen(false);
+  }}
+/>,
         document.body
       )
     : null;
@@ -145,7 +150,10 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
   const Dropdown = showCartOpen
     ? createPortal(
         <div className={styles.cartPortal}>
-          <div className={styles.cartDropdown}>
+<div
+  className={styles.cartDropdown}
+  onClick={(e) => e.stopPropagation()}
+>
             <button
               className={styles.closeBtn}
               onClick={() => setShowCartOpen(false)}
@@ -162,8 +170,8 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
                   const unit = Number(item.price) || 0;
                   const line = unit * item.quantity;
                   const maxQty = getMaxQty(item);
-                  const plusDisabled = maxQty === 0 || item.quantity >= maxQty;
-
+const plusDisabled =
+  maxQty === null || maxQty === 0 || item.quantity >= maxQty;
                   return (
                     <div className={styles.cartItem} key={id}>
                       {item?.sale && (
@@ -195,7 +203,7 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
                           {unit.toFixed(2)} ₾ × {item.quantity} = {line.toFixed(2)} ₾
                         </div>
 
-                   {(stockMessageById[id] || item.quantity >= maxQty) && (
+{maxQty > 0 && (stockMessageById[id] || item.quantity >= maxQty) && (
   <div className={styles.stockWarning}>
     {stockMessageById[id] || T.stockOnly(maxQty)}
   </div>

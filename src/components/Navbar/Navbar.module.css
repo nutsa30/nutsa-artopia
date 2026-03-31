@@ -18,7 +18,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   pointer-events: auto;
-  z-index: 1000;
+  z-index: 2000;
 
   /* სურვილით გამოიყენე, რომ pageWrapper-იდან მართო სიმაღლე */
   --navbar-h: 108px;
@@ -106,13 +106,14 @@
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  overflow: visible;
 
   transition:
     box-shadow 0.25s ease,
     transform 0.2s ease,
     background-color 0.2s ease;
 
-  z-index: 10000;
+  z-index: 2001;
 }
 .navItem:hover {
   box-shadow:
@@ -140,10 +141,12 @@
   border-radius: 999px;
 
   cursor: inherit;
-  pointer-events: none;
-  line-height: 0;
+  /* ❗ ეს წაშალე */
+  /* pointer-events: none; */
 }
 .cartCount {
+    pointer-events: none;
+
   position: absolute;
   top: -4px;
   right: -4px;
@@ -229,7 +232,7 @@
 @media (max-width: 1024px) {
   .tabbar { width: min(1200px, 96vw); border-radius: 3rem; }
   .logo { width: 44px; height: 44px; }
-  .icon { width: 26px; height: 26px; font-size: 16px; }
+    .cartSvg { width: 22px; height: 22px; }
   .iconLabel { font-size: 13px; }
   .langSwitcher img { width: 36px; height: 24px; }
 }
@@ -261,6 +264,7 @@
   .iconWrapActive { width: 110px; }
   .iconLabel { font-size: 12px; }
 .navItem {
+
   width: 44px;
   height: 44px;
   flex: 0 0 44px;

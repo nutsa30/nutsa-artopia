@@ -197,7 +197,7 @@ const [stockMessageById, setStockMessageById] = useState({});
     }
     if (formData.city) {
       const regionalLabel =
-        subtotal >= 50 ? "რეგიონალური მიტანა (უფასო)" : "რეგიონალური მიტანა (8 ₾)";
+        subtotal >= 70 ? "რეგიონალური მიტანა (უფასო)" : "რეგიონალური მიტანა (8 ₾)";
       return [{ value: "regionalDelivery", label: regionalLabel }];
     }
     return [];
@@ -245,17 +245,17 @@ useEffect(() => {
     let delivery_fee = 0;
     let extra_discount = 0;
 
-    if (inTbilisi) {
-      if (formData.deliveryOption === "storePickup") {
-        delivery_fee = 0;
-      } else if (formData.deliveryOption === "deliveryTomorrow") {
-        delivery_fee = subtotal >= 30 ? 0 : 6;
-      } else if (formData.deliveryOption === "immediateDelivery") {
-        delivery_fee = subtotal >= 60 ? 0 : 10;
-      }
-    } else if (formData.city) {
-      delivery_fee = subtotal >= 50 ? 0 : 8;
-    }
+if (inTbilisi) {
+  if (formData.deliveryOption === "storePickup") {
+    delivery_fee = 0;
+  } else {
+    // თბილისი — 50₾+
+    delivery_fee = subtotal >= 50 ? 0 : 6;
+  }
+} else if (formData.city) {
+  // რეგიონი — 70₾+
+  delivery_fee = subtotal >= 70 ? 0 : 8;
+}
 
     const total = Math.max(
       0,
