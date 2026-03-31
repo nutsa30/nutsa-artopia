@@ -62,11 +62,13 @@ export function useCartUiRefs() {
 
 /* ---------- Cart Icon ---------- */
 const CartIcon = forwardRef((props, ref) => (
-  <button
-    ref={ref}
-    aria-label={props["aria-label"] || "Cart"}
-    className={styles.icon}
-  >
+<button
+  ref={ref}
+  aria-label={props["aria-label"] || "Cart"}
+  className={styles.icon}
+  type="button"
+  tabIndex={-1}
+>
     <svg
       viewBox="0 0 24 24"
       className={styles.cartSvg}
