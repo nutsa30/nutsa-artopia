@@ -26,6 +26,10 @@ const unitPrice = (it) => {
   }
   return +price.toFixed(2);
 };
+  const normalizeQuantity = (value) => {
+  const num = Number(value);
+  return Number.isFinite(num) && num > 0 ? Math.floor(num) : 0;
+};
 
 const LBL = {
   ka: {
@@ -177,7 +181,8 @@ const Checkout = () => {
 
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-
+const [stockById, setStockById] = useState({});
+const [stockMessageById, setStockMessageById] = useState({});
   const subtotal = cartItems.reduce(
     (s, it) => s + unitPrice(it) * (it.quantity || 0),
     0
@@ -197,7 +202,38 @@ const Checkout = () => {
     }
     return [];
   }, [formData.city, subtotal, T]);
+useEffect(() => {
+  let ignore = false;
 
+  const fetchStocks = async () => {
+    const entries = await Promise.all(
+      cartItems.map(async (item) => {
+        const id = item.id;
+        try {
+          const res = await fetch(`${API_BASE}/products/${id}?lang=${lang}`);
+          if (!res.ok) return [id, 0];
+
+          const data = await res.json();
+          return [id, normalizeQuantity(data?.quantity)];
+        } catch {
+          return [id, 0];
+        }
+      })
+    );
+
+    if (!ignore) {
+      setStockById(Object.fromEntries(entries));
+    }
+  };
+
+  if (cartItems.length > 0) {
+    fetchStocks();
+  }
+
+  return () => {
+    ignore = true;
+  };
+}, [cartItems, lang]);
   useEffect(() => {
     if (formData.city && !isTbilisi(formData.city)) {
       setFormData((prev) => ({ ...prev, deliveryOption: "regionalDelivery" }));
@@ -238,6 +274,7 @@ const Checkout = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -345,7 +382,11 @@ const Checkout = () => {
                     <div className={styles.itemPrice}>
                       {fmt(up)} ₾ × {item.quantity} = <b>{fmt(line)} ₾</b>
                     </div>
-
+{stockMessageById[item.id] && (
+  <div className={styles.stockWarning}>
+    {stockMessageById[item.id]}
+  </div>
+)}
                     <div className={styles.controls}>
                       <button
                         className={`${styles.qtyBtn} ${styles.minus}`}
@@ -362,12 +403,32 @@ const Checkout = () => {
                         {item.quantity}
                       </span>
 
-                      <button
-                        className={`${styles.qtyBtn} ${styles.plus}`}
-                        onClick={() => updateQuantity(item.id, 1)}
+              <button
+  className={`${styles.qtyBtn} ${styles.plus}`}
+  onClick={() => {
+    const maxQty = normalizeQuantity(stockById[item.id]);
+
+    if (item.quantity >= maxQty) {
+      setStockMessageById((prev) => ({
+        ...prev,
+        [item.id]: lang === "en"
+          ? `Only ${maxQty} item(s) available.`
+          : `მარაგში მხოლოდ ${maxQty} ცალია.`,
+      }));
+      return;
+    }
+
+    setStockMessageById((prev) => ({
+      ...prev,
+      [item.id]: "",
+    }));
+
+    updateQuantity(item.id, 1);
+  }}
                         type="button"
                         aria-label={T.plus}
                         title={T.plus}
+                        disabled={item.quantity >= normalizeQuantity(stockById[item.id])}
                       >
                         +
                       </button>
