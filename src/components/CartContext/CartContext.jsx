@@ -53,9 +53,9 @@ useEffect(() => {
         return prev;
       }
 
-      return prev.map(item =>
-        item.id === product.id
-          ? { ...item, quantity: newQty }
+    return prev.map(item =>
+  item.id === product.id
+    ? { ...item, quantity: newQty, maxQty: item.maxQty ?? product.quantity }
           : item
       );
     }
@@ -66,14 +66,15 @@ useEffect(() => {
       return prev;
     }
 
-    return [
-      ...prev,
-      {
-        ...product,
-        price: Number(product.price),
-        quantity: qty,
-      },
-    ];
+return [
+  ...prev,
+  {
+    ...product,
+    price: Number(product.price),
+    quantity: qty,
+    maxQty: product.quantity, // 🔥 ეს არის FIX
+  },
+];
   });
 };
 
@@ -88,7 +89,7 @@ const updateQuantity = (productId, amount) => {
     prev.map(item => {
       if (item.id !== productId) return item;
 
-      const maxQty = item?.quantity ?? 0;
+      const maxQty = item?.maxQty ?? 0;
       const newQty = item.quantity + amount;
 
       if (newQty > maxQty) {
