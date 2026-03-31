@@ -7,10 +7,20 @@
   background-color: rgba(0,0,0,0.6);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; /* 👈 ეს შეცვალე */
+  padding-top: 100px; /* 👈 დაამატე */
   z-index: 1000;
 }
-
+@media (max-width: 480px) {
+  .modalOverlay {
+    padding-top: 10px;
+  }
+}
+@media (max-width: 480px) {
+  .modalOverlay {
+    padding-top: 50px;
+  }
+}
 .modalContent {
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
@@ -494,10 +504,12 @@
 
 @media (max-width:430px){
   .modalContent{
-    height: 70vh;
     width: 300px;
     display: flex;
     flex-direction: column;
+    height: auto;
+    margin-top: 70px; /* 👈 ეს დაამატე */
+    max-height: calc(100vh - 90px); /* 👈 ეს დაამატე */
   }
   .productImage{
     max-width: 200px;
