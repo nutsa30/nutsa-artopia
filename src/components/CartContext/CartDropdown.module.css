@@ -185,8 +185,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 50px;
-  height: 50px;
+  width: 38px;
+  height: 38px;
   overflow: hidden;
   z-index: 3;
   pointer-events: none;
@@ -198,22 +198,22 @@
   align-items: center;
   justify-content: center;
 
-  width: 80px;
-  height: 18px;
+  width: 56px;
+  height: 13px;
 
   background: linear-gradient(45deg, #22c55e, #16a34a);
   color: #fff;
 
-  font-size: 8px;
+  font-size: 5.5px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 
   transform: rotate(-45deg);
-  top: 10px;
-  left: -25px;
+  top: 7px;
+  left: -18px;
 
-  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.22);
 }
 @media (max-width: 768px) {
   .ribbon {
