@@ -103,9 +103,15 @@
 .navItem:hover { box-shadow: 0 0 12px #3f79ff; }
 
 .icon {
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: transparent;
-  width: 30px; height: 30px; font-size: 18px; color: purple;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+
+  transition: transform 0.25s ease, filter 0.25s ease;
 }
 .cartCount {
   position: absolute; top: -5px; right: -5px;
@@ -148,6 +154,20 @@
 }
 .iconWrapActive .iconLabel { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
+.cartSvg {
+  width: 22px;
+  height: 22px;
+  fill: #1d3557; /* შეგიძლია შეცვალო */
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+.navItem:hover .cartSvg {
+  transform: scale(1.15) rotate(5deg);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.navItem:active .cartSvg {
+  transform: scale(0.9) rotate(-5deg);
+}
 /* ===================== Responsive ===================== */
 
 /* ≥1290px — ოდნავ კომპაქტური padding */
@@ -230,7 +250,11 @@
   }
 }
 
-
+@media (hover: none) {
+  .navItem:active .cartSvg {
+    transform: scale(0.92);
+  }
+}
 /* ====== @media skeleton (mobile-first) ====== */
 /* xs: base styles */
 
