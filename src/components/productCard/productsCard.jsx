@@ -2,7 +2,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import styles from "./ProductsCard.module.css";
 import StarburstBadge from "../StartburstBadge";
-import BrushBadge from "../BrushBadge";
 import { useFlyToCart } from "../useFlyToCart";
 import { useCartUiRefs } from "../Navbar/Navbar";
 import { playSound } from "../../utils/playSound";
@@ -156,9 +155,11 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
         />
       )}
 
-      {product?.is_new && (
-        <BrushBadge text={T.new} className={styles.NewBadge} />
-      )}
+    {product?.is_new && (
+  <div className={styles.ribbon}>
+    <span>{T.new}</span>
+  </div>
+)}
 
       <div className={`${styles.productCard} product-card`}>
         <img
