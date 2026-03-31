@@ -28,9 +28,8 @@ import { LanguageProvider, useLang } from "./LanguageContext";
 import ChatWidget from "./components/ChatWidget";
 
 import PaymentResult from "./components/Checkout/PaymentResult";
-import CartToast from "../CartToast/CartToast";
-import { useCart } from "../CartContext/CartContext";
-
+import CartToast from "./components/CartToast/CartToast";
+import { useCart } from "./components/CartContext/CartContext";
 
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 const CartToastWrapper = () => {
@@ -114,9 +113,9 @@ function App() {
     <LanguageProvider>
       <LayoutGroup>
         <CartProvider>
-          <CartUiProvider>
-            <CartToastWrapper />
-            <Router>
+      <CartUiProvider>
+  <Router>
+    <CartToastWrapper />
               <RouteLoader />
 
               <Chrome cartItems={cartItems} showCart={showCart} lastAddedId={lastAddedId}>
