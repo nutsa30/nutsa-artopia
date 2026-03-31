@@ -199,9 +199,12 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
         <div className={styles.buttonWrapper}>
           {inStock ? (
             <div className={styles.buttons}>
-              <button className={styles.addToCart} onClick={addOne}>
-                {T.addToCart}
-              </button>
+        <button className={styles.addToCart} onClick={addOne} type="button">
+  <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.cartIcon}>
+    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A.996.996 0 0 0 21.42 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
+  </svg>
+  <span className={styles.addToCartText}>{T.addToCart}</span>
+</button>
               <button className={styles.buyNow} onClick={buyOne}>
                 {T.buyNow}
               </button>
