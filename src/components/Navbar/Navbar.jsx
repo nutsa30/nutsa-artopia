@@ -149,7 +149,7 @@ const Navbar = () => {
               )}
               <div className={`${styles.iconWrap} ${isActive ? styles.iconWrapActive : ""}`}>
                 <span className={styles.iconAnim}>{tab.icon}</span>
-                {isActive && <span className={styles.iconLabel}>{label}</span>}
+                <span className={styles.iconLabel}>{label}</span>
               </div>
             </Link>
           );

@@ -114,21 +114,37 @@
 
 /* ---------- წარწერიანი აიკონი (გახსნისას ფართოვდება) ---------- */
 .iconWrap {
-  position: relative; z-index: 2;
-  height: 42px; width: 42px;
+  position: relative;
+  z-index: 2;
+
+  height: 42px;
+  width: auto;              /* 👈 მთავარი შეცვლა */
+  min-width: 42px;          /* 👈 რომ აიკონი არ დაიშალოს */
+
   background: rgb(200, 200, 200);
   border-radius: 1.2rem;
-  display: flex; align-items: center; justify-content: center;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+
   padding: 0 0.75rem;
-  overflow: hidden; white-space: nowrap; gap: 0;
+  white-space: nowrap;
+  gap: 0.5rem;              /* 👈 ტექსტსა და აიკონს შორის სივრცე */
 }
 .iconWrapActive { width: 150px; gap: 0.5rem; justify-content: flex-start; }
 .iconLabel {
-  font-size: 14px; font-weight: bold; color: #0056FF;
-  white-space: nowrap; opacity: 0; transform: translateX(-10px);
-  transition: all 0.3s ease; pointer-events: none;
+  font-size: 14px;
+  font-weight: bold;
+  color: #0056FF;
+  white-space: nowrap;
+
+  opacity: 1;               /* 👈 შეცვლა */
+  transform: translateX(0); /* 👈 შეცვლა */
+  pointer-events: auto;
 }
 .iconWrapActive .iconLabel { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
