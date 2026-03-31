@@ -157,9 +157,11 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
   )}
 
     {hasSale && (
-    <div className={styles.saleTag}>
-      <span>-{Number(product.sale)}%</span>
-    </div>
+<div className={styles.saleTag}>
+  <span>
+    <b>-{Number(product.sale)}%</b>
+  </span>
+</div>
   )}
         <img
           ref={imgRef}

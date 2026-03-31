@@ -348,6 +348,13 @@ transition: transform 180ms cubic-bezier(.22,.68,.32,1);
   transform: rotate(142deg);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
+.saleTag span > * {
+  transform: rotate(180deg);
+}
+.saleTag span b {
+  display: inline-block;
+  transform: rotate(180deg);
+}
 @media (max-width: 640px) {
   .saleTag {
     top: -8px;
