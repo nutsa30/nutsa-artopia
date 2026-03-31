@@ -4,7 +4,6 @@ import { useCart } from '../CartContext/CartContext';
 import styles from './CartDropdown.module.css';
 import { useNavigate } from 'react-router-dom';
 import StarburstBadge from '../StartburstBadge';
-import BrushBadge from '../BrushBadge';
 import { useLang } from '../../LanguageContext';
 
 const LBL = {
@@ -59,63 +58,73 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
                   const line = unit * item.quantity;
 
                   return (
-                    <div className={styles.cartItem} key={id}>
 
-                      {item?.sale && <StarburstBadge value={item.sale} size={44} className={styles.saleBadge} />}
-                      {item?.is_new && <BrushBadge text={T.newBadge} size={40} className={styles.newBadge} />}
+       <div className={styles.cartItem} key={id}>
 
-                      <img
-                        src={item.image_url1 || 'https://via.placeholder.com/60'}
-                        alt={item.name}
-                        className={styles.itemImage}
-                      />
+  {item?.sale && (
+    <StarburstBadge value={item.sale} size={44} className={styles.saleBadge} />
+  )}
 
-                      <div className={styles.itemContent}>
-                        <div className={styles.itemName}>{item.name}</div>
+  {/* IMAGE + RIBBON */}
+  <div className={styles.imageWrap}>
+    {item?.is_new && (
+      <div className={styles.ribbon}>
+        <span>{T.newBadge}</span>
+      </div>
+    )}
 
-                        <div className={styles.itemPrice}>
-                          {unit.toFixed(2)} ₾ × {item.quantity} = {line.toFixed(2)} ₾
-                        </div>
+    <img
+      src={item.image_url1 || 'https://via.placeholder.com/60'}
+      alt={item.name}
+      className={styles.itemImage}
+    />
+  </div>
 
-                        <div className={styles.controls}>
+  {/* CONTENT */}
+  <div className={styles.itemContent}>
+    <div className={styles.itemName}>{item.name}</div>
 
-                          {/* MINUS */}
-                          <button
-                            className={`${styles.qtyBtn} ${styles.minus}`}
-                            onClick={() => updateQuantity(id, -1)}
-                            disabled={item.quantity === 1}
-                          >
-                            –
-                          </button>
+    <div className={styles.itemPrice}>
+      {unit.toFixed(2)} ₾ × {item.quantity} = {line.toFixed(2)} ₾
+    </div>
 
-                          <span className={styles.quantityDisplay}>{item.quantity}</span>
+    <div className={styles.controls}>
 
-                          {/* PLUS */}
-                          <button
-                            className={`${styles.qtyBtn} ${styles.plus}`}
-                            onClick={() => updateQuantity(id, 1)}
-                          >
-                            +
-                          </button>
+      <button
+        className={`${styles.qtyBtn} ${styles.minus}`}
+        onClick={() => updateQuantity(id, -1)}
+        disabled={item.quantity === 1}
+      >
+        –
+      </button>
 
-                          {/* DELETE */}
-                          <button
-                            className={styles.binButton}
-                            onClick={() => removeFromCart(id)}
-                          >
-                            <svg className={styles.binTop} viewBox="0 0 39 7">
-                              <line y1="5" x2="39" y2="5" stroke="white" strokeWidth="4" />
-                              <line x1="12" y1="1.5" x2="26" y2="1.5" stroke="white" strokeWidth="3" />
-                            </svg>
+      <span className={styles.quantityDisplay}>{item.quantity}</span>
 
-                            <svg className={styles.binBottom} viewBox="0 0 33 39">
-                              <path d="M0 0H33V35C33 37 31 39 29 39H4C2 39 0 37 0 35V0Z" fill="white"/>
-                            </svg>
-                          </button>
+      <button
+        className={`${styles.qtyBtn} ${styles.plus}`}
+        onClick={() => updateQuantity(id, 1)}
+      >
+        +
+      </button>
 
-                        </div>
-                      </div>
-                    </div>
+      <button
+        className={styles.binButton}
+        onClick={() => removeFromCart(id)}
+      >
+        <svg className={styles.binTop} viewBox="0 0 39 7">
+          <line y1="5" x2="39" y2="5" stroke="white" strokeWidth="4" />
+          <line x1="12" y1="1.5" x2="26" y2="1.5" stroke="white" strokeWidth="3" />
+        </svg>
+
+        <svg className={styles.binBottom} viewBox="0 0 33 39">
+          <path d="M0 0H33V35C33 37 31 39 29 39H4C2 39 0 37 0 35V0Z" fill="white"/>
+        </svg>
+      </button>
+
+    </div>
+  </div>
+
+</div>             
                   );
                 })}
 

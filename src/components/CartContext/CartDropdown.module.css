@@ -21,6 +21,7 @@
   border-radius: 12px;
   margin-bottom: 14px;
   align-items: center;
+  position: relative;
 }
 
 .itemImage {
@@ -179,4 +180,58 @@
     width: 34px;
     height: 34px;
   }
+}/* ===== NEW RIBBON (CART) ===== */
+.ribbon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  overflow: hidden;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.ribbon span {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 120px;
+  height: 24px;
+
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+  color: #fff;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  transform: rotate(-45deg);
+  top: 16px;
+  left: -35px;
+
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+}
+@media (max-width: 768px) {
+  .ribbon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .ribbon span {
+    width: 100px;
+    height: 22px;
+    font-size: 9px;
+    top: 14px;
+    left: -32px;
+  }
+}
+.imageWrap {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  margin-right: 12px;
 }
