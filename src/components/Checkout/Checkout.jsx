@@ -184,28 +184,39 @@ const Checkout = () => {
 const [stockById, setStockById] = useState({});
 const [stockMessageById, setStockMessageById] = useState({});
   const subtotal = cartItems.reduce(
+    
     (s, it) => s + unitPrice(it) * (it.quantity || 0),
     0
   );
+const deliveryOptions = useMemo(() => {
+  if (isTbilisi(formData.city)) {
+    const deliveryLabel =
+      subtotal >= 50
+        ? (lang === "en"
+            ? "Next-day delivery (Free)"
+            : "მომდევნო დღე (უფასო)")
+        : (lang === "en"
+            ? "Next-day delivery (6 ₾)"
+            : "მომდევნო დღე (6 ₾)");
 
-if (isTbilisi(formData.city)) {
-const deliveryLabel =
-  subtotal >= 50
-    ? (lang === "en" ? "Next-day delivery (Free)" : "მომდევნო დღე (უფასო)")
-    : (lang === "en" ? "Next-day delivery (6 ₾)" : "მომდევნო დღე (6 ₾)");
+    return [
+      { value: "deliveryTomorrow", label: deliveryLabel },
+      { value: "storePickup", label: T.optPickup },
+    ];
+  }
 
-  return [
-    { value: "deliveryTomorrow", label: deliveryLabel },
-    { value: "storePickup", label: T.optPickup },
-  ];
-}
-    if (formData.city) {
-      const regionalLabel =
-        subtotal >= 70 ? "რეგიონალური მიტანა (უფასო)" : "რეგიონალური მიტანა (8 ₾)";
-      return [{ value: "regionalDelivery", label: regionalLabel }];
-    }
-    return [];
-  }, [formData.city, subtotal, T]);
+  if (formData.city) {
+    const regionalLabel =
+      subtotal >= 70
+        ? "რეგიონალური მიტანა (უფასო)"
+        : "რეგიონალური მიტანა (8 ₾)";
+
+    return [{ value: "regionalDelivery", label: regionalLabel }];
+  }
+
+  return [];
+}, [formData.city, subtotal, lang, T]);
+
 useEffect(() => {
   let ignore = false;
 
