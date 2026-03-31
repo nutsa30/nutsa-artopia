@@ -289,3 +289,13 @@
     font-size: 8px;
   }
 }
+.stockWarning {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 6px;
+  font-weight: 500;
+}
