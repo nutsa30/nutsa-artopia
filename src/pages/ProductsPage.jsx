@@ -471,14 +471,15 @@ currentPageData.map((product, index) => {
             </div>
 
             {selectedProduct && (
-              <ProductModal
-                product={selectedProduct}
-                onClose={handleCloseModal}
-                onAddToCart={handleAddToCart}
-                onBuyNow={handleBuyNow}
-                enableSeo={isProductRoute}
-                canonicalUrl={productCanonicalUrl}
-              />
+          <ProductModal
+  product={selectedProduct}
+  onClose={handleCloseModal}
+  onAddToCart={handleAddToCart}
+  onBuyNow={handleBuyNow}
+  onProductClick={handleProductClick}
+  enableSeo={isProductRoute}
+  canonicalUrl={productCanonicalUrl}
+/>
             )}
 
             {sortedFilteredProducts.length > PRODUCTS_PER_PAGE && (

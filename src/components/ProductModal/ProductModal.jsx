@@ -4,7 +4,7 @@ import { playSound } from "../../utils/playSound";
 import popSfx from "../../assets/pop.mp3";
 import { useLang } from "../../LanguageContext";
 import SEO from "../SEO";
-
+import RelatedProducts from "../RelatedProducts/RelatedProducts";
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
 
 const LBL = {
@@ -51,6 +51,7 @@ const ProductModal = ({
   onClose,
   onAddToCart,
   onBuyNow,
+  onProductClick,
   enableSeo = false,
   canonicalUrl = "",
 }) => {
@@ -390,6 +391,12 @@ const handleAddToCartClick = () => {
               </div>
             )}
           </div>
+        </div>
+                <div className={styles.relatedWrap}>
+          <RelatedProducts
+            currentProduct={product}
+            onProductClick={onProductClick}
+          />
         </div>
       </div>
     </div>
