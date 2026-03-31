@@ -188,13 +188,17 @@ const [stockMessageById, setStockMessageById] = useState({});
     0
   );
 
-  const deliveryOptions = useMemo(() => {
-    if (isTbilisi(formData.city)) {
-      return [
-        { value: "deliveryTomorrow", label: T.optTomorrow },
-        { value: "storePickup", label: T.optPickup },
-      ];
-    }
+if (isTbilisi(formData.city)) {
+const deliveryLabel =
+  subtotal >= 50
+    ? (lang === "en" ? "Next-day delivery (Free)" : "მომდევნო დღე (უფასო)")
+    : (lang === "en" ? "Next-day delivery (6 ₾)" : "მომდევნო დღე (6 ₾)");
+
+  return [
+    { value: "deliveryTomorrow", label: deliveryLabel },
+    { value: "storePickup", label: T.optPickup },
+  ];
+}
     if (formData.city) {
       const regionalLabel =
         subtotal >= 70 ? "რეგიონალური მიტანა (უფასო)" : "რეგიონალური მიტანა (8 ₾)";
