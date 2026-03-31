@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import styles from "./ProductModal.module.css";
-import StarburstBadge from "../StartburstBadge";
-import BrushBadge from "../BrushBadge";
+import { playSound } from "../../utils/playSound";
+import popSfx from "../../assets/pop.mp3";
 import { useLang } from "../../LanguageContext";
 import SEO from "../SEO";
 
@@ -138,15 +138,15 @@ const ProductModal = ({
     e.stopPropagation();
     setCurrentImageIndex((idx) => (idx === images.length - 1 ? 0 : idx + 1));
   };
-
-  const handleAddToCartClick = () => {
-    const safeProduct = {
-      ...product,
-      quantity: maxQty,
-    };
-
-    onAddToCart(safeProduct, quantity);
+const handleAddToCartClick = () => {
+  const safeProduct = {
+    ...product,
+    quantity: maxQty,
   };
+
+  onAddToCart(safeProduct, quantity);
+  playSound(popSfx, 0.4);
+};
 
   const handleBuyNowClick = () => {
     const safeProduct = {
@@ -234,21 +234,20 @@ const ProductModal = ({
         </button>
 
         <div className={styles.imageContainer}>
-          {hasSale && (
-            <StarburstBadge
-              value={product.sale}
-              size={96}
-              className={styles.SaleBadge}
-            />
-          )}
 
-          {isNew && (
-            <BrushBadge
-              text={T.new}
-              size={80}
-              className={styles.NewBadge}
-            />
-          )}
+{isNew && (
+  <div className={styles.ribbon}>
+    <span>{T.new}</span>
+  </div>
+)}
+
+{hasSale && (
+  <div className={styles.saleTag}>
+    <span>
+      <b>-{Number(product.sale)}%</b>
+    </span>
+  </div>
+)}
 
           {images.length > 1 && (
             <button

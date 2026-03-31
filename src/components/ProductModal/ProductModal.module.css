@@ -186,25 +186,141 @@
   background-color: #d62828;
 }
 
-.SaleBadge {
+/* ===== NEW RIBBON (MODAL) ===== */
+.ribbon {
   position: absolute;
-  top: -1px;
-  left: -22px;
+  top: 0;
+  left: 0;
+  width: 140px;
+  height: 140px;
+  overflow: hidden;
   z-index: 5;
+  pointer-events: none;
 }
 
-/* ProductModal.module.css – დაამატე */
-.saleBadge {
+.ribbon span {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 190px;
+  height: 36px;
+
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+  color: #fff;
+
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  transform: rotate(-45deg);
+  top: 26px;
+  left: -52px;
+
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
 }
-.newBadge {
+
+/* ===== SALE TAG (MODAL) ===== */
+.saleTag {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 5;
+  top: -12px;
+  right: -12px;
+  width: 110px;
+  height: 66px;
+  z-index: 6;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.saleTag span {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: 110px;
+  height: 66px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(135deg, #ff2d2d 0%, #e10600 100%);
+  color: #fff;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+
+  clip-path: polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%);
+  transform: rotate(142deg);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.saleTag span > * {
+  transform: rotate(180deg);
+}
+
+.saleTag span b {
+  display: inline-block;
+  transform: rotate(180deg);
+}
+
+@media (max-width: 768px) {
+  .ribbon {
+    width: 110px;
+    height: 110px;
+  }
+
+  .ribbon span {
+    width: 150px;
+    height: 30px;
+    font-size: 11px;
+    top: 20px;
+    left: -42px;
+  }
+
+  .saleTag {
+    top: -8px;
+    right: -8px;
+    width: 86px;
+    height: 52px;
+  }
+
+  .saleTag span {
+    width: 86px;
+    height: 52px;
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ribbon {
+    width: 90px;
+    height: 90px;
+  }
+
+  .ribbon span {
+    width: 122px;
+    height: 24px;
+    font-size: 9px;
+    top: 16px;
+    left: -34px;
+  }
+
+  .saleTag {
+    top: -6px;
+    right: -6px;
+    width: 70px;
+    height: 42px;
+  }
+
+  .saleTag span {
+    width: 70px;
+    height: 42px;
+    font-size: 16px;
+  }
 }
 
 /* ProductModal.module.css */
