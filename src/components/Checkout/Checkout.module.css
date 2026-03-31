@@ -1,89 +1,213 @@
 .checkoutContainer {
-    /* min-height: 100vh; */
-  max-width: 900px;
-  justify-content: center;
+  max-width: 1180px;
   margin: 120px auto;
   padding: 20px;
-  /* background-color: #0f172a;  */
   border-radius: 12px;
-  color: #f1faee; /* თეთრი ტექსტი */
+  color: #f1faee;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
   display: flex;
   gap: 40px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
 }
 
 .cartSummary {
-  border: 1px solid #ddd;
-  padding: 10px;
-  
-  margin-bottom: 20px;
+  flex: 1;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  padding: 18px;
   background: #1e293b;
-  border-radius: 8px;
-  max-width: 600px; /* მაქსიმალური სიგანე */
-  overflow-y: auto; /* თუ ბევრი პროდუქტი იქნება */
+  border-radius: 14px;
+  overflow-y: auto;
+}
+
+.cartSummary h2 {
+  margin: 0 0 18px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #f8fafc;
 }
 
 .cartItem {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 12px 12px 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.thumbWrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+}
+
+.thumb {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: contain;
+  display: block;
+}
+
+.itemContent {
+  min-width: 0;
+  flex: 1;
+}
+
+.itemName {
+  display: block;
+  color: #f8fafc;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.itemPrice {
+  font-size: 13px;
+  color: #f8fafc;
+  opacity: 0.95;
+  margin-bottom: 8px;
+}
+
+.controls {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  gap: 8px;
+  width: 100%;
 }
 
-.cartItem img {
-  margin-right: 15px;
-  border-radius: 4px;
-  width: 60px;      
-  height: 60px;
-  object-fit: cover; 
+/* ===== QUANTITY BUTTONS ===== */
+.qtyBtn {
+  width: 54px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  font-size: 24px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.25s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
 }
 
-.cartItem strong {
-  font-size: 16px;
+.minus {
+  background: #6b7280;
+  color: #fff;
 }
 
-.cartItem p {
-  margin: 0;
-  font-size: 0.9em;
-  color: #555;
+.minus:hover:not(:disabled) {
+  background: #5b616d;
 }
 
-
-/* ჯამური ფასი */
-.cartSummary h3 {
-  margin-top: 20px;
-  font-size: 1.3em;
-  border-top: 1px solid #64748b;
-  padding-top: 15px;
-  color: #f1faee;
+.minus:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
-/* ფორმა */
+.plus {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+}
+
+.plus:hover {
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.45);
+}
+
+.quantityDisplay {
+  min-width: 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  flex: 0 0 auto;
+}
+
+/* ===== DELETE BUTTON ===== */
+.binButton {
+  width: 54px;
+  height: 40px;
+  background: rgb(255, 95, 95);
+  border-radius: 10px;
+  border: 2px solid rgb(255, 201, 201);
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.binTop {
+  width: 14px;
+  transition: 0.3s;
+}
+
+.binBottom {
+  width: 12px;
+}
+
+.binButton:hover .binTop {
+  transform: rotate(45deg);
+}
+
+.binButton:hover {
+  background: red;
+}
+
+/* ===== TOTALS ===== */
+.totalPrice {
+  margin-top: 18px;
+  color: #f8fafc;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.totalPrice hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.75);
+  margin: 8px 0;
+}
+
+/* ===== FORM ===== */
 .form {
   flex: 1;
   background-color: #1e293b;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
   max-width: 500px;
+  width: 100%;
   overflow-y: auto;
-  /* max-height: 500px; */
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
-/* ფორმის ინპუტები */
 .input {
   width: 100%;
   padding: 12px 15px;
   margin: 12px 0;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #64748b;
   background-color: #2a344d;
   color: #f1faee;
   font-size: 1rem;
   font-weight: 500;
   box-sizing: border-box;
+  outline: none;
   outline-offset: 2px;
   transition: border-color 0.3s ease;
 }
@@ -92,148 +216,22 @@
   border-color: #457b9d;
 }
 
-/* წარუდგენელი ღილაკი */
 .submitBtn {
   background-color: #1d3557;
   color: white;
   width: 100%;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   margin-top: 15px;
   padding: 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .submitBtn:hover {
   background-color: #112240;
-}
-
-
-
-.controls {
-  margin-left: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  
-}
-
-.controls button{
-  background-color: #64748b;
-}
-
-.controls button:disabled{
-  background-color: #555;
-}
-.quantityBtn {
-  background-color: #457b9d;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  font-size: 18px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.quantityBtn:hover:not(:disabled) {
-  background-color: #1d3557;
-}
-
-.quantityBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.quantityDisplay {
-  min-width: 24px;
-  text-align: center;
-  font-size: 16px;
-  font-weight: 700;
-  color: #f1faee;
-}
-
-.deleteBtn {
-  background-color: transparent;
-  border: none;
-  font-size: 20px;
-  color: #ff4d4f;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.deleteBtn:hover {
-  color: #d93636;
-}
-
-
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.modalContent {
-  position: relative;
-  background-color: #fff;
-  padding: 40px 60px;
-  border-radius: 10px;
-  text-align: center;
-  font-size: 20px;
-  color: #2e7d32;
-  font-weight: bold;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  min-width: 300px;
-}
-
-.closeModalBtn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  background: transparent;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  color: #333;
-  transition: color 0.3s;
-}
-
-.closeModalBtn:hover {
-  color: #d32f2f;
-}
-
-
-.quantityControls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 5px;
-}
-
-.quantityControls button {
-  width: 30px;
-  height: 30px;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.removeBtn {
-  background: transparent;
-  border: none;
-  color: red;
-  cursor: pointer;
-  font-size: 20px;
-  margin-left: 15px;
 }
 
 .errorMessage {
@@ -244,95 +242,110 @@
   font-weight: 600;
   margin: 15px 0;
   box-shadow: 0 2px 8px rgba(204, 0, 0, 0.3);
-  animation: fadeIn 0.3s ease-in-out;
   max-width: 400px;
 }
 
-
-
-.errorModalOverlay {
-position: fixed;
+/* ===== NEW RIBBON ===== */
+.ribbon {
+  position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.ribbon span {
+  position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  width: 64px;
+  height: 14px;
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+  color: #fff;
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transform: rotate(-45deg);
+  top: 8px;
+  left: -20px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.22);
 }
 
-.errorModalContent{
-  position: relative;
-  background-color: #fff;
-  padding: 40px 60px;
-  border-radius: 10px;
-  text-align: center;
-  font-size: 20px;
-  color: red;
-  font-weight: bold;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  min-width: 300px;
-}
-
-
-
-/* სურათის კონტეინერი */
-.thumbWrap {
-  position: relative;
-  width: 80px;   /* სურვილისამებრ: 60-80px */
-  height: 100px;
-  flex: 0 0 auto;
-  margin-right: 12px;
-}
-
-/* სურათი შიგნით */
-.thumb {
-  width: 100%;
-  height: 100%;
-  /* object-fit: cover; */
-  border-radius: 6px;
-  /* display: block; */
-}
-
-/* ბეჯები ზემოთ — იგივე პოზიციები, რაც ბარათზე გაქვს */
-.saleBadge {
+/* ===== SALE TAG ===== */
+.saleTag {
   position: absolute;
-  top: -6px;
-  left: -10px;
-  z-index: 2;
+  top: -2px;
+  left: -2px;
+  width: 40px;
+  height: 24px;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
 }
 
-.newBadge {
+.saleTag span {
   position: absolute;
-  top: -14px;
-  right: -8px;
-  z-index: 2;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ff2d2d 0%, #e10600 100%);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  clip-path: polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%);
+  transform: rotate(-32deg);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.22);
 }
 
+.saleTag span b {
+  display: inline-block;
+}
 
-/* ============ MOBILE (≤640px) ============ */
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .checkoutContainer {
+    max-width: 960px;
+    gap: 24px;
+  }
+
+  .form {
+    max-width: 460px;
+    padding: 22px;
+  }
+}
+
 @media (max-width: 770px) {
-  html, body { overflow-x: hidden; }
+  html,
+  body {
+    overflow-x: hidden;
+  }
 
   .checkoutContainer {
-    /* max-width: 100%; */
-    width: 360px;
-    margin: 0 auto;     /* ზევით ცოტა ჰედერისგან დაშორება */
-    margin-top: 170px;
-    /* padding: 80px; */
-    box-sizing: border-box;
+    width: min(100%, 420px);
+    margin: 170px auto 20px;
+    padding: 12px;
     display: flex;
-    flex-direction: column;     /* ორი სვეტი -> ერთი კოლონა */
+    flex-direction: column;
     gap: 16px;
+    box-sizing: border-box;
   }
 
   .cartSummary {
     width: 100%;
     max-width: none;
     padding: 12px;
-    border-radius: 10px;
+    border-radius: 12px;
     margin-bottom: 0;
   }
 
@@ -340,78 +353,149 @@ position: fixed;
     width: 100%;
     max-width: none;
     padding: 16px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
-  /* საქონლის რიგები — კომპაქტური */
+  .cartSummary h2 {
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+
   .cartItem {
-    align-items: flex-start;
     gap: 10px;
+    padding: 10px 10px 8px;
     margin-bottom: 12px;
   }
-  .cartItem img {
-    width: 56px;
-    height: 56px;
-    margin-right: 10px;
-  }
-  .cartItem strong { font-size: 15px; }
-  .cartItem p      { font-size: 12px; }
 
-  /* ინპუტები/ღილაკები — თითისთვის კომფორტული */
+  .thumbWrap {
+    width: 60px;
+    height: 60px;
+    flex-basis: 60px;
+  }
+
+  .itemName {
+    font-size: 14px;
+  }
+
+  .itemPrice {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .controls {
+    gap: 6px;
+  }
+
+  .qtyBtn {
+    width: 44px;
+    height: 34px;
+    font-size: 20px;
+  }
+
+  .binButton {
+    width: 44px;
+    height: 34px;
+  }
+
+  .quantityDisplay {
+    font-size: 13px;
+  }
+
   .input {
     font-size: 16px;
     padding: 10px 12px;
     margin: 10px 0;
   }
+
   .submitBtn {
     font-size: 16px;
     padding: 12px;
     margin-top: 12px;
   }
 
-  /* რაოდენობა/მენეჯმენტი */
-  .controls { gap: 6px; }
-  .quantityBtn { padding: 6px 10px; font-size: 16px; }
-  .quantityDisplay { font-size: 15px; }
+  .ribbon {
+    width: 36px;
+    height: 36px;
+  }
 
-  /* პატარა თუმბები Checkout სიაში */
-  .thumbWrap { width: 64px; height: 84px; margin-right: 10px; }
-  .thumb     { width: 100%; height: 100%; border-radius: 6px; object-fit: cover; }
+  .ribbon span {
+    width: 54px;
+    height: 12px;
+    font-size: 5px;
+    top: 7px;
+    left: -17px;
+  }
 
-  /* მოდალური ფანჯრები ეკრანს არ გასცდეს */
-  .modalContent,
-  .errorModalContent {
-    width: min(92vw, 420px);
-    padding: 20px;
-    border-radius: 12px;
-    min-width: 0;
+  .saleTag {
+    width: 34px;
+    height: 20px;
+    top: -1px;
+    left: -1px;
+  }
+
+  .saleTag span {
+    width: 34px;
+    height: 20px;
+    font-size: 8px;
   }
 }
 
-/* ============ VERY SMALL (≤380px) ============ */
 @media (max-width: 380px) {
-  .checkoutContainer {  gap: 12px; width: 360px; }
-  .cartItem img { width: 90px; height: 48px; }
-  .cartItem strong { font-size: 14px; }
-  .submitBtn { font-size: 15px; padding: 10px; }
-  .input { font-size: 15px; }
+  .checkoutContainer {
+    width: min(100%, 360px);
+    gap: 12px;
+  }
+
+  .cartItem {
+    gap: 8px;
+  }
+
+  .thumbWrap {
+    width: 54px;
+    height: 54px;
+    flex-basis: 54px;
+  }
+
+  .itemName {
+    font-size: 13px;
+  }
+
+  .itemPrice {
+    font-size: 11px;
+  }
+
+  .qtyBtn {
+    width: 40px;
+    height: 32px;
+    font-size: 18px;
+  }
+
+  .binButton {
+    width: 40px;
+    height: 32px;
+  }
+
+  .ribbon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .ribbon span {
+    width: 48px;
+    height: 11px;
+    font-size: 4.5px;
+    top: 6px;
+    left: -16px;
+  }
+
+  .saleTag {
+    width: 30px;
+    height: 18px;
+  }
+
+  .saleTag span {
+    width: 30px;
+    height: 18px;
+    font-size: 7px;
+  }
 }
-
-
-/* ====== @media skeleton (mobile-first) ====== */
-/* xs: base styles */
-
-/* sm */
-@media (min-width: 480px){ /* small tweaks */ }
-
-/* md- */
-@media (min-width: 640px){ /* small/medium tweaks */ }
-
-/* md */
-@media (min-width: 768px){ /* medium screens */ }
-
-/* lg */
-@media (min-width: 1024px){ /* large screens */ }
-
-/* xl */
-@media (min-width: 1280px){ /* extra large screens */ }

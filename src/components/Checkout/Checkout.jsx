@@ -1,10 +1,7 @@
-// src/components/Checkout/Checkout.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import styles from "./Checkout.module.css";
 import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
-import StarburstBadge from "../StartburstBadge";
-import BrushBadge from "../BrushBadge";
 import { useLang } from "../../LanguageContext";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
@@ -30,7 +27,6 @@ const unitPrice = (it) => {
   return +price.toFixed(2);
 };
 
-/* ---------------------- Labels ---------------------- */
 const LBL = {
   ka: {
     cartEmpty: "კალათა ცარიელია",
@@ -51,7 +47,6 @@ const LBL = {
     deliveryOption: "აირჩიეთ მიტანის ვარიანტი",
     paymentMethod: "აირჩიეთ გადახდის მეთოდი",
     payCard: "ბარათით გადახდა",
-    // optExpress: "ექსპრეს მიტანა",
     optTomorrow: "მომდევნო დღე",
     optPickup: "ადგილზე მისვლით",
     optRegional: "რეგიონალური მიტანა (8 ₾)",
@@ -62,6 +57,9 @@ const LBL = {
     successCreatedOnly: "✅ შეკვეთა შეიქმნა (ტესტ-გადახდა ვერ შესრულდა)",
     successCreated: "✅ შეკვეთა შექმნილია.",
     close: "დახურვა",
+    minus: "მინუსი",
+    plus: "პლუსი",
+    delete: "წაშლა",
   },
   en: {
     cartEmpty: "Your cart is empty",
@@ -82,7 +80,6 @@ const LBL = {
     deliveryOption: "Choose delivery option",
     paymentMethod: "Choose payment method",
     payCard: "Pay by card",
-    // optExpress: "Express delivery",
     optTomorrow: "Next-day delivery",
     optPickup: "Store pickup",
     optRegional: "Regional delivery (8 ₾)",
@@ -93,15 +90,68 @@ const LBL = {
     successCreatedOnly: "✅ Order created (test payment failed)",
     successCreated: "✅ Order created.",
     close: "Close",
+    minus: "Minus",
+    plus: "Plus",
+    delete: "Delete",
   },
 };
 
 const CITIES_GE = [
-  "თბილისი","ბათუმი","რუსთავი","ქუთაისი","გორი","ფოთი","ზუგდიდი","მარნეული","ხაშური","სამტრედია","ზესტაფონი",
-  "თელავი","ქობულეთი","ახალციხე","სენაკი","ოზურგეთი","კასპი","ჭიათურა","გარდაბანი","ბორჯომი","საგარეჯო","ყვარელი",
-  "ბოლნისი","ტყიბული","ხონი","წყალტუბო","ახალქალაქი","მცხეთა","გურჯაანი","დუშეთი","ქარელი","ლანჩხუთი","ახმეტა",
-  "ლაგოდეხი","საჩხერე","დედოფლისწყარო","ვალე","თერჯოლა","წნორი","თეთრიწყარო","აბაშა","მარტვილი","ნინოწმინდა","წალკა",
-  "ვანი","ხობი","დმანისი","წალენჯიხა","ბაღდათი","ონი","ჩხოროწყუ","ამბროლაური","სიღნაღი","ჯვარი","ცაგერი",
+  "თბილისი",
+  "ბათუმი",
+  "რუსთავი",
+  "ქუთაისი",
+  "გორი",
+  "ფოთი",
+  "ზუგდიდი",
+  "მარნეული",
+  "ხაშური",
+  "სამტრედია",
+  "ზესტაფონი",
+  "თელავი",
+  "ქობულეთი",
+  "ახალციხე",
+  "სენაკი",
+  "ოზურგეთი",
+  "კასპი",
+  "ჭიათურა",
+  "გარდაბანი",
+  "ბორჯომი",
+  "საგარეჯო",
+  "ყვარელი",
+  "ბოლნისი",
+  "ტყიბული",
+  "ხონი",
+  "წყალტუბო",
+  "ახალქალაქი",
+  "მცხეთა",
+  "გურჯაანი",
+  "დუშეთი",
+  "ქარელი",
+  "ლანჩხუთი",
+  "ახმეტა",
+  "ლაგოდეხი",
+  "საჩხერე",
+  "დედოფლისწყარო",
+  "ვალე",
+  "თერჯოლა",
+  "წნორი",
+  "თეთრიწყარო",
+  "აბაშა",
+  "მარტვილი",
+  "ნინოწმინდა",
+  "წალკა",
+  "ვანი",
+  "ხობი",
+  "დმანისი",
+  "წალენჯიხა",
+  "ბაღდათი",
+  "ონი",
+  "ჩხოროწყუ",
+  "ამბროლაური",
+  "სიღნაღი",
+  "ჯვარი",
+  "ცაგერი",
 ];
 
 const Checkout = () => {
@@ -120,7 +170,6 @@ const Checkout = () => {
     city: "",
     address: "",
     deliveryOption: "",
-    // მხოლოდ ბარათი
     paymentMethod: "card",
     coupon_code: "",
     comment: "",
@@ -137,19 +186,18 @@ const Checkout = () => {
   const deliveryOptions = useMemo(() => {
     if (isTbilisi(formData.city)) {
       return [
-        // { value: "immediateDelivery", label: T.optExpress },
         { value: "deliveryTomorrow", label: T.optTomorrow },
         { value: "storePickup", label: T.optPickup },
       ];
     }
     if (formData.city) {
-      const regionalLabel = subtotal >= 50 ? "რეგიონალური მიტანა (უფასო)" : "რეგიონალური მიტანა (8 ₾)";
+      const regionalLabel =
+        subtotal >= 50 ? "რეგიონალური მიტანა (უფასო)" : "რეგიონალური მიტანა (8 ₾)";
       return [{ value: "regionalDelivery", label: regionalLabel }];
     }
     return [];
-  }, [formData.city, cartItems, lang, subtotal, T]);
+  }, [formData.city, subtotal, T]);
 
-  // რეგიონი არჩეულია → ავტომატურად regionalDelivery
   useEffect(() => {
     if (formData.city && !isTbilisi(formData.city)) {
       setFormData((prev) => ({ ...prev, deliveryOption: "regionalDelivery" }));
@@ -164,7 +212,6 @@ const Checkout = () => {
     if (inTbilisi) {
       if (formData.deliveryOption === "storePickup") {
         delivery_fee = 0;
-        // extra_discount = +(subtotal * 0.30).toFixed(2);
       } else if (formData.deliveryOption === "deliveryTomorrow") {
         delivery_fee = subtotal >= 30 ? 0 : 6;
       } else if (formData.deliveryOption === "immediateDelivery") {
@@ -174,8 +221,17 @@ const Checkout = () => {
       delivery_fee = subtotal >= 50 ? 0 : 8;
     }
 
-    const total = Math.max(0, +(subtotal - extra_discount + delivery_fee).toFixed(2));
-    return { subtotal: +subtotal.toFixed(2), delivery_fee, extra_discount, total };
+    const total = Math.max(
+      0,
+      +(subtotal - extra_discount + delivery_fee).toFixed(2)
+    );
+
+    return {
+      subtotal: +subtotal.toFixed(2),
+      delivery_fee,
+      extra_discount,
+      total,
+    };
   }, [subtotal, formData.city, formData.deliveryOption]);
 
   const handleChange = (e) => {
@@ -185,10 +241,12 @@ const Checkout = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (cartItems.length === 0) {
       setError(T.errChooseProduct);
       return;
     }
+
     setError("");
 
     const draft = {
@@ -207,7 +265,6 @@ const Checkout = () => {
         extra_discount: Number(preview.extra_discount),
         total: Number(preview.total),
       },
-      // სურვილის შემთხვევაში: pickup მისამართი (არააუცილებელია)
       pickup_address: DEFAULT_PICKUP_ADDRESS,
     };
 
@@ -217,19 +274,22 @@ const Checkout = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(draft),
       });
+
       const data = await res.json();
+
       if (!res.ok || !data?.redirect_url) {
         throw new Error(`HTTP ${res.status} – redirect_url not provided`);
       }
 
-      // გამოვიყენოთ order_id/state ფოლბექისთვის
       try {
         const u = new URL(data.redirect_url);
         const orderId = u.searchParams.get("order_id");
         if (orderId) sessionStorage.setItem("last_bog_order_id", orderId);
       } catch {}
 
-      if (data.state) sessionStorage.setItem("last_bog_state", data.state);
+      if (data.state) {
+        sessionStorage.setItem("last_bog_state", data.state);
+      }
 
       window.location.href = data.redirect_url;
     } catch (err) {
@@ -246,58 +306,98 @@ const Checkout = () => {
         ) : (
           <>
             <h2>{T.orderDetails}</h2>
+
             {cartItems.map((item) => {
               const up = unitPrice(item);
-              const hasSale = Number(item?.sale || 0) > 0 && Number(item.sale) <= 100;
+              const hasSale =
+                Number(item?.sale || 0) > 0 && Number(item.sale) <= 100;
               const line = up * (item.quantity || 0);
+
               return (
                 <div key={item.id} className={styles.cartItem}>
+                  {hasSale && (
+                    <div className={styles.saleTag}>
+                      <span>
+                        <b>-{Number(item.sale)}%</b>
+                      </span>
+                    </div>
+                  )}
+
                   <div className={styles.thumbWrap}>
-                    {hasSale && (
-                      <StarburstBadge
-                        value={item.sale}
-                        size={44}
-                        className={styles.saleBadge}
-                      />
-                    )}
                     {item?.is_new && (
-                      <BrushBadge
-                        text={T.newBadge}
-                        size={40}
-                        className={styles.newBadge}
-                      />
+                      <div className={styles.ribbon}>
+                        <span>{T.newBadge}</span>
+                      </div>
                     )}
+
                     <img
                       src={item.image_url1 || "https://via.placeholder.com/60"}
                       alt={item.name}
                       className={styles.thumb}
                     />
                   </div>
-                  <div style={{ minWidth: 0 }}>
-                    <span
-                      style={{
-                        display: "block",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                      title={item.name}
-                    >
+
+                  <div className={styles.itemContent}>
+                    <span className={styles.itemName} title={item.name}>
                       {item.name}
                     </span>
-                    <div>
+
+                    <div className={styles.itemPrice}>
                       {fmt(up)} ₾ × {item.quantity} = <b>{fmt(line)} ₾</b>
                     </div>
+
                     <div className={styles.controls}>
                       <button
+                        className={`${styles.qtyBtn} ${styles.minus}`}
                         onClick={() => updateQuantity(item.id, -1)}
                         disabled={item.quantity === 1}
+                        type="button"
+                        aria-label={T.minus}
+                        title={T.minus}
                       >
                         –
                       </button>
-                      <span>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, 1)}>+</button>
-                      <button onClick={() => removeFromCart(item.id)}>🗑</button>
+
+                      <span className={styles.quantityDisplay}>
+                        {item.quantity}
+                      </span>
+
+                      <button
+                        className={`${styles.qtyBtn} ${styles.plus}`}
+                        onClick={() => updateQuantity(item.id, 1)}
+                        type="button"
+                        aria-label={T.plus}
+                        title={T.plus}
+                      >
+                        +
+                      </button>
+
+                      <button
+                        className={styles.binButton}
+                        onClick={() => removeFromCart(item.id)}
+                        type="button"
+                        aria-label={T.delete}
+                        title={T.delete}
+                      >
+                        <svg className={styles.binTop} viewBox="0 0 39 7" fill="none">
+                          <line y1="5" x2="39" y2="5" stroke="white" strokeWidth="4" />
+                          <line
+                            x1="12"
+                            y1="1.5"
+                            x2="26"
+                            y2="1.5"
+                            stroke="white"
+                            strokeWidth="3"
+                          />
+                        </svg>
+
+                        <svg className={styles.binBottom} viewBox="0 0 33 39" fill="none">
+                          <path
+                            d="M0 0H33V35C33 37 31 39 29 39H4C2 39 0 37 0 35V0Z"
+                            fill="white"
+                          />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -308,17 +408,21 @@ const Checkout = () => {
               <div>
                 {T.subtotal}: <strong>{fmt(preview.subtotal)} ₾</strong>
               </div>
+
               {preview.extra_discount > 0 && (
                 <div>
                   {T.discount30}: <strong>-{fmt(preview.extra_discount)} ₾</strong>
                 </div>
               )}
+
               {formData.deliveryOption && formData.deliveryOption !== "storePickup" && (
                 <div>
                   {T.deliveryFee}: <strong>{fmt(preview.delivery_fee)} ₾</strong>
                 </div>
               )}
+
               <hr />
+
               <div>
                 {T.total}: <strong>{fmt(preview.total)} ₾</strong>
               </div>
@@ -422,7 +526,6 @@ const Checkout = () => {
           rows={3}
         />
 
-        {/* მხოლოდ ბარათი — ერთადერთი ვარიანტი */}
         <select
           name="paymentMethod"
           value={formData.paymentMethod}
@@ -433,7 +536,6 @@ const Checkout = () => {
           <option value="card">{T.payCard}</option>
         </select>
 
-        {/* ღილაკი ყოველთვის „გაგრძელება“ */}
         <button type="submit" className={styles.submitBtn}>
           {T.proceed}
         </button>
@@ -470,6 +572,7 @@ const Checkout = () => {
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 10 }}>
               {successMessage}
             </div>
+
             <button
               onClick={() => {
                 setSuccessMessage("");
@@ -478,6 +581,7 @@ const Checkout = () => {
               className={styles.submitBtn}
               aria-label={T.close}
               title={T.close}
+              type="button"
             >
               {T.close}
             </button>
