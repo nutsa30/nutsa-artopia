@@ -235,3 +235,57 @@
   height: 60px;
   margin-right: 12px;
 }
+/* ===== SALE TAG (CART) ===== */
+.saleTag {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 42px;
+  height: 26px;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.saleTag span {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 42px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(135deg, #ff2d2d 0%, #e10600 100%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+
+  clip-path: polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%);
+  transform: rotate(-38deg);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.22);
+}
+
+.saleTag span b {
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .saleTag {
+    top: -3px;
+    left: -3px;
+    width: 36px;
+    height: 22px;
+  }
+
+  .saleTag span {
+    width: 36px;
+    height: 22px;
+    font-size: 8px;
+  }
+}

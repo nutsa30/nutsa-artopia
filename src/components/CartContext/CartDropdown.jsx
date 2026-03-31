@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { useCart } from '../CartContext/CartContext';
 import styles from './CartDropdown.module.css';
 import { useNavigate } from 'react-router-dom';
-import StarburstBadge from '../StartburstBadge';
 import { useLang } from '../../LanguageContext';
 
 const LBL = {
@@ -61,9 +60,13 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
 
        <div className={styles.cartItem} key={id}>
 
-  {item?.sale && (
-    <StarburstBadge value={item.sale} size={44} className={styles.saleBadge} />
-  )}
+{item?.sale && (
+  <div className={styles.saleTag}>
+    <span>
+      <b>-{Number(item.sale)}%</b>
+    </span>
+  </div>
+)}
 
   {/* IMAGE + RIBBON */}
   <div className={styles.imageWrap}>
