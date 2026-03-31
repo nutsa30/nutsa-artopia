@@ -496,7 +496,11 @@ if (inTbilisi) {
 
               {formData.deliveryOption && formData.deliveryOption !== "storePickup" && (
                 <div>
-                  {T.deliveryFee}: <strong>{fmt(preview.delivery_fee)} ₾</strong>
+                  {T.deliveryFee}: <strong>
+  {preview.delivery_fee === 0
+    ? (lang === "en" ? "Free" : "უფასო")
+    : `${fmt(preview.delivery_fee)} ₾`}
+</strong>
                 </div>
               )}
 
