@@ -14,10 +14,6 @@ const LBL = {
     total: "ჯამური ღირებულება",
     clearAll: "ყველა წაშალე ",
     checkout: "ყიდვის გაგრძელება",
-    delete: "წაშლა",
-    minus: "მინუსი",
-    plus: "პლუსი",
-    cartAria: "კალათა",
   },
   en: {
     empty: "Your cart is empty",
@@ -25,10 +21,6 @@ const LBL = {
     total: "Total",
     clearAll: "Clear all ",
     checkout: "Proceed to checkout",
-    delete: "Delete",
-    minus: "Minus",
-    plus: "Plus",
-    cartAria: "Cart",
   },
 };
 
@@ -43,58 +35,37 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
     navigate('/checkout');
   };
 
-  // Overlay (blur background) — body-ში
   const Overlay = showCartOpen
     ? createPortal(
-        <div
-          className={styles.overlay}
-          onClick={() => setShowCartOpen(false)}
-          aria-hidden="true"
-        />,
+        <div className={styles.overlay} onClick={() => setShowCartOpen(false)} />,
         document.body
       )
     : null;
 
-  // Cart dropdown (above overlay) — body-ში
   const Dropdown = showCartOpen
     ? createPortal(
-        <div className={styles.cartPortal} aria-label={T.cartAria}>
+        <div className={styles.cartPortal}>
           <div className={styles.cartDropdown}>
-            {/* ❌ Close button (always visible, top-right) */}
-            <button
-              className={styles.closeBtn}
-              onClick={() => setShowCartOpen(false)}
-              aria-label="Close cart"
-              title="Close"
-              type="button"
-            >
-              ×
-            </button>
+
+            <button className={styles.closeBtn} onClick={() => setShowCartOpen(false)}>×</button>
 
             {cartItems.length === 0 ? (
               <p>{T.empty}</p>
             ) : (
               <>
                 {cartItems.map((item) => {
-                  const hasSale =
-                    typeof item?.sale === 'number' &&
-                    item.sale > 0 &&
-                    item.sale <= 100;
                   const id = item.id || item._id || item.name;
                   const unit = Number(item.price) || 0;
-                  const line = unit * (item.quantity || 0);
+                  const line = unit * item.quantity;
 
                   return (
-                    <div className={styles.cartItem} key={id} style={{ position: 'relative' }}>
-                      {hasSale && (
-                        <StarburstBadge value={item.sale} size={44} className={styles.saleBadge} />
-                      )}
-                      {item?.is_new && (
-                        <BrushBadge text={T.newBadge} size={40} className={styles.newBadge} />
-                      )}
+                    <div className={styles.cartItem} key={id}>
+
+                      {item?.sale && <StarburstBadge value={item.sale} size={44} className={styles.saleBadge} />}
+                      {item?.is_new && <BrushBadge text={T.newBadge} size={40} className={styles.newBadge} />}
 
                       <img
-                        src={item.image_url1 || item.image_url || item.image || 'https://via.placeholder.com/60'}
+                        src={item.image_url1 || 'https://via.placeholder.com/60'}
                         alt={item.name}
                         className={styles.itemImage}
                       />
@@ -107,38 +78,41 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
                         </div>
 
                         <div className={styles.controls}>
+
+                          {/* MINUS */}
                           <button
-                            className={styles.quantityBtn}
+                            className={`${styles.qtyBtn} ${styles.minus}`}
                             onClick={() => updateQuantity(id, -1)}
                             disabled={item.quantity === 1}
-                            aria-label={T.minus}
-                            title={T.minus}
-                            type="button"
                           >
                             –
                           </button>
 
                           <span className={styles.quantityDisplay}>{item.quantity}</span>
 
+                          {/* PLUS */}
                           <button
-                            className={styles.quantityBtn}
+                            className={`${styles.qtyBtn} ${styles.plus}`}
                             onClick={() => updateQuantity(id, 1)}
-                            aria-label={T.plus}
-                            title={T.plus}
-                            type="button"
                           >
                             +
                           </button>
 
+                          {/* DELETE */}
                           <button
-                            className={styles.deleteBtn}
+                            className={styles.binButton}
                             onClick={() => removeFromCart(id)}
-                            aria-label={T.delete}
-                            title={T.delete}
-                            type="button"
                           >
-                            🗑
+                            <svg className={styles.binTop} viewBox="0 0 39 7">
+                              <line y1="5" x2="39" y2="5" stroke="white" strokeWidth="4" />
+                              <line x1="12" y1="1.5" x2="26" y2="1.5" stroke="white" strokeWidth="3" />
+                            </svg>
+
+                            <svg className={styles.binBottom} viewBox="0 0 33 39">
+                              <path d="M0 0H33V35C33 37 31 39 29 39H4C2 39 0 37 0 35V0Z" fill="white"/>
+                            </svg>
                           </button>
+
                         </div>
                       </div>
                     </div>
@@ -146,23 +120,18 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
                 })}
 
                 <div className={styles.cartFooter}>
-                  <div className={styles.totalAndClear}>
-                    <span className={styles.total}>
-                      {T.total}: {getTotalPrice().toFixed(2)} ₾
-                    </span>
-                    <div className={styles.buttonRow}>
-                      <button className={styles.clearButton} onClick={clearCart} type="button">
-                        {T.clearAll}
-                      </button>
-                      <button
-                        className={`${styles.checkoutButton} ${cartItems.length === 0 ? styles.disabled : ''}`}
-                        onClick={handleCheckout}
-                        disabled={cartItems.length === 0}
-                        type="button"
-                      >
-                        {T.checkout}
-                      </button>
-                    </div>
+                  <div className={styles.total}>
+                    {T.total}: {getTotalPrice().toFixed(2)} ₾
+                  </div>
+
+                  <div className={styles.buttonRow}>
+                    <button className={styles.clearButton} onClick={clearCart}>
+                      {T.clearAll}
+                    </button>
+
+                    <button className={styles.checkoutButton} onClick={handleCheckout}>
+                      {T.checkout}
+                    </button>
                   </div>
                 </div>
               </>
