@@ -2,13 +2,13 @@ import React, { createContext, useState, useContext,useEffect } from 'react';
 
 // 1. კონტექსტის შექმნა
 const CartContext = createContext();
-
 // 2. კასტომ ჰუქი CartContext-ის მოსაძებნად
 export const useCart = () => useContext(CartContext);
 
 // 3. პროვაიდერი, რომელიც ინახავს კალათის ლოგიკას და მონაცემებს
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
+  const [showToast, setShowToast] = useState(false);
   // --- Persist: localStorage-დან ამოღება პირველ მონტაჟზე
 useEffect(() => {
   try {
@@ -66,13 +66,18 @@ useEffect(() => {
       return prev;
     }
 
+setTimeout(() => {
+  setShowToast(true);
+  setTimeout(() => setShowToast(false), 1800);
+}, 0);
+
 return [
   ...prev,
   {
     ...product,
     price: Number(product.price),
     quantity: qty,
-    maxQty: product.quantity, // 🔥 ეს არის FIX
+    maxQty: product.quantity,
   },
 ];
   });
@@ -124,6 +129,7 @@ const updateQuantity = (productId, amount) => {
         updateQuantity,
         getTotalPrice,
         clearCart,
+        showToast,
       }}
     >
       {children}

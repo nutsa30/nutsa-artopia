@@ -28,9 +28,15 @@ import { LanguageProvider, useLang } from "./LanguageContext";
 import ChatWidget from "./components/ChatWidget";
 
 import PaymentResult from "./components/Checkout/PaymentResult";
+import CartToast from "../CartToast/CartToast";
+import { useCart } from "../CartContext/CartContext";
+
 
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
-
+const CartToastWrapper = () => {
+  const { showToast } = useCart();
+  return <CartToast show={showToast} message="დამატებულია კალათაში" />;
+};
 // Route change hook (no UI)
 const RouteLoader = () => {
   const location = useLocation();
@@ -109,6 +115,7 @@ function App() {
       <LayoutGroup>
         <CartProvider>
           <CartUiProvider>
+            <CartToastWrapper />
             <Router>
               <RouteLoader />
 
