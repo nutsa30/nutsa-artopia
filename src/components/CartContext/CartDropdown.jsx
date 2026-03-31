@@ -195,11 +195,11 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
                           {unit.toFixed(2)} ₾ × {item.quantity} = {line.toFixed(2)} ₾
                         </div>
 
-                        {stockMessageById[id] ? (
-                          <div className={styles.stockWarning}>
-                            {stockMessageById[id]}
-                          </div>
-                        ) : null}
+                   {(stockMessageById[id] || item.quantity >= maxQty) && (
+  <div className={styles.stockWarning}>
+    {stockMessageById[id] || T.stockOnly(maxQty)}
+  </div>
+)}
 
                         <div className={styles.controls}>
                           <button
