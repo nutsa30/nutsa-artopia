@@ -382,9 +382,12 @@ useEffect(() => {
                     <div className={styles.itemPrice}>
                       {fmt(up)} ₾ × {item.quantity} = <b>{fmt(line)} ₾</b>
                     </div>
-{stockMessageById[item.id] && (
+{(stockMessageById[item.id] || item.quantity >= normalizeQuantity(stockById[item.id])) && (
   <div className={styles.stockWarning}>
-    {stockMessageById[item.id]}
+    {stockMessageById[item.id] ||
+      (lang === "en"
+        ? `Only ${normalizeQuantity(stockById[item.id])} item(s) available.`
+        : `მარაგში მხოლოდ ${normalizeQuantity(stockById[item.id])} ცალია.`)}
   </div>
 )}
                     <div className={styles.controls}>
