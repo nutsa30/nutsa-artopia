@@ -28,8 +28,7 @@ function AdminShell() {
 
 const hasToken = !!localStorage.getItem("ADMIN_TOKEN");
 
-{!isLoginPage && hasToken ? <AdminNavbar /> : null}
-  return (
+return (
     <div className="admin-app">
       {!isLoginPage && hasToken && <AdminNavbar />}
 
