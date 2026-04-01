@@ -3,8 +3,10 @@ import styles from "./loginPage.module.css";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/IMG_4970.JPG";
 
-const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
-const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN;
+const API_BASE =
+  import.meta.env.VITE_API_BASE ||
+  "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+  const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN;
 
 const LoginPage = () => {
   const navigate = useNavigate();
