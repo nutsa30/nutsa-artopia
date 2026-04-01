@@ -2,10 +2,8 @@ import React, { useEffect, useState } from "react";
 import s from "./AddHomeImg.module.css";
 
 const API_BASE =
-  (typeof import.meta !== "undefined" && import.meta.env?.MODE === "development")
-    ? "/api"
-    : (import.meta.env?.VITE_API_BASE ||
-        "https://artopia-backend-2024-54872c79acdd.herokuapp.com");
+  import.meta.env?.VITE_API_BASE ||
+  "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 function getAdminToken() {
   return (
@@ -28,12 +26,12 @@ export default function AddHomeImg() {
   const [loading, setLoading] = useState(false);
 
   const [files, setFiles] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
   const [title, setTitle] = useState("");
   const [alt, setAlt] = useState("");
   const [sortIndex, setSortIndex] = useState("");
   const [isActive, setIsActive] = useState(true);
 
-  /* ---------------- FETCH ---------------- */
   const fetchList = async () => {
     try {
       setLoading(true);
@@ -56,7 +54,6 @@ export default function AddHomeImg() {
     fetchList();
   }, []);
 
-  /* ---------------- UPLOAD ---------------- */
   const handleUpload = async () => {
     if (!files.length) return;
 
@@ -79,11 +76,17 @@ export default function AddHomeImg() {
         credentials: "include",
       });
 
-      if (!res.ok) throw new Error("Upload failed");
+const text = await res.text();
+console.log("UPLOAD STATUS:", res.status);
+console.log("UPLOAD RESPONSE:", text);
 
+if (!res.ok) {
+  throw new Error(text || `Upload failed (${res.status})`);
+}
       await fetchList();
 
       setFiles([]);
+      setPreviewUrls([]);
       setTitle("");
       setAlt("");
       setSortIndex("");
@@ -94,7 +97,6 @@ export default function AddHomeImg() {
     }
   };
 
-  /* ---------------- TOGGLE ---------------- */
   const toggleActive = async (item) => {
     try {
       await fetch(`${API_BASE}/home-images/${item.id}`, {
@@ -105,13 +107,11 @@ export default function AddHomeImg() {
       });
 
       fetchList();
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("აქტიურობის შეცვლა ვერ მოხერხდა");
     }
   };
 
-  /* ---------------- DELETE ---------------- */
   const deleteItem = async (item) => {
     if (!window.confirm("წაშლა ნამდვილად გინდა?")) return;
 
@@ -123,13 +123,11 @@ export default function AddHomeImg() {
       });
 
       setItems((prev) => prev.filter((x) => x.id !== item.id));
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("წაშლა ვერ მოხერხდა");
     }
   };
 
-  /* ---------------- UI ---------------- */
   return (
     <div className={s.page}>
       <h1 className={s.title}>მთავარი სურათები</h1>
@@ -137,66 +135,93 @@ export default function AddHomeImg() {
       {error && <div className={s.error}>{error}</div>}
 
       <div className={s.card}>
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={(e) => setFiles(Array.from(e.target.files || []))}
-        />
+<label className={s.uploadBox}>
+  📷 ატვირთე ფოტოები
+  <span className={s.hint}>
+    რეკომენდებული ზომა: 1600×1000px (ჰორიზონტალური)
+  </span>
 
-        <input
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+  <input
+    type="file"
+    multiple
+    accept="image/*"
+onChange={(e) => {
+  const selected = Array.from(e.target.files || []);
+  setFiles(selected);
 
-        <input
-          placeholder="Alt text"
-          value={alt}
-          onChange={(e) => setAlt(e.target.value)}
-        />
+  const previews = selected.map(file => URL.createObjectURL(file));
+  setPreviewUrls(previews);
+}}
+  />
+</label>
+{previewUrls.length > 0 && (
+  <div className={s.previewGrid}>
+    {previewUrls.map((url, i) => (
+      <div key={i} className={s.previewItem}>
+        <img src={url} alt="preview" />
+      </div>
+    ))}
+  </div>
+)}
 
-        <input
-          type="number"
-          placeholder="Sort index"
-          value={sortIndex}
-          onChange={(e) => setSortIndex(e.target.value)}
-        />
-
-        <label>
+        <div className={s.row}>
           <input
-            type="checkbox"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
+            placeholder="სათაური"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
           />
-          აქტიური
-        </label>
 
-        <button onClick={handleUpload}>
+          <input
+            placeholder="ალტ ტექსტი (SEO)"
+            value={alt}
+            onChange={(e) => setAlt(e.target.value)}
+          />
+        </div>
+
+        <div className={s.row}>
+          <input
+            type="number"
+            placeholder="დალაგების ინდექსი"
+            value={sortIndex}
+            onChange={(e) => setSortIndex(e.target.value)}
+          />
+
+          <label className={s.checkbox}>
+            <input
+              type="checkbox"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+            />
+            აქტიური
+          </label>
+        </div>
+
+        <button className={s.primaryBtn} onClick={handleUpload}>
           ატვირთვა
         </button>
       </div>
 
-      <hr />
-
       <div className={s.grid}>
         {items.map((it) => (
           <div key={it.id} className={s.cardItem}>
-            <img src={it.image_url} alt={it.alt_text || ""} />
-
-            <div>
-              {it.title && <p>{it.title}</p>}
-              <p>Sort: {it.sort_index ?? "-"}</p>
-              {!it.is_active && <span>Inactive</span>}
+            <div className={s.imgWrap}>
+              <img src={it.image_url} />
+              {!it.is_active && <span className={s.badge}>გამორთული</span>}
             </div>
 
-            <button onClick={() => toggleActive(it)}>
-              {it.is_active ? "გამორთვა" : "გააქტიურება"}
-            </button>
+            <div className={s.meta}>
+              {it.title && <p>{it.title}</p>}
+              <p>სორტი: {it.sort_index ?? "-"}</p>
+            </div>
 
-            <button onClick={() => deleteItem(it)}>
-              წაშლა
-            </button>
+            <div className={s.actions}>
+              <button onClick={() => toggleActive(it)}>
+                {it.is_active ? "გამორთვა" : "გააქტიურება"}
+              </button>
+              <button className={s.delete} onClick={() => deleteItem(it)}>
+                წაშლა
+              </button>
+            </div>
           </div>
         ))}
       </div>

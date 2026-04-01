@@ -338,16 +338,7 @@ return alert("სახელი სავალდებულოა");
         const pid = editingProduct?.id || routeId;
         await updateProductForm(pid, fd);
 
-        const tasks = [];
-        for (let i = 0; i < MAX_IMAGES; i++) {
-          if (images[i]?.removed) {
-            const field = `image_url${i + 1}`;
-            const url = originalUrlsRef.current[i] || "";
-            tasks.push(deleteProductImage(pid, { field, url }));
-          }
-        }
-        if (tasks.length) await Promise.all(tasks);
-
+   await updateProductForm(pid, fd);
         alert("პროდუქტი განახლდა!");
       } else {
         await createProductForm(fd);

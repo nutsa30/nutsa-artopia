@@ -185,8 +185,20 @@ const ProductsPage = () => {
 useEffect(() => {
   let mounted = true;
 
-  const url = `${API_BASE}/products/list?page=${currentPage}&limit=${PRODUCTS_PER_PAGE}&category=${selectedCategory}`;
+const params = new URLSearchParams();
 
+params.set("page", currentPage);
+params.set("limit", PRODUCTS_PER_PAGE);
+
+if (selectedCategory && selectedCategory !== "ყველა") {
+  params.set("category", selectedCategory);
+}
+
+if (searchTerm.trim()) {
+  params.set("search", searchTerm.trim());
+}
+
+const url = `${API_BASE}/products/list?${params.toString()}`;
   setIsLoading(true);
 
   fetch(url)
@@ -225,12 +237,35 @@ setTotal(data.total);
   return () => {
     mounted = false;
   };
-}, [currentPage, selectedCategory]);
+}, [currentPage, selectedCategory, searchTerm]);
+
 useEffect(() => {
   fetch(`${API_BASE}/products/categories`)
     .then(res => res.json())
     .then(data => {
-      setCategories(data);
+      if (!Array.isArray(data)) return;
+
+      const cleaned = data
+        .map(c => String(c).trim())
+        .filter(Boolean);
+
+      const unique = [...new Set(cleaned)];
+
+      // გამოვყოთ "სხვა"
+      const withoutOther = unique.filter(c => c !== "სხვა");
+
+      // დავალაგოთ ანბანურად (ქართული)
+      const sorted = withoutOther.sort((a, b) =>
+        a.localeCompare(b, "ka")
+      );
+
+      // საბოლოო სია
+ const finalCategories = [
+  ...sorted,
+  ...(unique.includes("სხვა") ? ["სხვა"] : [])
+];
+
+      setCategories(finalCategories);
     });
 }, []);
 
@@ -280,24 +315,7 @@ const handleProductClick = (product) => {
     }
   });
 };
-const filteredProducts = useMemo(() => {
-  const needle = searchTerm.toLowerCase().trim();
-
-  if (!needle) return products;
-
-  return products.filter((p) => {
-    const text = [
-      p.name,
-      p.description,
-      p.category_name,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    return text.includes(needle);
-  });
-}, [products, searchTerm]);
+const filteredProducts = products;
 
   return (
     <>
@@ -311,13 +329,26 @@ const filteredProducts = useMemo(() => {
       <div ref={topRef} className={styles.pageWrapper}>
         <div className={styles.filterBar}>
           <div className={styles.selectDecor}>
-            <ProductFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onCategoryChange={handleCategoryChange}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-            />
+       <ProductFilter
+  categories={categories}
+  selectedCategory={selectedCategory}
+  onCategoryChange={handleCategoryChange}
+  searchTerm={searchTerm}
+  onSearchChange={(value) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+
+    const params = new URLSearchParams(searchParams);
+
+    if (value.trim()) {
+      params.set("page", 1)
+    } else {
+      params.set("page", 1)
+    }
+
+    setSearchParams(params);
+  }}
+/>
           </div>
         </div>
 
