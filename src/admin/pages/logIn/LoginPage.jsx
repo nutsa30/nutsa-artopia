@@ -26,9 +26,10 @@ const LoginPage = () => {
     try {
       const res = await fetch(`${API_BASE}/auth/admin-login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+   headers: {
+  "Content-Type": "application/json",
+    "X-Admin-Token": "ARTOPIA_SUPERADMIN_2024",
+},
         body: JSON.stringify({
           email: form.username.trim().toLowerCase(),
           password: form.password,
