@@ -280,7 +280,24 @@ const handleProductClick = (product) => {
     }
   });
 };
+const filteredProducts = useMemo(() => {
+  const needle = searchTerm.toLowerCase().trim();
 
+  if (!needle) return products;
+
+  return products.filter((p) => {
+    const text = [
+      p.name,
+      p.description,
+      p.category_name,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return text.includes(needle);
+  });
+}, [products, searchTerm]);
 
   return (
     <>
@@ -307,9 +324,9 @@ const handleProductClick = (product) => {
         {!isLoading && (
           <>
             <div className={`${styles.productsGrid} ${styles.catalogGrid}`}>
-              {products.length > 0 ?(
-                products.map((product, index) => {
-                  console.log("[RENDER ORDER]", {
+{filteredProducts.length > 0 ?(
+filteredProducts.map((product, index) => {
+                    console.log("[RENDER ORDER]", {
                     index,
                     name: product?.name,
                     quantity: product?.quantity,
