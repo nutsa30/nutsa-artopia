@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import s from "./AddHomeImg.module.css";
 
-const API_BASE =
-  import.meta.env?.VITE_API_BASE ||
-  "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
-
+const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 function getAdminToken() {
   return (
     (typeof window !== "undefined" &&
