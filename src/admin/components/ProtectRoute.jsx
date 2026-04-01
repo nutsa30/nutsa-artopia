@@ -17,7 +17,6 @@ React.useEffect(() => {
   const mode = localStorage.getItem("AUTH_MODE"); // "token" | "session"
   const token =
     localStorage.getItem("ADMIN_TOKEN") ||
-    localStorage.getItem("admin_token") ||
     "";
 
   if (!token && mode !== "session") {
@@ -59,8 +58,7 @@ React.useEffect(() => {
   if (!checked) return null;
 
 // სწორი შენს როუტინგთან
-if (!allowed) return <Navigate to="/" replace state={{ from: location }} />;
-
+if (!allowed) return <Navigate to="/admin/login" replace />
 
   return children;
 }

@@ -26,8 +26,9 @@ function AdminShell() {
     pathname === "/admin/" ||
     pathname === "/admin/login";
 
-  const hasToken = !!localStorage.getItem("ADMIN_TOKEN");
+const hasToken = !!localStorage.getItem("ADMIN_TOKEN");
 
+{!isLoginPage && hasToken ? <AdminNavbar /> : null}
   return (
     <div className="admin-app">
       {!isLoginPage && hasToken && <AdminNavbar />}

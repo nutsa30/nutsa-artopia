@@ -7,10 +7,9 @@ export const AuthProvider = ({ children }) => {
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
-    const t =
-      localStorage.getItem("admin_token") ||
-      localStorage.getItem("token") ||
-      "";
+const t =
+  localStorage.getItem("ADMIN_TOKEN") || // ✅ ეს დატოვე
+  "";
     setAdminToken(t || null);
     setAuthReady(true);
   }, []);
@@ -19,16 +18,15 @@ export const AuthProvider = ({ children }) => {
     () => ({
       adminToken,
       authReady,
-      login: (t) => {
-        localStorage.setItem("admin_token", t);
-        setAdminToken(t);
-        setAuthReady(true);
-      },
-      logout: () => {
-        localStorage.removeItem("admin_token");
-        setAdminToken(null);
-        setAuthReady(true);
-      },
+login: (t) => {
+  localStorage.setItem("ADMIN_TOKEN", t); // ✅ ერთიანი
+  setAdminToken(t);
+},
+
+logout: () => {
+  localStorage.removeItem("ADMIN_TOKEN"); // ✅ ერთიანი
+  setAdminToken(null);
+},
     }),
     [adminToken, authReady]
   );
