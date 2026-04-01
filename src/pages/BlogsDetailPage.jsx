@@ -18,208 +18,79 @@ export default function BlogDetailPage() {
 
   useEffect(() => {
     let alive = true;
-    setLoading(true);
-    setErr("");
 
     (async () => {
       try {
         const res = await fetch(`${BASE}/${id}`);
-        const text = await res.text();
-        let data = null;
-        try {
-          data = JSON.parse(text);
-        } catch {}
+        const data = await res.json();
 
-        if (!res.ok) {
-          throw new Error(
-            (data && (data.message || data.error)) ||
-              `HTTP ${res.status} ${res.statusText}`
-          );
-        }
+        if (!res.ok) throw new Error();
 
-        if (!alive) return;
-        setBlog(data || {});
-      } catch (e) {
-        if (!alive) return;
-        setErr("ბლოგის ჩატვირთვა ვერ მოხერხდა.");
-        console.error("Blog detail fetch error:", e);
+        if (alive) setBlog(data);
+      } catch {
+        if (alive) setErr("ბლოგის ჩატვირთვა ვერ მოხერხდა");
       } finally {
         alive && setLoading(false);
       }
     })();
 
-    return () => {
-      alive = false;
-    };
+    return () => (alive = false);
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className={styles.blogDetailContainer}>
-        <div className={styles.skeletonTitle} />
-        <div className={styles.skeletonCover} />
-        <div className={styles.skeletonPara} />
-        <div className={styles.skeletonPara} />
-      </div>
-    );
-  }
+  if (loading) return <div className={styles.loader}>იტვირთება...</div>;
 
-  if (err) {
+  if (err)
     return (
-      <div className={styles.blogDetailContainer}>
-        <div className={styles.error}>{err}</div>
-        <button className={styles.backBtn} onClick={() => navigate(-1)}>
-          უკან დაბრუნება
-        </button>
+      <div className={styles.errorBox}>
+        {err}
+        <button onClick={() => navigate(-1)}>უკან</button>
       </div>
     );
-  }
 
   if (!blog) return null;
 
-  // ----------------------- Normalizers -----------------------
-
-  const normalizeFromBlocks = (obj) => {
-    if (!Array.isArray(obj?.blocks)) return null;
-    const grouped = {};
-    for (const b of obj.blocks) {
-      const pos = Number(b?.position ?? 1);
-      if (!grouped[pos]) grouped[pos] = {};
-      if (b?.kind === "text") grouped[pos].text = b?.text ?? "";
-      if (b?.kind === "image")
-        grouped[pos].image_url = b?.image_url ?? b?.image ?? null;
-    }
-    return Object.keys(grouped)
-      .map((i) => Number(i))
-      .sort((a, b) => a - b)
-      .map((i) => ({
-        position: i,
-        text: grouped[i].text ?? "",
-        image_url: grouped[i].image_url ?? null,
-      }));
-  };
-
-  const normalizeFromSections = (obj) => {
-    if (!Array.isArray(obj?.sections)) return null;
-    return obj.sections.map((s, idx) => ({
-      position: idx + 1,
-      text: s?.text ?? "",
-      image_url: s?.image_url ?? s?.image ?? null,
-    }));
-  };
-
-  const normalizeFromFlat = (obj) => {
-    if (!obj || typeof obj !== "object") return null;
-    const rows = {};
-    const add = (idx, key, val) => {
-      const i = Number(idx);
-      if (!rows[i]) rows[i] = {};
-      rows[i][key] = val;
-    };
-
-    const entries = Object.entries(obj);
-
-    const reText = /^text_(\d+)$/i;
-    const reImg = /^(?:image_url|image|photo)_(\d+)$/i;
-
-    for (const [k, v] of entries) {
-      let m = k.match(reText);
-      if (m) {
-        add(m[1], "text", v ?? "");
-        continue;
-      }
-      m = k.match(reImg);
-      if (m) {
-        add(m[1], "image_url", v ?? null);
-      }
-    }
-
-    const out = Object.keys(rows)
-      .map((i) => Number(i))
-      .sort((a, b) => a - b)
-      .map((i) => ({
-        position: i,
-        text: rows[i].text ?? "",
-        image_url: rows[i].image_url ?? null,
-      }));
-
-    return out.length ? out : null;
-  };
-
-  // ----------------------- Extract fields -----------------------
-
-  const title = blog.title || blog.name || "";
-
-  const coverExplicit = blog.cover_image || blog.image || null;
-
-  const sectionsFromBlocks = normalizeFromBlocks(blog);
-  const sectionsFromSections = normalizeFromSections(blog);
-  const sectionsFromFlat = normalizeFromFlat(blog);
-
-  const sections =
-    sectionsFromBlocks || sectionsFromSections || sectionsFromFlat || [];
-
-  const cover =
-    coverExplicit ||
-    (sections.length && sections[0].image_url ? sections[0].image_url : null);
+  const sections = blog.sections || [];
 
   return (
-    <div className={styles.blogDetailContainer}>
-      {/* breadcrumb */}
-      <div className={styles.breadcrumb}>
-        <Link to="/blogs" className={styles.breadcrumbLink}>
+    <div className={styles.page}>
+      <div className={styles.container}>
+        <Link to="/blog" className={styles.back}>
           ← ყველა ბლოგი
         </Link>
-      </div>
 
-      {/* სათაური */}
-      {title ? <h1 className={styles.title}>{title}</h1> : null}
+        <h1 className={styles.title}>{blog.title}</h1>
 
-      {/* ქავერი */}
-      {cover && (
-        <div className={styles.coverWrap}>
-          <img src={cover} alt={title} className={styles.cover} />
-        </div>
-      )}
+        {blog.cover_image && (
+          <div className={styles.cover}>
+            <img src={blog.cover_image} alt={blog.title} />
+          </div>
+        )}
 
-      {/* სექციები */}
-      {sections.length > 0 ? (
-        <div className={styles.sections}>
+        <div className={styles.content}>
           {sections.map((s, i) => (
-            <section key={i} className={styles.section}>
+            <div
+              key={i}
+              className={`${styles.section} ${
+                i % 2 === 0 ? styles.left : styles.right
+              }`}
+            >
               {s.image_url && (
-                <div className={styles.sectionImageWrap}>
-                  <img
-                    src={s.image_url}
-                    alt={title || `section-${i + 1}`}
-                    className={styles.sectionImage}
-                  />
+                <div className={styles.image}>
+                  <img src={s.image_url} alt="" />
                 </div>
               )}
 
               {s.text && (
-                <div className={styles.sectionBody}>
-                  {String(s.text)
-                    .split(/\n{2,}/)
-                    .map((p, j) => (
-                      <p key={j}>{p}</p>
-                    ))}
+                <div className={styles.text}>
+                  {s.text.split("\n").map((p, idx) => (
+                    <p key={idx}>{p}</p>
+                  ))}
                 </div>
               )}
-            </section>
+            </div>
           ))}
         </div>
-      ) : (
-        <div className={styles.content}>
-          {blog.content_html ? (
-            <div dangerouslySetInnerHTML={{ __html: blog.content_html }} />
-          ) : blog.content || blog.text ? (
-            String(blog.content || blog.text)
-              .split(/\n{2,}/)
-              .map((p, i) => <p key={i}>{p}</p>)
-          ) : null}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,23 @@
 import React, { useEffect, useState } from "react";
 import s from "./AddHomeImg.module.css";
+const CLOUD_NAME = "dch8gnj7d";
+const UPLOAD_PRESET = "artopia_unsigned";
 
+async function uploadToCloudinary(file) {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", UPLOAD_PRESET);
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+    method: "POST",
+    body: fd,
+  });
+
+  if (!res.ok) throw new Error("Cloudinary upload failed");
+
+  const data = await res.json();
+  return data.secure_url;
+}
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 function getAdminToken() {
   return (
@@ -51,48 +68,54 @@ export default function AddHomeImg() {
     fetchList();
   }, []);
 
-  const handleUpload = async () => {
-    if (!files.length) return;
+const handleUpload = async () => {
+  if (!files.length) return;
 
-    const fd = new FormData();
+  try {
+    // 1. ატვირთე Cloudinary-ზე
+    const uploadedUrls = [];
 
     for (const f of files) {
-      fd.append("images", f);
+      const url = await uploadToCloudinary(f);
+      if (url) uploadedUrls.push(url);
     }
 
-    if (title) fd.append("title", title);
-    if (alt) fd.append("alt_text", alt);
-    if (sortIndex !== "") fd.append("sort_index", sortIndex);
-    fd.append("is_active", isActive ? "true" : "false");
+    // 2. გაუგზავნე backend-ს URL-ები
+    const res = await fetch(`${API_BASE}/home-images`, {
+      method: "POST",
+      headers: {
+        ...headers({ "Content-Type": "application/json" }),
+      },
+      body: JSON.stringify({
+        images: uploadedUrls,
+        title,
+        alt_text: alt,
+sort_index: sortIndex !== "" ? Number(sortIndex) : null,
+        is_active: isActive,
+      }),
+      credentials: "include",
+    });
 
-    try {
-      const res = await fetch(`${API_BASE}/home-images`, {
-        method: "POST",
-        headers: headers(),
-        body: fd,
-        credentials: "include",
-      });
+    const text = await res.text();
+    console.log("UPLOAD STATUS:", res.status);
+    console.log("UPLOAD RESPONSE:", text);
 
-const text = await res.text();
-console.log("UPLOAD STATUS:", res.status);
-console.log("UPLOAD RESPONSE:", text);
+    if (!res.ok) throw new Error(text);
 
-if (!res.ok) {
-  throw new Error(text || `Upload failed (${res.status})`);
-}
-      await fetchList();
+    await fetchList();
 
-      setFiles([]);
-      setPreviewUrls([]);
-      setTitle("");
-      setAlt("");
-      setSortIndex("");
-      setIsActive(true);
-    } catch (err) {
-      console.error(err);
-      setError("ატვირთვის შეცდომა");
-    }
-  };
+    setFiles([]);
+    setPreviewUrls([]);
+    setTitle("");
+    setAlt("");
+    setSortIndex("");
+    setIsActive(true);
+
+  } catch (err) {
+    console.error(err);
+    setError("ატვირთვის შეცდომა");
+  }
+};
 
   const toggleActive = async (item) => {
     try {

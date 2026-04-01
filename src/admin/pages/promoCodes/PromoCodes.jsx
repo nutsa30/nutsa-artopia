@@ -3,21 +3,9 @@ import React, { useEffect, useMemo, useState } from "react";
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 /* ---------------- auth ---------------- */
-const getAdminSecret = () =>
-  (import.meta?.env?.VITE_ADMIN_TOKEN ?? "").trim();
-
-const buildHeaders = () => {
-  const adminSecret = getAdminSecret();
-  const headers = {
-    "Content-Type": "application/json",
-  };
-
-  if (adminSecret) {
-    headers["X-Admin-Token"] = adminSecret;
-  }
-
-  return headers;
-};
+const headers = (extra = {}) => ({
+  ...extra,
+});
 
 /* ---------------- helpers ---------------- */
 const normalizeCoupon = (row = {}) => ({
@@ -68,15 +56,12 @@ export default function PromoCodes() {
     setErr("");
 
     try {
-      const adminSecret = getAdminSecret();
-      if (!adminSecret) {
-        throw new Error("VITE_ADMIN_TOKEN არ არის გაწერილი");
-      }
-
-      const res = await fetch(`${API_BASE}/admin/coupons?per_page=100`, {
-        method: "GET",
-        headers: buildHeaders(),
-      });
+      
+const res = await fetch(`${API_BASE}/promo-codes?per_page=100`, {
+  method: "GET",
+  headers: headers(),
+  credentials: "include",
+});
 
       const data = await res.json().catch(() => ({}));
 
@@ -140,17 +125,18 @@ export default function PromoCodes() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/admin/coupons`, {
-        method: "POST",
-        headers: buildHeaders(),
-        body: JSON.stringify({
-          code: finalCode,
-          percent: finalPercent,
-          min_subtotal: finalMinSubtotal,
-          usage_limit: finalUsageLimit,
-          is_active: isActive,
-        }),
-      });
+const res = await fetch(`${API_BASE}/promo-codes`, {
+  method: "POST",
+  headers: headers({ "Content-Type": "application/json" }),
+  body: JSON.stringify({
+    code: finalCode,
+    percent: finalPercent,
+    min_subtotal: finalMinSubtotal,
+    usage_limit: finalUsageLimit,
+    is_active: isActive,
+  }),
+  credentials: "include",
+});
 
       const data = await res.json().catch(() => ({}));
 
@@ -233,17 +219,18 @@ export default function PromoCodes() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/admin/coupons/${id}`, {
-        method: "PUT",
-        headers: buildHeaders(),
-        body: JSON.stringify({
-          code: finalCode,
-          percent: finalPercent,
-          min_subtotal: finalMinSubtotal,
-          usage_limit: finalUsageLimit,
-          is_active: !!draft.is_active,
-        }),
-      });
+const res = await fetch(`${API_BASE}/promo-codes/${id}`, {
+  method: "PUT",
+  headers: headers({ "Content-Type": "application/json" }),
+  body: JSON.stringify({
+    code: finalCode,
+    percent: finalPercent,
+    min_subtotal: finalMinSubtotal,
+    usage_limit: finalUsageLimit,
+    is_active: !!draft.is_active,
+  }),
+  credentials: "include",
+});
 
       const data = await res.json().catch(() => ({}));
 
@@ -270,10 +257,11 @@ export default function PromoCodes() {
     setErr("");
 
     try {
-      const res = await fetch(`${API_BASE}/admin/coupons/${id}`, {
-        method: "DELETE",
-        headers: buildHeaders(),
-      });
+   const res = await fetch(`${API_BASE}/promo-codes/${id}`, {
+  method: "DELETE",
+  headers: headers(),
+  credentials: "include",
+});
 
       const data = await res.json().catch(() => ({}));
 

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import BlogDetailModal from "./BlogDetailModal"; // თუ იყენებ, დარჩეს როგორც გაქვს
 import styles from "./BlogsPage.module.css";
 import { useNavigate } from "react-router-dom";
 import SEO from "../components/SEO";
@@ -10,25 +9,22 @@ const BlogPage = () => {
   const [blogs, setBlogs] = useState([]);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedBlog, setSelectedBlog] = useState(null);
   const navigate = useNavigate();
 
   const pageTitle = "ბლოგი – სტატიები და სიახლეები";
   const pageDescription =
-    "გაეცანი სტატიებს, რჩევებს და სიახლეებს სამხატვრო მასალებზე, საკანცელარიო ნივთებზე, საბავშვო განმავითარებელ სათამაშოებსა და სასკოლო პროდუქტებზე Artopia-ს ბლოგში.";
+    "სტატიები და რჩევები Artopia-სგან — სამხატვრო მასალები, სასკოლო პროდუქტები და მეტი.";
   const pageUrl = "https://artopia.ge/blog";
 
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         const res = await fetch(BASE);
-        if (!res.ok) throw new Error("ბლოგების წამოღება ჩავარდა");
+        if (!res.ok) throw new Error();
         const data = await res.json();
         setBlogs(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("ბლოგების წაკითხვის შეცდომა:", err);
-        setError("ბლოგების მონაცემების წამოღება ვერ მოხერხდა.");
+      } catch {
+        setError("ბლოგების ჩატვირთვა ვერ მოხერხდა");
       }
     };
 
@@ -39,96 +35,62 @@ const BlogPage = () => {
     (b.title || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const openModal = (blog) => {
-    setSelectedBlog(blog);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedBlog(null);
-  };
-
-  const openBlogDetail = (id) => {
-    navigate(`/blog/${id}`);
-  };
-
   return (
     <>
-      <SEO
-        title={pageTitle}
-        description={pageDescription}
-        url={pageUrl}
-        type="website"
-      />
+      <SEO title={pageTitle} description={pageDescription} url={pageUrl} />
 
-      <div className={styles.blogPageContainer}>
-        <h2>ბლოგების სია</h2>
+      <div className={styles.page}>
+        <div className={styles.container}>
+          {/* HEADER */}
+          <div className={styles.header}>
+            <h1>ბლოგი</h1>
+            <p>იდეები, რჩევები და სიახლეები Artopia-სგან</p>
 
-        <input
-          type="text"
-          placeholder="ძებნა სათაურით..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className={styles.searchInput}
-        />
+            <input
+              type="text"
+              placeholder="მოძებნე სტატია..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.search}
+            />
+          </div>
 
-        {error && <div className={styles.error}>{error}</div>}
+          {error && <div className={styles.error}>{error}</div>}
 
-        <ul className={styles.blogList}>
-          {filteredBlogs.map((b) => (
-            <li key={b.id} className={styles.blogItem}>
-              <div className={styles.blogInfo}>
-                <div className={styles.coverRow}>
-                  {b.cover_image ? (
-                    <img
-                      src={b.cover_image}
-                      alt={b.title}
-                      className={styles.cover}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className={styles.coverPlaceholder}>No cover</div>
-                  )}
+          {/* GRID */}
+          <div className={styles.grid}>
+            {filteredBlogs.map((b) => (
+              <div
+                key={b.id}
+                className={styles.card}
+                onClick={() => navigate(`/blog/${b.id}`)}
+              >
+                {b.cover_image && (
+                  <div className={styles.imageWrap}>
+                    <img src={b.cover_image} alt={b.title} />
+                  </div>
+                )}
+
+                <div className={styles.content}>
+                  <h3>{b.title}</h3>
+
+                  {b.excerpt && <p>{b.excerpt}</p>}
+
+                  <div className={styles.footer}>
+                    <span>წაიკითხე სრულად</span>
+                    <span className={styles.arrow}>→</span>
+                  </div>
                 </div>
-
-                <strong
-                  style={{ padding: 12 }}
-                  className={styles.title}
-                >
-                  {b.title}
-                </strong>
-
-                {b.excerpt ? (
-                  <p
-                    style={{ margin: 10, fontSize: 18, lineHeight: 1.25 }}
-                    className={styles.excerpt}
-                  >
-                    {b.excerpt}
-                  </p>
-                ) : null}
               </div>
+            ))}
+          </div>
 
-              <div className={styles.actions}>
-                <button
-                  onClick={() => openBlogDetail(b.id)}
-                  className={styles.readMoreBtn}
-                >
-                  წაიკითხე მეტი
-                </button>
-
-                {/* სურვილისას მოდალითაც შეგიძლიათ გახსნა "სკელეტონით" */}
-                {/* <button onClick={() => openModal(b)} className={styles.readMoreBtn}>
-                  ნახვა
-                </button> */}
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        {isModalOpen && selectedBlog && (
-          <BlogDetailModal blog={selectedBlog} onClose={closeModal} />
-        )}
+          {filteredBlogs.length === 0 && (
+            <div className={styles.empty}>
+              ვერ მოიძებნა შედეგი
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

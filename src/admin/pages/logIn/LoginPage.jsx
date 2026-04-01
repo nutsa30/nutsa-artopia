@@ -4,7 +4,9 @@ import { useNavigate } from "react-router-dom";
 import logo from "../../assets/IMG_4970.JPG";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
-const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN;
+
+// ❗ ეს არის shared secret backend-სთვის (login-ზე)
+const ADMIN_SECRET = "ARTOPIA_SUPERADMIN_2024";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -27,17 +29,17 @@ const LoginPage = () => {
     try {
       const res = await fetch(`${API_BASE}/auth/admin-login`, {
         method: "POST",
-   headers: {
-  "Content-Type": "application/json",
-    "X-Admin-Token": ADMIN_TOKEN,
-},
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Token": ADMIN_SECRET, // ✅ shared secret
+        },
         body: JSON.stringify({
           email: form.username.trim().toLowerCase(),
           password: form.password,
         }),
       });
-//ok
-      const data = await res.json();
+
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         throw new Error(data?.message || "Login failed");
@@ -49,10 +51,8 @@ const LoginPage = () => {
         throw new Error("Token არ დაბრუნდა");
       }
 
-      // ✅ შეინახე token
-      localStorage.setItem("ADMIN_TOKEN", token);
-
-      // 👉 redirect admin panel-ზე
+      // ✅ JWT ინახება ცალკე (არ ვურევთ ADMIN_TOKEN-ს)
+localStorage.setItem("ADMIN_TOKEN", token);      // 👉 გადაგყავს admin panel-ზე
       navigate("/menu");
     } catch (err) {
       console.error("Login error:", err);

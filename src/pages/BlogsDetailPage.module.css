@@ -1,211 +1,109 @@
-/* BlogsDetailPage.module.css */
-
-/* ---------- Layout & container ---------- */
-.blogDetailContainer {
-  width: min(980px, 92vw);
-  margin: 150px auto 80px;           /* ზევიდან ადგილი, რომ Navbar-ს არ დაეჭყლიტოს */
-  padding: 20px;
-  color: #eef2f6;
-
-  /* glass */
-  /* background: rgba(255,255,255,.06); */
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 16px;
-  -webkit-backdrop-filter: blur(12px) saturate(130%);
-  backdrop-filter: blur(2px) saturate(130%);
-  box-shadow: 0 16px 40px rgba(0,0,0,.28);
+.page {
+  padding: 120px 20px;
+  display: flex;
+  justify-content: center;
 }
 
-/* ---------- Breadcrumb ---------- */
-.breadcrumb {
-  margin-bottom: 14px;
-}
-.breadcrumbLink {
-  color: #c6dcff;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color .15s ease, opacity .15s ease;
-}
-.breadcrumbLink:hover { color: #e3f0ff; opacity: .95; }
-
-/* ---------- Title ---------- */
-.title {
-  font-size: clamp(24px, 4.5vw, 36px);
-  line-height: 1.2;
-  font-weight: 900;
-  letter-spacing: .2px;
-  margin: 6px 0 18px;
-  color: #ffffff;
-  text-shadow: 0 1px 0 rgba(0,0,0,.35);
-  word-break: break-word;
-}
-
-/* ---------- Cover image (optional) ---------- */
-
-.coverWrap img {
+.container {
+  max-width: 900px;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transform: scale(1.01);
-  transition: transform .4s ease;
 }
-.coverWrap:hover img { transform: scale(1.03); }
 
-/* ---------- Sections wrapper ---------- */
-.sections {
+/* BACK */
+.back {
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+/* TITLE */
+.title {
+  font-size: 38px;
+  font-weight: 800;
+  margin: 20px 0;
+  color: white;
+  line-height: 1.2;
+}
+
+/* COVER */
+.cover {
+  margin: 20px 0 40px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.cover img {
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+}
+
+/* CONTENT */
+.content {
   display: flex;
   flex-direction: column;
-  gap: 28px;                        /* 👉 სექციებს შორის ჰაერი */
-  margin-top: 8px;
+  gap: 60px;
 }
 
-/* ---------- Each section ---------- */
+/* SECTION */
 .section {
   display: grid;
-  grid-template-columns: 1fr;       /* მობილურზე ერთი სვეტი */
-  gap: 14px;
+  grid-template-columns: 1fr;
+  gap: 20px;
 }
 
-/* სურათი თავში, ტექსტი ქვემოთ — როგორც შენს JSX-შია */
-.sectionImageWrap {
-  width: 100%;
-  border-radius: 14px;
-  overflow: hidden;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.16);
-}
-.sectionImage {
-  width: 100%;
-  height: auto;
-  max-height: 560px;
-  object-fit: cover;
-  display: block;
+/* DESKTOP alternating */
+@media (min-width: 768px) {
+  .section {
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+
+  .left .image {
+    order: 1;
+  }
+
+  .left .text {
+    order: 2;
+  }
+
+  .right .image {
+    order: 2;
+  }
+
+  .right .text {
+    order: 1;
+  }
 }
 
-/* ტექსტის კონტენტი */
-.sectionBody {
+/* IMAGE */
+.image img {
+  width: 100%;
+  border-radius: 12px;
+}
+
+/* TEXT */
+.text {
   display: flex;
   flex-direction: column;
-  gap: 12px;                        /* 👉 ფოტოსა და ტექსტს შორის gap */
-  padding: 2px 2px 0 2px;
-}
-.sectionBody p {
-  margin: 0;
-  line-height: 1.7;
-  font-size: 17px;
-  color: #e8eef6;
-  text-wrap: pretty;
-  word-break: break-word;
-}
-
-/* ---------- Fallback content area (როცა sections არ არის) ---------- */
-.content {
-  display: grid;
   gap: 14px;
 }
-.content p {
-  margin: 0;
-  line-height: 1.7;
+
+.text p {
+  color: #e2e8f0;
   font-size: 17px;
-  color: #e8eef6;
+  line-height: 1.8;
 }
 
-/* ---------- Error & back button (loader/error state-ებისთვის) ---------- */
-.error {
-  background: rgba(239,68,68,.15);
-  color: #fecaca;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(239,68,68,.28);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  margin-bottom: 12px;
-}
-.backBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.22);
-  background: rgba(255,255,255,.10);
-  color: #fff;
-  cursor: pointer;
-  font-weight: 700;
-  transition: background .18s ease, border-color .18s ease, transform .12s ease;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-}
-.backBtn:hover {
-  background: rgba(255,255,255,.16);
-  border-color: rgba(255,255,255,.28);
-  transform: translateY(-1px);
+/* LOADER */
+.loader {
+  color: white;
+  text-align: center;
+  margin-top: 200px;
 }
 
-/* ---------- Skeletons ---------- */
-.skeletonTitle,
-.skeletonCover,
-.skeletonPara {
-  position: relative;
-  overflow: hidden;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #e5e7eb1a 25%, #ffffff22 37%, #e5e7eb1a 63%);
-  background-size: 400% 100%;
-  animation: shimmer 1.2s ease infinite;
+/* ERROR */
+.errorBox {
+  text-align: center;
+  color: red;
 }
-.skeletonTitle { height: 28px; width: 70%; margin: 6px 0 18px; }
-.skeletonCover { height: 300px; width: 100%; margin-bottom: 16px; border-radius: 14px; }
-.skeletonPara { height: 16px; width: 100%; margin: 10px 0; }
-
-@keyframes shimmer {
-  0% { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
-}
-
-/* ---------- Responsive ---------- */
-@media (min-width: 860px) {
-  /* დიდ ეკრანზე სექციებს გავუჩინოთ უფრო კომფორტული max-width */
-  .blogDetailContainer { width: min(920px, 92vw); }
-}
-
-@media (max-width: 640px) {
-  .blogDetailContainer {
-    margin: 150px auto 64px;
-    padding: 14px;
-  }
-  .coverWrap { height: 260px; }
-  .section { gap: 12px; }
-  .sectionBody p, .content p { font-size: 16px; line-height: 1.65; }
-}
-
-/* ---------- Optional: ქსელური სურათების უკეთესი გამართულობა ---------- */
-.sectionImageWrap img {
-  image-rendering: auto;
-  -webkit-user-drag: none;
-  user-select: none;
-}
-
-/* ---------- ფოლბექი თუ ბრაუზერი არ უჭერს მხარს backdrop-filter-ს ---------- */
-@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  .blogDetailContainer { background: rgba(255,255,255,.08); }
-}
-
-
-/* ====== @media skeleton (mobile-first) ====== */
-/* xs: base styles */
-
-/* sm */
-@media (min-width: 480px){ /* small tweaks */ }
-
-/* md- */
-@media (min-width: 640px){ /* small/medium tweaks */ }
-
-/* md */
-@media (min-width: 768px){ /* medium screens */ }
-
-/* lg */
-@media (min-width: 1024px){ /* large screens */ }
-
-/* xl */
-@media (min-width: 1280px){ /* extra large screens */ }
