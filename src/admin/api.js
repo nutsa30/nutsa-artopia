@@ -1,10 +1,7 @@
-// src/api.js
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 /* =========================================================
    Auth helpers
-   - კითხულობს ტოკენს localStorage/sessionStorage-დან ან .env-დან (VITE_ADMIN_TOKEN)
-   - ამატებს "X-Admin-Token" ჰედერს მხოლოდ მაშინ, თუ ტოკენი არსებობს
    ========================================================= */
 const getAdminToken = () => {
   try {
@@ -20,23 +17,23 @@ const getAdminToken = () => {
 };
 
 const authHeaders = (extra = {}) => {
-  const t = (getAdminToken() || "").trim();
-  return t ? { "X-Admin-Token": t, ...extra } : { ...extra };
+  const token = (getAdminToken() || "").trim();
+  return token ? { "X-Admin-Token": token, ...extra } : { ...extra };
 };
 
 /* =========================================================
-   Generic fetch helper
-   - credentials: "include" რათა კუკებიც გადავიდეს
-   - JSON მოთხოვნებზე სვამს Content-Type-ს
-   - FormData-სთვის Content-Type-ს არ ვუწერთ
+   Generic fetch helpers
    ========================================================= */
 async function jfetch(url, init = {}) {
   const isFormData =
-    init && typeof FormData !== "undefined" && init.body instanceof FormData;
+    typeof FormData !== "undefined" && init?.body instanceof FormData;
 
   const headers = isFormData
     ? authHeaders(init.headers || {})
-    : { "Content-Type": "application/json", ...authHeaders(init.headers || {}) };
+    : {
+        "Content-Type": "application/json",
+        ...authHeaders(init.headers || {}),
+      };
 
   const res = await fetch(url, {
     credentials: "include",
@@ -48,9 +45,14 @@ async function jfetch(url, init = {}) {
     let detail = "";
     try {
       detail = await res.text();
-    } catch {}
-    throw new Error(`${res.status} ${res.statusText}${detail ? ` — ${detail}` : ""}`);
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      `${res.status} ${res.statusText}${detail ? ` — ${detail}` : ""}`
+    );
   }
+
   try {
     return await res.json();
   } catch {
@@ -58,7 +60,36 @@ async function jfetch(url, init = {}) {
   }
 }
 
-/** -------- Generic JSON helper (AdminNavbar და სხვებისთვის) -------- */
+async function ffetch(url, formData, method = "POST") {
+  const res = await fetch(url, {
+    method,
+    credentials: "include",
+    headers: authHeaders(),
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let detail = "";
+    try {
+      detail = await res.text();
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      `${res.status} ${res.statusText}${detail ? ` — ${detail}` : ""}`
+    );
+  }
+
+  try {
+    return await res.json();
+  } catch {
+    return {};
+  }
+}
+
+/* =========================================================
+   Generic JSON helper
+   ========================================================= */
 export const apiJson = (path, init) => {
   const url = /^https?:\/\//i.test(path)
     ? path
@@ -66,158 +97,83 @@ export const apiJson = (path, init) => {
   return jfetch(url, init);
 };
 
-/** ===================== Public API ===================== **/
+/* =========================================================
+   Public API
+   ========================================================= */
 
-/** Products (i18n) */
-export const getProducts = (lang = "ka", { limit, offset } = {}) => {
-  const qs = new URLSearchParams({ lang });
+export const getProducts = ({ limit, offset } = {}) => {
+  const qs = new URLSearchParams();
+
   if (limit != null) qs.set("limit", String(limit));
   if (offset != null) qs.set("offset", String(offset));
-  return jfetch(`${BASE}/products?${qs.toString()}`);
+
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  return jfetch(`${BASE}/products${suffix}`);
 };
 
-export const getProduct = (id, lang = "ka") =>
-  jfetch(`${BASE}/products/${id}?lang=${lang}`);
+export const getProduct = (id) => jfetch(`${BASE}/products/${id}`);
 
-/** Categories */
-export const getCategories = (lang = "ka") =>
-  jfetch(`${BASE}/categories?lang=${lang}`);
+export const getCategories = () => jfetch(`${BASE}/categories`);
 
-/** Subcategories by category_id */
-export const getSubcategories = (categoryId, lang = "ka") =>
-  jfetch(
-    `${BASE}/subcategories?category_id=${encodeURIComponent(
-      categoryId
-    )}&lang=${lang}`
-  );
+/* თუ ეს endpoint შენთან ნამდვილად public-ად ასე მუშაობს, დატოვე ეს ვერსია */
+export const getHomepageImages = () => jfetch(`${BASE}/home-images/public`);
 
-/** Homepage images */
-export const getHomepageImages = (lang = "ka") =>
-  jfetch(`${BASE}/home-images?lang=${lang}`);
+/* =========================================================
+   Admin: Products CRUD
+   ========================================================= */
 
-/** ===================== Admin: Products (multipart) ===================== **/
-/**
- * createProductForm
- * იღებს FormData-ს (multipart) — სურათები image1..image6
- * აუცილებელი ველები:
- *  - title_ka ან name
- *  - price
- *  - category_id
- * სურვილისამებრ:
- *  - subcategory_id
- *  - title_en, description_ka, description_en, slug_ka, slug_en
- *  - in_stock, is_new, sale
- */
-export const createProductForm = (formData) =>
-  fetch(`${BASE}/products`, {
+export const createProduct = (formData) =>
+  ffetch(`${BASE}/products`, formData, "POST");
+
+export const updateProduct = (id, formData) =>
+  ffetch(`${BASE}/products/${id}`, formData, "PUT");
+
+/* ძველი სახელებიც დავტოვე რომ import-ები არ გაგიტყდეს */
+export const createProductForm = createProduct;
+export const updateProductForm = updateProduct;
+
+/* =========================================================
+   Delete single product image
+   ========================================================= */
+
+export async function deleteProductImage(productId, imageFieldOrOptions) {
+  const options =
+    typeof imageFieldOrOptions === "string"
+      ? { field: imageFieldOrOptions }
+      : imageFieldOrOptions || {};
+
+  const { field, url } = options;
+
+  const res = await fetch(`${BASE}/products/${productId}/delete_image`, {
     method: "POST",
     credentials: "include",
-    headers: authHeaders(), // FormData-სთვის Content-Type-ს ბრაუზერი თვითონ სვამს
-    body: formData,
-  }).then(async (r) => {
-    if (!r.ok) throw new Error(await r.text().catch(() => r.statusText));
-    try {
-      return await r.json();
-    } catch {
-      return {};
-    }
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
+    body: JSON.stringify({
+      image_field: field,
+      url,
+    }),
   });
 
-export const updateProductForm = (id, formData) =>
-  fetch(`${BASE}/products/${id}`, {
-    method: "PUT",
-    credentials: "include",
-    headers: authHeaders(),
-    body: formData,
-  }).then(async (r) => {
-    if (!r.ok) throw new Error(await r.text().catch(() => r.statusText));
+  if (!res.ok) {
+    let detail = "";
     try {
-      return await r.json();
+      detail = await res.text();
     } catch {
-      return {};
+      // ignore
     }
-  });
-
-/**
- * Delete single product image slot.
- *
- * სცდის 2 გზას:
- *   1) DELETE /products/:id/images?field=image_urlN&url=...
- *   2) POST   /products/:id/delete_image   body: { image_field, url }
- * პირველის ჩავარდნისას ავტომატურად გადავდივართ მეორეზე.
- */
-export async function deleteProductImage(productId, { field, url }) {
-  // ---- 1) DELETE with query params ----
-  try {
-    const qs = new URLSearchParams();
-    if (field) qs.set("field", field);
-    if (url) qs.set("url", url);
-
-    const res = await fetch(
-      `${BASE}/products/${productId}/images?${qs.toString()}`,
-      {
-        method: "DELETE",
-        credentials: "include",
-        headers: authHeaders(),
-      }
+    throw new Error(
+      `deleteProductImage ${res.status} ${res.statusText}${
+        detail ? ` — ${detail}` : ""
+      }`
     );
-
-    if (res.ok) {
-      try {
-        return await res.json();
-      } catch {
-        return {};
-      }
-    }
-
-    // თუ 400/404/405 — ვცდით ალტერნატიულ როუტს (POST)
-    if (![400, 404, 405].includes(res.status)) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`deleteProductImage(DELETE) ${res.status}: ${text}`);
-    }
-  } catch (e) {
-    // ვცდით POST ვარიანტს
-    // console.warn("DELETE images fallback to POST /delete_image", e);
-  }
-
-  // ---- 2) POST fallback ----
-  const res2 = await fetch(`${BASE}/products/${productId}/delete_image`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify({ image_field: field, url }),
-  });
-
-  if (!res2.ok) {
-    const text = await res2.text().catch(() => "");
-    throw new Error(`deleteProductImage(POST) ${res2.status}: ${text}`);
   }
 
   try {
-    return await res2.json();
+    return await res.json();
   } catch {
     return {};
   }
 }
-
-/** ===================== Admin: Subcategories ===================== **/
-export const createSubcategory = ({
-  category_id,
-  name,
-  is_active = true,
-  name_ka,
-  name_en,
-}) =>
-  jfetch(`${BASE}/subcategories`, {
-    method: "POST",
-    body: JSON.stringify({ category_id, name, is_active, name_ka, name_en }),
-  });
-
-export const updateSubcategory = (id, payload) =>
-  jfetch(`${BASE}/subcategories/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(payload),
-  });
-
-export const deleteSubcategory = (id) =>
-  jfetch(`${BASE}/subcategories/${id}`, { method: "DELETE" });

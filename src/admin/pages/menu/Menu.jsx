@@ -5,16 +5,18 @@ import EdgePager from "../../../components/pagination/EdgePager";
 
 const ACTIVE_PRODUCT_KEY = "admin_active_product";
 const FILTERS_KEY = "admin_menu_filters";
+const PAGE_KEY = "admin_menu_page";
+
 const API_BASE =
   (import.meta?.env?.VITE_API_BASE ?? "").trim() ||
   "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+
 const API = `${API_BASE}/products/admin`;
-/* ---------------- Helpers ---------------- */
-// ყველა შესაძლო წყაროდან აგროვებს product-ის ფოტოებს
+const PAGE_SIZE = 20;
+
 const productImages = (p) => {
   const out = [];
 
-  // ვარიანტი A: API აბრუნებს მასივს
   if (Array.isArray(p?.images)) {
     for (const it of p.images) {
       if (typeof it === "string") out.push(it);
@@ -22,211 +24,220 @@ const productImages = (p) => {
     }
   }
 
-  // ვარიანტი B: images მოდის JSON სტრინგად
   if (typeof p?.images === "string") {
     try {
-      const j = JSON.parse(p.images);
-      if (Array.isArray(j)) {
-        for (const it of j) {
+      const parsed = JSON.parse(p.images);
+      if (Array.isArray(parsed)) {
+        for (const it of parsed) {
           if (typeof it === "string") out.push(it);
           else if (it && typeof it.url === "string") out.push(it.url);
         }
       }
-    } catch {}
+    } catch {
+      // ignore invalid JSON
+    }
   }
 
-  // კლასიკური ველები: image_url1..6 (და ალტერნატივები — safety-სთვის)
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 6; i += 1) {
     out.push(p?.[`image_url${i}`]);
     out.push(p?.[`image${i}`]);
     out.push(p?.[`img${i}`]);
   }
 
-  // გაწმენდა + დუბლიკატების მოცილება
-  return [...new Set(out.filter((u) => typeof u === "string" && u.startsWith("http")))];
+  return [
+    ...new Set(
+      out.filter((u) => typeof u === "string" && u.trim().startsWith("http"))
+    ),
+  ];
 };
 
-// მცირე ინლაინ სტილები თამბნეილებისთვის
 const TH = {
-  wrap: { display: "flex", alignItems: "center", gap: 6, minHeight: 44 },
-  thumb: { width: 44, height: 44, objectFit: "cover", borderRadius: 8, border: "1px solid #e5e7eb" },
+  wrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 44,
+    flexWrap: "wrap",
+  },
+  thumb: {
+    width: 44,
+    height: 44,
+    objectFit: "cover",
+    borderRadius: 8,
+    border: "1px solid #e5e7eb",
+  },
   noimg: {
-    width: 44, height: 44, borderRadius: 8, border: "1px dashed #e5e7eb",
-    color: "#9ca3af", display: "inline-flex", alignItems: "center",
-    justifyContent: "center", fontSize: 12, background: "#fafafa"
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    border: "1px dashed #e5e7eb",
+    color: "#9ca3af",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 12,
+    background: "#fafafa",
   },
 };
 
+const normalizeProduct = (p) => {
+  const imgs = productImages(p);
+  const quantity = Number(p?.quantity ?? 0);
+  const hasValidQty = Number.isFinite(quantity) && quantity > 0;
 
+  return {
+    id: p.id,
+    name: String(p?.name || "").trim(),
+    description: String(p?.description || "").trim(),
+    price: Number(p?.price ?? 0),
+    sale: p?.sale == null ? null : Number(p.sale),
+    quantity: hasValidQty ? Math.floor(quantity) : 0,
+    in_stock: hasValidQty,
+    category: String(p?.category_name || p?.category || "").trim(),
+    category_id: p?.category_id ?? "",
+    is_new: !!p?.is_new,
+    hide: !!p?.hide,
+    slug: p?.slug || "",
+    images: imgs,
+    image_url1: imgs[0] || null,
+    image_url2: imgs[1] || null,
+    image_url3: imgs[2] || null,
+    image_url4: imgs[3] || null,
+    image_url5: imgs[4] || null,
+    image_url6: imgs[5] || null,
+  };
+};
 
-
-// ტექსტების ამოღება KA/EN (ლისტისთვის EN optional)
-const pickDescKA = (p) => (p.description_ka ?? p.description ?? "").trim();
-const pickDescEN = (p) => (p.description_en ?? "").trim();
-
-/* ---------------- Component ---------------- */
+const getSavedFilters = () => {
+  try {
+    return JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}");
+  } catch {
+    return {};
+  }
+};
 
 const Menu = () => {
   const navigate = useNavigate();
-    const containerRef = useRef(null); // ✅ აქ უნდა იყოს
+  const containerRef = useRef(null);
+  const abortRef = useRef(null);
 
-  // სრული მონაცემების კეში (ერთი ქოლით)
+  const savedFilters = getSavedFilters();
+
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-const PAGE_SIZE = 20;
-const PAGE_KEY = "admin_menu_page";
 
-const [currentPage, setCurrentPage] = useState(
-  Number(localStorage.getItem(PAGE_KEY)) || 1
-);
-  // ფილტრები
-const savedFilters = JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}");
+  const [searchTerm, setSearchTerm] = useState(savedFilters.searchTerm || "");
+  const [selectedCategory, setSelectedCategory] = useState(
+    savedFilters.selectedCategory || "ყველა"
+  );
+  const [selectedStock, setSelectedStock] = useState(
+    savedFilters.selectedStock || "all"
+  );
+  const [selectedSale, setSelectedSale] = useState(
+    savedFilters.selectedSale || "all"
+  );
+  const [selectedNew, setSelectedNew] = useState(
+    savedFilters.selectedNew || "all"
+  );
+  const [categories, setCategories] = useState(["ყველა"]);
 
-const [searchTerm, setSearchTerm] = useState(savedFilters.searchTerm || "");
-const [selectedCategory, setSelectedCategory] = useState(savedFilters.selectedCategory || "ყველა");
-const [selectedStock, setSelectedStock] = useState(savedFilters.selectedStock || "all");
-const [selectedSale, setSelectedSale] = useState(savedFilters.selectedSale || "all");
-const [selectedNew, setSelectedNew] = useState(savedFilters.selectedNew || "all");
-const [categories, setCategories] = useState(["ყველა"]); 
-const abortRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(
+    Number(localStorage.getItem(PAGE_KEY)) || 1
+  );
 
-  // -------- ერთიანი ჩატვირთვა (მხოლოდ KA) --------
   const fetchProductsOnce = async () => {
     setLoading(true);
     setError("");
+
     abortRef.current?.abort();
     const ctl = new AbortController();
     abortRef.current = ctl;
 
     try {
-      const res = await fetch(`${API}?lang=ka`, { signal: ctl.signal });
+      const res = await fetch(API, { signal: ctl.signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
       const data = await res.json();
       const list = Array.isArray(data) ? data : [];
+      const normalized = list.map(normalizeProduct);
 
-      // შევამციროთ ობიექტები UI-სთვის საჭირო ველებამდე + ამოვკრიბოთ სურათები
-      const trimmed = list.map((p) => {
-        const imgs = productImages(p);
-        return {
-          id: p.id,
-          name: p.name ?? p.title ?? "",
-          price: p.price,
-          sale: p.sale,
-          quantity: p.quantity ?? 0,
-          in_stock: (p.quantity ?? 0) > 0,
-          category: p.category_name || p.category || "",
-          category_id: p.category_id ?? "", // 🔥 ეს საკმარისია
-          image_url1: imgs[0] || null,
-          image_url2: imgs[1] || null,
-          image_url3: imgs[2] || null,
-          image_url4: imgs[3] || null,
-          image_url5: imgs[4] || null,
-          image_url6: imgs[5] || null,
-          images: imgs,
-          description_ka: p.description ?? p.description_ka ?? "",
-          description_en: "",
-          is_new: !!p.is_new,
-          hide: !!p.hide,
-        };
-      });
+      setAllProducts(normalized);
 
-      setAllProducts(trimmed);
-
-      // კატეგორიების dropdown
       const uniqCats = Array.from(
-        new Set(
-          trimmed
-          .map((p) => p.category_name || p.category || "")
-          .filter(Boolean)
-            .map((s) => s.trim())
-        )
+        new Set(normalized.map((p) => p.category).filter(Boolean))
       );
+
       const sortedCats = uniqCats
-  .filter((c) => c !== "სხვა")
-  .sort((a, b) => a.localeCompare(b, "ka"));
+        .filter((c) => c !== "სხვა")
+        .sort((a, b) => a.localeCompare(b, "ka"));
 
-setCategories(["ყველა", ...sortedCats, "სხვა"]);
-
-  
+      setCategories(["ყველა", ...sortedCats, ...(uniqCats.includes("სხვა") ? ["სხვა"] : [])]);
+    } catch (e) {
+      if (e?.name === "AbortError") return;
+      console.error("❌ Fetch products failed:", e);
+      setError("პროდუქტების წამოღება ვერ მოხერხდა");
+      setAllProducts([]);
+      setCategories(["ყველა"]);
     } finally {
       setLoading(false);
     }
   };
 
-
-  useEffect(() => {
-  localStorage.setItem(
-    FILTERS_KEY,
-    JSON.stringify({
-      searchTerm,
-      selectedCategory,
-      selectedStock,
-      selectedSale,
-      selectedNew,
-    })
-  );
-}, [searchTerm, selectedCategory, selectedStock, selectedSale, selectedNew]);
-
-useEffect(() => {
-  localStorage.setItem(PAGE_KEY, String(currentPage));
-}, [currentPage]);
-
-useEffect(() => {
-  const activeId = localStorage.getItem(ACTIVE_PRODUCT_KEY);
-
-  // edit დაბრუნებისას არ ავიდეთ
-  if (activeId) return;
-
-  const scroller =
-    document.scrollingElement || document.documentElement || document.body;
-
-  scroller.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
-}, [currentPage]);
-
   useEffect(() => {
     fetchProductsOnce();
     return () => abortRef.current?.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // -------- ფილტრაცია (memo) --------
+  useEffect(() => {
+    localStorage.setItem(
+      FILTERS_KEY,
+      JSON.stringify({
+        searchTerm,
+        selectedCategory,
+        selectedStock,
+        selectedSale,
+        selectedNew,
+      })
+    );
+  }, [searchTerm, selectedCategory, selectedStock, selectedSale, selectedNew]);
+
+  useEffect(() => {
+    localStorage.setItem(PAGE_KEY, String(currentPage));
+  }, [currentPage]);
+
   const filtered = useMemo(() => {
     const needle = (searchTerm || "").toLowerCase().trim();
+
     return allProducts.filter((p) => {
-      const haystack = [
-        p.name,
-        pickDescKA(p),
-        pickDescEN(p),
-        p.category,
-      ]
+      const haystack = [p.name, p.description, p.category]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
 
       const matchesSearch = !needle || haystack.includes(needle);
- const matchesCategory =
-  selectedCategory === "ყველა" || p.category === selectedCategory;
-const matchesStock =
-  selectedStock === "all" ||
-  (selectedStock === "in" && p.in_stock && !p.hide) ||
-  (selectedStock === "out" && !p.in_stock && !p.hide) ||
-  (selectedStock === "hidden" && p.hide);
+
+      const matchesCategory =
+        selectedCategory === "ყველა" || p.category === selectedCategory;
+
+      const matchesStock =
+        selectedStock === "all" ||
+        (selectedStock === "in" && p.in_stock && !p.hide) ||
+        (selectedStock === "out" && !p.in_stock && !p.hide) ||
+        (selectedStock === "hidden" && p.hide);
+
       const hasSale =
-        typeof p.sale === "number" && p.sale > 0 && p.sale <= 100;
+        typeof p.sale === "number" && Number.isFinite(p.sale) && p.sale > 0 && p.sale <= 100;
+
       const matchesSale =
         selectedSale === "all" ||
         (selectedSale === "discounted" && hasSale) ||
         (selectedSale === "nodiscount" && !hasSale);
 
-      const isNew = !!p.is_new;
       const matchesNew =
         selectedNew === "all" ||
-        (selectedNew === "new" && isNew) ||
-        (selectedNew === "old" && !isNew);
+        (selectedNew === "new" && p.is_new) ||
+        (selectedNew === "old" && !p.is_new);
 
       return (
         matchesSearch &&
@@ -236,81 +247,101 @@ const matchesStock =
         matchesNew
       );
     });
-}, [allProducts, searchTerm, selectedCategory, selectedStock, selectedSale, selectedNew]);
+  }, [
+    allProducts,
+    searchTerm,
+    selectedCategory,
+    selectedStock,
+    selectedSale,
+    selectedNew,
+  ]);
 
-const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
 
-const safeCurrentPage = Math.min(currentPage, totalPages);
-
-const visible = useMemo(() => {
-  const start = (safeCurrentPage - 1) * PAGE_SIZE;
-  const end = start + PAGE_SIZE;
-  return filtered.slice(start, end);
-}, [filtered, safeCurrentPage]);
-useEffect(() => {
-  const activeId = localStorage.getItem(ACTIVE_PRODUCT_KEY);
-  if (!activeId || visible.length === 0) return;
-
-  requestAnimationFrame(() => {
-    const el = document.getElementById(`product-${activeId}`);
-    if (el) {
-      el.scrollIntoView({
-        behavior: "auto",
-        block: "center",
-      });
-      localStorage.removeItem(ACTIVE_PRODUCT_KEY);
+  useEffect(() => {
+    if (currentPage !== safeCurrentPage) {
+      setCurrentPage(safeCurrentPage);
     }
-  });
-}, [visible]);
-  // -------- Refresh: reset filters + reload --------
+  }, [currentPage, safeCurrentPage]);
+
+  const visible = useMemo(() => {
+    const start = (safeCurrentPage - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, safeCurrentPage]);
+
+  useEffect(() => {
+    const activeId = localStorage.getItem(ACTIVE_PRODUCT_KEY);
+
+    if (activeId && visible.length > 0) {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`product-${activeId}`);
+        if (el) {
+          el.scrollIntoView({
+            behavior: "auto",
+            block: "center",
+          });
+        }
+        localStorage.removeItem(ACTIVE_PRODUCT_KEY);
+      });
+      return;
+    }
+
+    const scroller =
+      document.scrollingElement || document.documentElement || document.body;
+
+    scroller.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [safeCurrentPage, visible]);
+
   const handleRefresh = () => {
     setSearchTerm("");
     setSelectedCategory("ყველა");
     setSelectedStock("all");
     setSelectedSale("all");
     setSelectedNew("all");
-    fetchProductsOnce();
     setCurrentPage(1);
-localStorage.removeItem(PAGE_KEY);
-localStorage.removeItem(SCROLL_KEY);
     localStorage.removeItem(FILTERS_KEY);
+    localStorage.removeItem(PAGE_KEY);
+    fetchProductsOnce();
   };
 
-  // -------- Actions --------
-const handleEdit = (product) => {
-  localStorage.setItem(PAGE_KEY, String(currentPage));
-localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
-  navigate(`/admin/addProducts/${product.id}`, { state: { product } });
-};
-
+  const handleEdit = (product) => {
+    localStorage.setItem(PAGE_KEY, String(safeCurrentPage));
+    localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
+    navigate(`/admin/addProducts/${product.id}`, { state: { product } });
+  };
 
   const handleDelete = async (id) => {
+    const ok = window.confirm("დარწმუნებული ხარ, რომ პროდუქტის წაშლა გინდა?");
+    if (!ok) return;
+
     try {
-      await fetch(`${API}/${id}`, { method: "DELETE" });
-      fetchProductsOnce();
+      const res = await fetch(`${API_BASE}/products/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      setAllProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (e) {
       console.error("❌ Delete failed:", e);
       alert("წაშლა ვერ მოხერხდა");
     }
   };
 
-
-  // -------- Render --------
   return (
     <>
       <button className="goBackButton" onClick={() => navigate(-1)}>
         go back
       </button>
 
-<div ref={containerRef} style={{ padding: "2rem" }}>
+      <div ref={containerRef} style={{ padding: "2rem" }}>
         <h3 className={styles.productList}>📦 პროდუქტების სია</h3>
 
-        {/* ფილტრების პანელი */}
         <div
           style={{
             display: "flex",
-            width: 1200,
-            flexDirection: "row",
+            flexWrap: "wrap",
             gap: "12px",
             marginBottom: "20px",
           }}
@@ -319,56 +350,70 @@ localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
             type="text"
             placeholder="პროდუქტის ძებნა..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className={styles.searchInput}
           />
 
           <select
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setCurrentPage(1);
+            }}
             className={styles.searchInput}
             title="კატეგორია"
           >
-            {categories.map((cat, idx) => (
-              <option key={idx} value={cat}>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
                 {cat}
               </option>
             ))}
           </select>
 
-          {/* მარაგის ფილტრი */}
           <select
             value={selectedStock}
-            onChange={(e) => setSelectedStock(e.target.value)}
+            onChange={(e) => {
+              setSelectedStock(e.target.value);
+              setCurrentPage(1);
+            }}
             className={styles.searchInput}
             title="მარაგი"
           >
-   <option value="all">მარაგში + ამოწურული + დამალული</option>
-<option value="in">მხოლოდ მარაგში</option>
-<option value="out">მხოლოდ ამოწურული</option>
-<option value="hidden">მხოლოდ დამალული</option>
+            <option value="all">ყველა</option>
+            <option value="in">მხოლოდ მარაგში</option>
+            <option value="out">მხოლოდ ამოწურული</option>
+            <option value="hidden">მხოლოდ დამალული</option>
           </select>
 
-          {/* ფასდაკლების ფილტრი */}
           <select
             value={selectedSale}
-            onChange={(e) => setSelectedSale(e.target.value)}
+            onChange={(e) => {
+              setSelectedSale(e.target.value);
+              setCurrentPage(1);
+            }}
             className={styles.searchInput}
             title="ფასდაკლება"
           >
             <option value="all">ყველა</option>
             <option value="discounted">მხოლოდ ფასდაკლებული</option>
+            <option value="nodiscount">ფასდაკლების გარეშე</option>
           </select>
 
-          {/* „ახალი“ სტატუსის ფილტრი */}
           <select
             value={selectedNew}
-            onChange={(e) => setSelectedNew(e.target.value)}
+            onChange={(e) => {
+              setSelectedNew(e.target.value);
+              setCurrentPage(1);
+            }}
             className={styles.searchInput}
             title="ახალი"
           >
             <option value="all">ყველა</option>
             <option value="new">მხოლოდ ახალი</option>
+            <option value="old">არა ახალი</option>
           </select>
 
           <button
@@ -383,18 +428,21 @@ localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
         <ul className={styles.productItem}>
           {visible.map((p) => {
             const hasSale =
-              typeof p.sale === "number" && p.sale > 0 && p.sale <= 100;
+              typeof p.sale === "number" && Number.isFinite(p.sale) && p.sale > 0 && p.sale <= 100;
+
             const discounted = hasSale
               ? (Number(p.price) * (1 - p.sale / 100)).toFixed(2)
               : null;
 
+            const imgs = productImages(p);
+
             return (
-<li
-  key={p.id}
-  id={`product-${p.id}`} // 🔥 ეს დაამატე
-  className={styles.productListSimbol}
->
-<div className={styles.productListInner}>
+              <li
+                key={p.id}
+                id={`product-${p.id}`}
+                className={styles.productListSimbol}
+              >
+                <div className={styles.productListInner}>
                   <div className={styles.productListName}>
                     <div
                       style={{
@@ -423,28 +471,21 @@ localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
                           ⭐ ახალი
                         </span>
                       )}
+
                       <strong className={styles.pName}>{p.name}</strong>
                     </div>
 
-                    {pickDescKA(p) && (
+                    {p.description && (
                       <span className={styles.pDescription}>
-                        {pickDescKA(p)}
-                      </span>
-                    )}
-                    {pickDescEN(p) && (
-                      <span
-                        className={styles.pDescription}
-                        style={{ opacity: 0.8, display: "block", marginTop: 4 }}
-                      >
-                        <em>EN:</em> {pickDescEN(p)}
+                        {p.description}
                       </span>
                     )}
 
-{(p.category_name || p.category) && (
-  <div className={styles.pCategory}>
-    კატეგორია: {p.category_name || p.category || "—"}
-  </div>
-)}
+                    {p.category && (
+                      <div className={styles.pCategory}>
+                        კატეგორია: {p.category}
+                      </div>
+                    )}
 
                     <div className={styles.price}>
                       {hasSale ? (
@@ -464,9 +505,11 @@ localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
                           >
                             {p.price} ₾
                           </span>
+
                           <span>
                             <b>{discounted} ₾</b>
                           </span>
+
                           <span
                             style={{
                               background: "#ffe8e8",
@@ -485,39 +528,36 @@ localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
                       )}
                     </div>
 
-                  <div className={styles.stock}>
-  {p.in_stock ? (
-    <span style={{ color: "green" }}>✔️ მარაგშია</span>
-  ) : (
-    <span style={{ color: "red" }}>❌ არ არის მარაგში</span>
-  )}
+                    <div className={styles.stock}>
+                      {p.in_stock ? (
+                        <span style={{ color: "green" }}>✔️ მარაგშია</span>
+                      ) : (
+                        <span style={{ color: "red" }}>❌ არ არის მარაგში</span>
+                      )}
 
-  {p.hide && (
-    <span style={{ color: "#555", marginLeft: 10 }}>
-      🚫 დამალულია
-    </span>
-  )}
-</div>
+                      {p.hide && (
+                        <span style={{ color: "#555", marginLeft: 10 }}>
+                          🚫 დამალულია
+                        </span>
+                      )}
+                    </div>
 
-                    {/* რამდენიმე სურათი ლისტში (1–3 თამბნეილი + “+N”) */}
                     <div className={styles.images}>
-                      {(() => {
-                        const imgs = productImages(p);
-                        if (!imgs.length) return <div style={TH.noimg}>—</div>;
-                        return (
-                          <div style={TH.wrap}>
-                            {imgs.slice(0, 3).map((src, i) => (
-                              <img
-                                key={i}
-                                src={src}
-                                alt={`${p.name || "product"}-${i + 1}`}
-                                style={TH.thumb}
-                              />
-                            ))}
-                            {imgs.length > 3 && <span>+{imgs.length - 3}</span>}
-                          </div>
-                        );
-                      })()}
+                      {!imgs.length ? (
+                        <div style={TH.noimg}>—</div>
+                      ) : (
+                        <div style={TH.wrap}>
+                          {imgs.slice(0, 3).map((src, i) => (
+                            <img
+                              key={i}
+                              src={src}
+                              alt={`${p.name || "product"}-${i + 1}`}
+                              style={TH.thumb}
+                            />
+                          ))}
+                          {imgs.length > 3 && <span>+{imgs.length - 3}</span>}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -525,6 +565,7 @@ localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
                     <button onClick={() => handleEdit(p)} className="editBtn">
                       ✏️ რედაქტირება
                     </button>
+
                     <button
                       onClick={() => handleDelete(p.id)}
                       className="deleteBtn"
@@ -538,17 +579,15 @@ localStorage.setItem(ACTIVE_PRODUCT_KEY, String(product.id));
           })}
         </ul>
 
-        {/* “Load more” */}
         <div style={{ marginTop: 16 }}>
-      {totalPages > 1 && (
-  <EdgePager
-    totalPages={totalPages}
-    currentPage={safeCurrentPage}
-onChange={(page) => {
-  setCurrentPage(page);
-}}
-    />
-)}
+          {totalPages > 1 && (
+            <EdgePager
+              totalPages={totalPages}
+              currentPage={safeCurrentPage}
+              onChange={(page) => setCurrentPage(page)}
+            />
+          )}
+
           {loading && <span style={{ marginLeft: 8 }}>იტვირთება…</span>}
           {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
         </div>

@@ -1,20 +1,29 @@
 // types.ts
-export type Subcategory = {
-  id: number;
-  category: string;
-  name: string;
-  is_active: boolean;
-};
 
 export type Product = {
   id: number;
-  title_ka: string;
-  title_en?: string;
-  category: string;           // იბრუნებს GET /products/{id}
-  subcategory?: string | null; // იბრუნებს GET /products/{id}
+  name: string;
+  slug: string;
+
+  category_id?: number;
+  category_name?: string;
+  category?: string;
+
   price: number;
   sale?: number;
-  // ...
+
+  quantity?: number;
+  description?: string;
+
+  image_url1?: string | null;
+  image_url2?: string | null;
+  image_url3?: string | null;
+  image_url4?: string | null;
+  image_url5?: string | null;
+  image_url6?: string | null;
+
+  is_new?: boolean;
+  hide?: boolean;
 };
 
 export type OrderCreatePayload = {

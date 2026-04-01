@@ -6,7 +6,6 @@ import {
   updateProductForm,
   deleteProductImage,
 } from "../../api";
-import { useLang } from "../../LanguageContext";
 import styles from "./AddProducts.module.css";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -51,63 +50,10 @@ const safeJson = (text) => {
   try { return text ? JSON.parse(text) : null; } catch { return null; }
 };
 
-// --- EN ველების ამოღება მხოლოდ EN detail-იდან (არაფერს ვფარავთ) ---
-const firstNonEmpty = (...vals) =>
-  vals.find(v => typeof v === "string" && v.trim()) || "";
-
-const pickTitleEN = (detEN) =>
-  firstNonEmpty(detEN?.name, detEN?.title_en, detEN?.name_en);
-
-const pickDescEN  = (detEN) =>
-  firstNonEmpty(detEN?.description, detEN?.description_en);
-
-const pickSlugEN  = (detEN) =>
-  firstNonEmpty(detEN?.slug, detEN?.slug_en);
-
-// --- detail-ის ორი ქოლი: base(+ka fallback) და EN ---
-// EN ველებს ვიღებთ მხოლოდ detEN-იდან.
-const fetchDetailPair = async (id) => {
-  const tryJson = async (url) => {
-    const r = await fetch(url, { credentials: "include" });
-    if (!r.ok) return null;
-    return r.json();
-  };
-  const base = (await tryJson(`${API_BASE}/products/${id}`))
-            || (await tryJson(`${API_BASE}/products/${id}?lang=ka`))
-            || null;
-  const en   = (await tryJson(`${API_BASE}/products/${id}?lang=en`)) || null;
-  return { base, en };
-};
-
-const Modal = ({ open, title, onClose, children }) => {
-  if (!open) return null;
-  return (
-    <div style={M.overlay}>
-      <div style={M.modal}>
-        <div style={M.head}>
-          <h3 style={{ margin: 0 }}>{title}</h3>
-          <button onClick={onClose} style={M.xbtn} aria-label="Close">✕</button>
-        </div>
-        <div style={{ marginTop: 12 }}>{children}</div>
-      </div>
-    </div>
-  );
-};
-
-const Chip = ({ text, onRemove }) => (
-  <div style={M.chip}>
-    <span>{text}</span>
-    <button onClick={onRemove} style={M.chipX} aria-label="Remove">✕</button>
-  </div>
-);
 
 // ---- დასახელებების ნორმალიზაცია / შედარება ----
-const norm = (v) => (v ?? "").toString().trim().toLowerCase();
-const sameName = (a, b) => norm(a) === norm(b);
-
 export default function AddProducts() {
   const navigate = useNavigate();
-  const { lang } = useLang();
   const location = useLocation();
   const { id: routeId } = useParams();
   const editingProduct = location.state?.product || null;
@@ -116,12 +62,9 @@ export default function AddProducts() {
   const [categories, setCategories] = useState([]);
 
 const [form, setForm] = useState({
-  name_ka: "",
-  name_en: "",
-  description_ka: "",
-  description_en: "",
-  slug_ka: "",
-  slug_en: "",
+  name: "",
+  description: "",
+  slug: "",
   category_id: "",
   price: "",
   quantity: "",
@@ -136,135 +79,80 @@ const [form, setForm] = useState({
 
   const [catModalOpen, setCatModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
-
+useEffect(() => {
+  (async () => {
+    try {
+      const cats = await getCategories();
+      setCategories(Array.isArray(cats) ? cats : []);
+    } catch {
+      setCategories([]);
+    }
+  })();
+}, []);
 
   /** -------- Init (categories) -------- */
-  useEffect(() => {
-    (async () => {
-      try {
-        const cats = await getCategories(lang);
-        setCategories(Array.isArray(cats) ? cats : []);
-      } catch {
-        setCategories([]);
-      }
-    })();
-  }, [lang]);
-
 useEffect(() => {
-  if (!form.name_en && form.name_ka) {
-    setForm(f => ({
-      ...f,
-      name_en: f.name_ka
-    }));
-  }
-}, [form.name_ka]);
+  if (!editingProduct) return;
 
-useEffect(() => {
-  if (!categories.length) return;
-  if (!form.category_id) return;
-
-  // force re-render select-ისთვის
   setForm((f) => ({
     ...f,
-    category_id: String(f.category_id),
+    name: editingProduct.name || "",
+    description: editingProduct.description || "",
+    slug: editingProduct.slug || "",
+    category_id: editingProduct.category_id
+      ? String(editingProduct.category_id)
+      : (
+          categories.find((c) => c.name === editingProduct.category_name)?.id
+            ? String(
+                categories.find((c) => c.name === editingProduct.category_name).id
+              )
+            : ""
+        ),
+    price: editingProduct.price ?? "",
+    quantity: editingProduct.quantity ?? "",
+    sale: editingProduct.sale ?? "",
+    is_new: !!editingProduct.is_new,
+    hide: !!editingProduct.hide,
   }));
-}, [categories]);
-  /** -------- Edit mode: state.product → base+EN detail merge -------- */
-  useEffect(() => {
 
+  const loaded = [];
+  const prevs = [];
 
-    // 1) რაც გვაქვს state-დან (EN ველებს არ ვფარავთ)
-    setForm((f) => ({
-      ...f,
-      name_ka: editingProduct.name_ka ?? editingProduct.name ?? "",
-      name_en: editingProduct.name_en ?? "",
-      description_ka: editingProduct.description_ka ?? editingProduct.description ?? "",
-      description_en: editingProduct.description_en ?? "",
-      slug_ka: editingProduct.slug_ka ?? "",
-      slug_en: editingProduct.slug_en ?? "",
-category_id: editingProduct.category_id
-  ? String(editingProduct.category_id)
-  : (
-      categories.find(c => c.name === editingProduct.category_name)?.id
-        ? String(categories.find(c => c.name === editingProduct.category_name).id)
-        : ""
-    ),
-      price: editingProduct.price ?? "",
-      quantity: editingProduct.quantity ?? "",
-      sale: editingProduct.sale ?? "",
-      is_new: !!editingProduct.is_new,
-      hide: !!editingProduct.hide,
-    }));
+  for (let i = 1; i <= MAX_IMAGES; i++) {
+    const key = `image_url${i}`;
+    const url = editingProduct[key] || null;
 
-    // 2) სურათები state-დან
-    const loaded = [];
-    const prevs = [];
-    for (let i = 1; i <= MAX_IMAGES; i++) {
-      const key = `image_url${i}`;
-      const url = editingProduct[key] || null;
-      if (url) {
-        loaded[i - 1] = { file: url, isNew: false, fieldName: key };
-        prevs[i - 1] = url;
-      }
-      originalUrlsRef.current[i - 1] = url;
+    if (url) {
+      loaded[i - 1] = { file: url, isNew: false, fieldName: key };
+      prevs[i - 1] = url;
     }
-    setImages(loaded);
-    setPreviews(prevs);
 
-    // 3) მოვიტანოთ base + EN. EN ველები ივსება მხოლოდ detEN-იდან.
-    let alive = true;
-    (async () => {
-      try {
-        const { base, en } = await fetchDetailPair(editingProduct.id);
-        if (!alive) return;
+    originalUrlsRef.current[i - 1] = url;
+  }
 
-        setForm((f) => ({
-          ...f,
-          name_en: f.name_en || pickTitleEN(en) || "",
-          description_en: f.description_en || pickDescEN(en) || "",
-          slug_en: f.slug_en || pickSlugEN(en) || "",
-        }));
-
-        // base-დან შევავსოთ მხოლოდ ფოტოები/სხვა URL-ები
-        const det = base || {};
-        const mergedImgs = [...loaded];
-        const mergedPrev = [...prevs];
-        for (let i = 1; i <= MAX_IMAGES; i++) {
-          const k = `image_url${i}`;
-          const u = det[k];
-          if (u) {
-            if (!mergedImgs[i - 1]) mergedImgs[i - 1] = { file: u, isNew: false, fieldName: k };
-            if (!mergedPrev[i - 1]) mergedPrev[i - 1] = u;
-            if (!originalUrlsRef.current[i - 1]) originalUrlsRef.current[i - 1] = u;
-          }
-        }
-        setImages(mergedImgs);
-        setPreviews(mergedPrev);
-      } catch {
-        /* ignore */
-      }
-    })();
-
-    return () => { alive = false; };
-  }, [editingProduct]);
+  setImages(loaded);
+  setPreviews(prevs);
+}, [editingProduct, categories]);
 
   /** -------- URL fallback: მხოლოდ routeId → base+EN ჩაიტვირთოს -------- */
-  useEffect(() => {
-    if (editingProduct || !routeId) return;
+useEffect(() => {
+  if (editingProduct || !routeId) return;
 
-    (async () => {
-      const { base, en } = await fetchDetailPair(routeId);
-      if (!base && !en) return;
+  (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/products/${routeId}`, {
+        credentials: "include",
+      });
 
-      const det = base || {};
+      if (!res.ok) return;
+
+      const det = await res.json();
+
       setForm((f) => ({
         ...f,
-        name_ka: det.title_ka || det.name_ka || det.title || det.name || "",
-        name_en: pickTitleEN(en) || "",
-        description_ka: det.description_ka || det.description || "",
-        description_en: pickDescEN(en) || "",
-        slug_ka: det.slug_ka || det.slug || "",
-        slug_en: pickSlugEN(en) || "",
+        name: det.name || "",
+        description: det.description || "",
+        slug: det.slug || "",
         category_id: det.category_id ? String(det.category_id) : "",
         price: det.price ?? "",
         quantity: det.quantity ?? "",
@@ -275,19 +163,26 @@ category_id: editingProduct.category_id
 
       const loaded = [];
       const prevs = [];
+
       for (let i = 1; i <= MAX_IMAGES; i++) {
         const k = `image_url${i}`;
         const u = det[k];
+
         if (u) {
           loaded[i - 1] = { file: u, isNew: false, fieldName: k };
           prevs[i - 1] = u;
         }
+
         originalUrlsRef.current[i - 1] = u || null;
       }
+
       setImages(loaded);
       setPreviews(prevs);
-    })();
-  }, [routeId, editingProduct]);
+    } catch (err) {
+      console.error("პროდუქტის წამოღების შეცდომა:", err);
+    }
+  })();
+}, [routeId, editingProduct]);
 
   /** -------- Handlers -------- */
   const handleChange = (e) => {
@@ -348,7 +243,7 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
   /** -------- Category/Subcategory CRUD helpers -------- */
   const refreshCategories = async () => {
     try {
-      const cats = await getCategories(lang);
+const cats = await getCategories();
       setCategories(Array.isArray(cats) ? cats : []);
     } catch {
       setCategories([]);
@@ -391,12 +286,9 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
   const buildFormData = async () => {
     const fd = new FormData();
 
-    fd.append("title_ka", form.name_ka ?? "");
-    fd.append("title_en", form.name_en ?? "");
-    fd.append("description_ka", form.description_ka ?? "");
-    fd.append("description_en", form.description_en ?? "");
-    fd.append("slug_ka", form.slug_ka ?? "");
-    fd.append("slug_en", form.slug_en ?? "");
+fd.append("name", form.name ?? "");
+fd.append("description", form.description ?? "");
+fd.append("slug", form.slug ?? "");
 
     fd.append("price", String(parseFloat(form.price || 0)));
     fd.append("is_new", form.is_new ? "true" : "false");
@@ -435,8 +327,8 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
   const onSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.name_ka.trim() && !form.name_en.trim())
-      return alert("სახელი (KA ან EN) სავალდებულოა");
+if (!form.name.trim())
+return alert("სახელი სავალდებულოა");
     if (!form.price) return alert("ფასი სავალდებულოა");
 
     try {
@@ -462,20 +354,17 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
         alert("პროდუქტი დაემატა!");
       }
 
-      setForm({
-        name_ka: "",
-        name_en: "",
-        description_ka: "",
-        description_en: "",
-        slug_ka: "",
-        slug_en: "",
-        category_id: "",
-        price: "",
-        quantity: "",
-        sale: "",
-        is_new: false,
-        hide: false,
-      });
+setForm({
+  name: "",
+  description: "",
+  slug: "",
+  category_id: "",
+  price: "",
+  quantity: "",
+  sale: "",
+  is_new: false,
+  hide: false,
+});
       setImages([]);
       setPreviews([]);
 
@@ -498,8 +387,7 @@ return (
 
         {/* ✅ PRODUCT INFO (READ ONLY) */}
         <div className={styles.infoCard}>
-          <h2>{form.name_ka || "—"}</h2>
-          {form.name_en && <p className={styles.sub}>{form.name_en}</p>}
+          <h2>{form.name || "—"}</h2>
 
           <div className={styles.meta}>
             <div>
@@ -524,28 +412,16 @@ return (
           </div>
 
 <textarea
-  name="description_ka"
-  value={form.description_ka}
+  name="description"
+value={form.description}
   onChange={handleChange}
-  placeholder="აღწერა (ქართული)"
+  placeholder="აღწერა"
   className={styles.input}
 />
         </div>
-<input
-  name="name_en"
-  value={form.name_en}
-  onChange={handleChange}
-  placeholder="ინგლისური სახელი"
-  className={styles.input}
-/>
 
-<textarea
-  name="description_en"
-  value={form.description_en}
-  onChange={handleChange}
-  placeholder="აღწერა (ინგლისური)"
-  className={styles.input}
-/>
+
+
         {/* ✅ SALE */}
         <input
           name="sale"

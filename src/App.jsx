@@ -24,13 +24,12 @@ import BlogDetailPage from "./pages/BlogsDetailPage";
 import ContactsPage from "./pages/ContactsPage";
 import LoginPage from "./pages/LoginPage";
 import Footer from "./components/Footer/Footer";
-import { LanguageProvider, useLang } from "./LanguageContext";
 import ChatWidget from "./components/ChatWidget";
 
 import PaymentResult from "./components/Checkout/PaymentResult";
 import CartToast from "./components/CartToast/CartToast";
 import { useCart } from "./components/CartContext/CartContext";
-
+import SingleProductPage from "./pages/SingleProductPage";
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 const CartToastWrapper = () => {
   const { showToast } = useCart();
@@ -43,11 +42,8 @@ const RouteLoader = () => {
   return null;
 };
 
-// Chat widget keeps using site language
 const ChatWidgetMount = () => {
-  const { lang } = useLang();
-  const siteLang = lang === "en" ? "en" : "ka";
-  return <ChatWidget siteLang={siteLang} />;
+  return <ChatWidget siteLang="ka" />;
 };
 
 // ძველი /addProducts/:id → ახალი /admin/addProducts/:id
@@ -110,7 +106,6 @@ function App() {
   };
 
   return (
-    <LanguageProvider>
       <LayoutGroup>
         <CartProvider>
       <CartUiProvider>
@@ -125,9 +120,7 @@ function App() {
 
                   {/* ✅ პროდუქტების ლისტი */}
                   <Route path="/products" element={<ProductsPage />} />
-
-                  {/* ✅ SEO-friendly URL (მხოლოდ slug) — ისევ ProductsPage, რომ URL-ით გაიხსნას მოდალი */}
-                  <Route path="/products/:slug" element={<ProductsPage />} />
+<Route path="/products/:slug" element={<SingleProductPage />} />
 
                   <Route path="/blogs" element={<BlogsPage />} />
                   <Route path="/blog/:id" element={<BlogDetailPage />} />
@@ -136,7 +129,6 @@ function App() {
                   <Route path="/payment/result" element={<PaymentResult />} />
 
                   <Route path="/contacts" element={<ContactsPage />} />
-
                   {/* --- Redirects: old absolute admin links → /admin/... --- */}
                   <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
                   <Route path="/addProducts" element={<Navigate to="/admin/addProducts" replace />} />
@@ -145,7 +137,6 @@ function App() {
                   <Route path="/blog" element={<Navigate to="/admin/blog" replace />} />
                   <Route path="/promo-codes" element={<Navigate to="/admin/promo-codes" replace />} />
                   <Route path="/home-images" element={<Navigate to="/admin/home-images" replace />} />
-
                   {/* --- ADMIN NESTED ROUTES --- */}
                   <Route
                     path="/admin/*"
@@ -163,7 +154,6 @@ function App() {
           </CartUiProvider>
         </CartProvider>
       </LayoutGroup>
-    </LanguageProvider>
   );
 }
 

@@ -1,28 +1,17 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import styles from "./Checkout.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useLang } from "../../LanguageContext";
 
 const LBL = {
-  ka: {
-    titleSuccess: "გადახდა წარმატებულია",
-    titleFail: "გადახდა უარყოფილია",
-    msgSuccess: "გადახდა წარმატებით შესრულდა და თქვენი შეკვეთა მიღებულია.",
-    msgFail: "გადახდა ვერ შესრულდა, შეკვეთა არ განთავსდა.",
-    backToShop: "დაბრუნება პროდუქტებზე",
-  },
-  en: {
-    titleSuccess: "Payment successful",
-    titleFail: "Payment failed",
-    msgSuccess: "Your payment was successful and your order has been received.",
-    msgFail: "Payment was declined and your order was not placed.",
-    backToShop: "Back to products",
-  },
+  titleSuccess: "გადახდა წარმატებულია",
+  titleFail: "გადახდა უარყოფილია",
+  msgSuccess: "გადახდა წარმატებით შესრულდა და თქვენი შეკვეთა მიღებულია.",
+  msgFail: "გადახდა ვერ შესრულდა, შეკვეთა არ განთავსდა.",
+  backToShop: "დაბრუნება პროდუქტებზე",
 };
 
 const PaymentResult = () => {
-  const { lang } = useLang();
-  const T = LBL[lang] || LBL.ka;
+  const T = LBL;
   const navigate = useNavigate();
   const { search } = useLocation();
 
@@ -31,9 +20,10 @@ const PaymentResult = () => {
   const state = params.get("state") || "";
   const isSuccess = status === "success";
 
-  // ✅ აუცილებელი მინიმალური დამატება — success-ზე ქოლბექის დარეკვა
+  // ✅ success-ზე ქოლბექის დარეკვა
   useEffect(() => {
     if (!isSuccess) return;
+
     try {
       const orderId = sessionStorage.getItem("last_bog_order_id");
       if (!orderId) return;
@@ -43,11 +33,12 @@ const PaymentResult = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: orderId }),
       }).finally(() => {
-        // სურვილისამებრ — გასუფთავება
         sessionStorage.removeItem("last_bog_order_id");
         sessionStorage.removeItem("last_bog_state");
       });
-    } catch (_) {}
+    } catch (_) {
+      // ignore
+    }
   }, [isSuccess]);
 
   return (

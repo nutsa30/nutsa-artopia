@@ -1,35 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCart } from '../CartContext/CartContext';
 import styles from './CartDropdown.module.css';
 import { useNavigate } from 'react-router-dom';
-import { useLang } from '../../LanguageContext';
 
 const API_BASE = 'https://artopia-backend-2024-54872c79acdd.herokuapp.com/';
 
 const LBL = {
-  ka: {
-    empty: "კალათა ცარიელია",
-    newBadge: "ახალი",
-    total: "ჯამური ღირებულება",
-    clearAll: "ყველა წაშალე",
-    checkout: "ყიდვის გაგრძელება",
-    stockOnly: (n) => `მარაგში მხოლოდ ${n} ცალია.`,
-    minus: "მინუსი",
-    plus: "პლუსი",
-    remove: "წაშლა",
-  },
-  en: {
-    empty: "Your cart is empty",
-    newBadge: "New",
-    total: "Total",
-    clearAll: "Clear all",
-    checkout: "Proceed to checkout",
-    stockOnly: (n) => `Only ${n} item(s) available in stock.`,
-    minus: "Minus",
-    plus: "Plus",
-    remove: "Delete",
-  },
+  empty: "კალათა ცარიელია",
+  newBadge: "ახალი",
+  total: "ჯამური ღირებულება",
+  clearAll: "ყველა წაშალე",
+  checkout: "ყიდვის გაგრძელება",
+  stockOnly: (n) => `მარაგში მხოლოდ ${n} ცალია.`,
+  minus: "მინუსი",
+  plus: "პლუსი",
+  remove: "წაშლა",
 };
 
 const normalizeQuantity = (value) => {
@@ -40,8 +26,7 @@ const normalizeQuantity = (value) => {
 const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
   const navigate = useNavigate();
   const { cartItems, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
-  const { lang } = useLang();
-  const T = LBL[lang] || LBL.ka;
+  const T = LBL;
 
   const [stockById, setStockById] = useState({});
   const [stockMessageById, setStockMessageById] = useState({});
@@ -63,7 +48,7 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
       const entries = await Promise.all(
         ids.map(async (pid) => {
           try {
-            const res = await fetch(`${API_BASE}/products/${pid}?lang=${lang}`);
+            const res = await fetch(`${API_BASE}/products/${pid}`);
             if (!res.ok) {
               return [pid, 0];
             }
@@ -86,7 +71,7 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
     return () => {
       ignore = true;
     };
-  }, [cartItems, lang]);
+  }, [cartItems]);
 
   const handleCheckout = () => {
     setShowCartOpen(false);
@@ -95,13 +80,13 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
 
   const getItemId = (item) => item?.id ?? item?._id ?? item?.name;
 
-const getMaxQty = (item) => {
-  const pid = item?.id ?? item?._id;
-  if (!pid) return null;
-  return stockById[pid] !== undefined
-    ? normalizeQuantity(stockById[pid])
-    : null;
-};
+  const getMaxQty = (item) => {
+    const pid = item?.id ?? item?._id;
+    if (!pid) return null;
+    return stockById[pid] !== undefined
+      ? normalizeQuantity(stockById[pid])
+      : null;
+  };
 
   const handleIncrease = (item) => {
     const id = getItemId(item);
@@ -136,13 +121,13 @@ const getMaxQty = (item) => {
 
   const Overlay = showCartOpen
     ? createPortal(
-   <div
-  className={styles.overlay}
-  onClick={(e) => {
-    e.stopPropagation();
-    setShowCartOpen(false);
-  }}
-/>,
+        <div
+          className={styles.overlay}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowCartOpen(false);
+          }}
+        />,
         document.body
       )
     : null;
@@ -150,10 +135,10 @@ const getMaxQty = (item) => {
   const Dropdown = showCartOpen
     ? createPortal(
         <div className={styles.cartPortal}>
-<div
-  className={styles.cartDropdown}
-  onClick={(e) => e.stopPropagation()}
->
+          <div
+            className={styles.cartDropdown}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               className={styles.closeBtn}
               onClick={() => setShowCartOpen(false)}
@@ -170,8 +155,10 @@ const getMaxQty = (item) => {
                   const unit = Number(item.price) || 0;
                   const line = unit * item.quantity;
                   const maxQty = getMaxQty(item);
-const plusDisabled =
-  maxQty === null || maxQty === 0 || item.quantity >= maxQty;
+
+                  const plusDisabled =
+                    maxQty === null || maxQty === 0 || item.quantity >= maxQty;
+
                   return (
                     <div className={styles.cartItem} key={id}>
                       {item?.sale && (
@@ -203,11 +190,11 @@ const plusDisabled =
                           {unit.toFixed(2)} ₾ × {item.quantity} = {line.toFixed(2)} ₾
                         </div>
 
-{maxQty > 0 && (stockMessageById[id] || item.quantity >= maxQty) && (
-  <div className={styles.stockWarning}>
-    {stockMessageById[id] || T.stockOnly(maxQty)}
-  </div>
-)}
+                        {maxQty > 0 && (stockMessageById[id] || item.quantity >= maxQty) && (
+                          <div className={styles.stockWarning}>
+                            {stockMessageById[id] || T.stockOnly(maxQty)}
+                          </div>
+                        )}
 
                         <div className={styles.controls}>
                           <button
@@ -215,8 +202,6 @@ const plusDisabled =
                             onClick={() => handleDecrease(item)}
                             disabled={item.quantity === 1}
                             type="button"
-                            aria-label={T.minus}
-                            title={T.minus}
                           >
                             –
                           </button>
@@ -230,8 +215,6 @@ const plusDisabled =
                             onClick={() => handleIncrease(item)}
                             disabled={plusDisabled}
                             type="button"
-                            aria-label={T.plus}
-                            title={T.plus}
                           >
                             +
                           </button>
@@ -240,20 +223,8 @@ const plusDisabled =
                             className={styles.binButton}
                             onClick={() => removeFromCart(id)}
                             type="button"
-                            aria-label={T.remove}
-                            title={T.remove}
                           >
-                            <svg className={styles.binTop} viewBox="0 0 39 7" fill="none">
-                              <line y1="5" x2="39" y2="5" stroke="white" strokeWidth="4" />
-                              <line x1="12" y1="1.5" x2="26" y2="1.5" stroke="white" strokeWidth="3" />
-                            </svg>
-
-                            <svg className={styles.binBottom} viewBox="0 0 33 39" fill="none">
-                              <path
-                                d="M0 0H33V35C33 37 31 39 29 39H4C2 39 0 37 0 35V0Z"
-                                fill="white"
-                              />
-                            </svg>
+                            🗑
                           </button>
                         </div>
                       </div>
@@ -267,14 +238,13 @@ const plusDisabled =
                   </div>
 
                   <div className={styles.buttonRow}>
-                    <button className={styles.clearButton} onClick={clearCart} type="button">
+                    <button className={styles.clearButton} onClick={clearCart}>
                       {T.clearAll}
                     </button>
 
                     <button
                       className={styles.checkoutButton}
                       onClick={handleCheckout}
-                      type="button"
                     >
                       {T.checkout}
                     </button>

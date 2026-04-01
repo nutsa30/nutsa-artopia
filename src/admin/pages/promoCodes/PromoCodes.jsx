@@ -1,37 +1,48 @@
-// src/pages/promoCodes/PromoCodes.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
-const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
+const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
-/* ------------ Auth helpers ------------- */
-// JWT (LoginPage ამატებს localStorage.ADMIN_TOKEN-ს)
-const getJwt = () =>
-  localStorage.getItem("ADMIN_TOKEN") || // ✅ ჩვენი JWT
-  localStorage.getItem("ACCESS_TOKEN") ||
-  localStorage.getItem("access_token") ||
-  localStorage.getItem("jwt") ||
-  localStorage.getItem("token") ||
-  "";
-
-// Admin secret (გადაეცემა .env.local-იდან, უნდა დაემთხვეს Heroku ADMIN_TOKEN-ს)
+/* ---------------- auth ---------------- */
 const getAdminSecret = () =>
   (import.meta?.env?.VITE_ADMIN_TOKEN ?? "").trim();
 
-// ვაგენერირებთ ჰედერებს ყოველთვის ფრეშად
 const buildHeaders = () => {
-const h = { "Content-Type": "application/json" };
-  h["X-Admin-Token"] = "ARTOPIA_SUPERADMIN_2024";
-  // return h;
-  const jwt = getJwt();
-  if (jwt) h.Authorization = `Bearer ${jwt}`;
-
   const adminSecret = getAdminSecret();
-  if (adminSecret) h["X-Admin-Token"] = adminSecret;
+  const headers = {
+    "Content-Type": "application/json",
+  };
 
-  return h;
-  
+  if (adminSecret) {
+    headers["X-Admin-Token"] = adminSecret;
+  }
+
+  return headers;
 };
-/* --------------------------------------- */
+
+/* ---------------- helpers ---------------- */
+const normalizeCoupon = (row = {}) => ({
+  id: row.id,
+  code: String(row.code || "").toUpperCase(),
+  percent: Number(row.percent ?? 0),
+  is_active: !!row.is_active,
+  starts_at: row.starts_at || null,
+  ends_at: row.ends_at || null,
+  min_subtotal: Number(row.min_subtotal ?? 0),
+  usage_limit:
+    row.usage_limit === null || row.usage_limit === undefined
+      ? null
+      : Number(row.usage_limit),
+  usage_count: Number(row.usage_count ?? 0),
+  created_at: row.created_at || null,
+  updated_at: row.updated_at || null,
+});
+
+const fmtDate = (value) => {
+  if (!value) return "-";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString("ka-GE", { timeZone: "Asia/Tbilisi" });
+};
 
 export default function PromoCodes() {
   const [list, setList] = useState([]);
@@ -39,11 +50,12 @@ export default function PromoCodes() {
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
 
-  // create form
   const [code, setCode] = useState("");
   const [percent, setPercent] = useState("");
+  const [minSubtotal, setMinSubtotal] = useState("");
+  const [usageLimit, setUsageLimit] = useState("");
+  const [isActive, setIsActive] = useState(true);
 
-  // inline edit state: { [id]: {code, percent, is_active} }
   const [editing, setEditing] = useState({});
 
   const sorted = useMemo(
@@ -54,17 +66,27 @@ export default function PromoCodes() {
   const fetchCoupons = async () => {
     setLoading(true);
     setErr("");
+
     try {
+      const adminSecret = getAdminSecret();
+      if (!adminSecret) {
+        throw new Error("VITE_ADMIN_TOKEN არ არის გაწერილი");
+      }
+
       const res = await fetch(`${API_BASE}/admin/coupons?per_page=100`, {
         method: "GET",
         headers: buildHeaders(),
-        credentials: "include",
       });
+
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.message || "ვერ მივიღეთ კუპონები");
-      setList(data.items || []);
+
+      if (!res.ok) {
+        throw new Error(data?.message || "კუპონების წამოღება ვერ მოხერხდა");
+      }
+
+      setList(Array.isArray(data.items) ? data.items.map(normalizeCoupon) : []);
     } catch (e) {
-      setErr(e.message || "შეცდომა შეკითხვისას");
+      setErr(e.message || "შეცდომა კუპონების წამოღებისას");
     } finally {
       setLoading(false);
     }
@@ -74,20 +96,46 @@ export default function PromoCodes() {
     fetchCoupons();
   }, []);
 
+  const resetCreateForm = () => {
+    setCode("");
+    setPercent("");
+    setMinSubtotal("");
+    setUsageLimit("");
+    setIsActive(true);
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     setMsg("");
     setErr("");
 
-    const c = String(code || "").trim().toUpperCase();
-    const p = Number.parseInt(percent, 10);
+    const finalCode = String(code || "").trim().toUpperCase();
+    const finalPercent = Number.parseInt(percent, 10);
+    const finalMinSubtotal =
+      minSubtotal === "" ? 0 : Number.parseFloat(minSubtotal);
+    const finalUsageLimit =
+      usageLimit === "" ? null : Number.parseInt(usageLimit, 10);
 
-    if (!c || !/^[A-Z0-9-_]+$/.test(c)) {
-      setErr("პრომოკოდი უნდა იყოს A-Z, 0-9, '-', '_'");
+    if (!finalCode || !/^[A-Z0-9_-]+$/.test(finalCode)) {
+      setErr("პრომოკოდი უნდა შეიცავდეს მხოლოდ A-Z, 0-9, - ან _");
       return;
     }
-    if (!Number.isInteger(p) || p < 1 || p > 100) {
+
+    if (!Number.isInteger(finalPercent) || finalPercent < 1 || finalPercent > 100) {
       setErr("ფასდაკლება უნდა იყოს 1-100 მთელი რიცხვი");
+      return;
+    }
+
+    if (!Number.isFinite(finalMinSubtotal) || finalMinSubtotal < 0) {
+      setErr("მინიმალური თანხა უნდა იყოს 0 ან მეტი");
+      return;
+    }
+
+    if (
+      finalUsageLimit !== null &&
+      (!Number.isInteger(finalUsageLimit) || finalUsageLimit < 1)
+    ) {
+      setErr("გამოყენების ლიმიტი უნდა იყოს ცარიელი ან 1-ზე მეტი მთელი რიცხვი");
       return;
     }
 
@@ -95,46 +143,55 @@ export default function PromoCodes() {
       const res = await fetch(`${API_BASE}/admin/coupons`, {
         method: "POST",
         headers: buildHeaders(),
-        credentials: "include",
         body: JSON.stringify({
-          code: c,
-          percent: p,
-          min_subtotal: 0,
-          is_active: true,
+          code: finalCode,
+          percent: finalPercent,
+          min_subtotal: finalMinSubtotal,
+          usage_limit: finalUsageLimit,
+          is_active: isActive,
         }),
       });
+
       const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        if (res.status === 409) throw new Error("ასეთი პრომოკოდი უკვე არსებობს");
-        throw new Error(data?.message || "ვერ შევქმენით პრომოკოდი");
+        if (res.status === 409) {
+          throw new Error("ასეთი პრომოკოდი უკვე არსებობს");
+        }
+        throw new Error(data?.message || "პრომოკოდის შექმნა ვერ მოხერხდა");
       }
+
       setMsg(`დაემატა: ${data.code} (${data.percent}%)`);
-      setCode("");
-      setPercent("");
-      fetchCoupons();
+      resetCreateForm();
+      await fetchCoupons();
     } catch (e) {
       setErr(e.message || "შეცდომა შექმნისას");
     }
   };
 
   const startEdit = (row) => {
+    setMsg("");
+    setErr("");
     setEditing((prev) => ({
       ...prev,
       [row.id]: {
         code: row.code,
-        percent: row.percent,
-        is_active: row.is_active,
+        percent: String(row.percent),
+        min_subtotal: String(row.min_subtotal ?? 0),
+        usage_limit:
+          row.usage_limit === null || row.usage_limit === undefined
+            ? ""
+            : String(row.usage_limit),
+        is_active: !!row.is_active,
       },
     }));
-    setMsg("");
-    setErr("");
   };
 
   const cancelEdit = (id) => {
     setEditing((prev) => {
-      const p = { ...prev };
-      delete p[id];
-      return p;
+      const next = { ...prev };
+      delete next[id];
+      return next;
     });
   };
 
@@ -142,69 +199,99 @@ export default function PromoCodes() {
     const draft = editing[id];
     if (!draft) return;
 
-    const c = String(draft.code || "").trim().toUpperCase();
-    const p = Number.parseInt(draft.percent, 10);
+    setMsg("");
+    setErr("");
 
-    if (!c || !/^[A-Z0-9-_]+$/.test(c)) {
-      setErr("პრომოკოდი უნდა იყოს A-Z, 0-9, '-', '_'");
+    const finalCode = String(draft.code || "").trim().toUpperCase();
+    const finalPercent = Number.parseInt(draft.percent, 10);
+    const finalMinSubtotal =
+      draft.min_subtotal === "" ? 0 : Number.parseFloat(draft.min_subtotal);
+    const finalUsageLimit =
+      draft.usage_limit === "" ? null : Number.parseInt(draft.usage_limit, 10);
+
+    if (!finalCode || !/^[A-Z0-9_-]+$/.test(finalCode)) {
+      setErr("პრომოკოდი უნდა შეიცავდეს მხოლოდ A-Z, 0-9, - ან _");
       return;
     }
-    if (!Number.isInteger(p) || p < 1 || p > 100) {
+
+    if (!Number.isInteger(finalPercent) || finalPercent < 1 || finalPercent > 100) {
       setErr("ფასდაკლება უნდა იყოს 1-100 მთელი რიცხვი");
+      return;
+    }
+
+    if (!Number.isFinite(finalMinSubtotal) || finalMinSubtotal < 0) {
+      setErr("მინიმალური თანხა უნდა იყოს 0 ან მეტი");
+      return;
+    }
+
+    if (
+      finalUsageLimit !== null &&
+      (!Number.isInteger(finalUsageLimit) || finalUsageLimit < 1)
+    ) {
+      setErr("გამოყენების ლიმიტი უნდა იყოს ცარიელი ან 1-ზე მეტი მთელი რიცხვი");
       return;
     }
 
     try {
       const res = await fetch(`${API_BASE}/admin/coupons/${id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: buildHeaders(),
-        credentials: "include",
         body: JSON.stringify({
-          code: c,
-          percent: p,
+          code: finalCode,
+          percent: finalPercent,
+          min_subtotal: finalMinSubtotal,
+          usage_limit: finalUsageLimit,
           is_active: !!draft.is_active,
         }),
       });
+
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const t = await res.text().catch(() => "");
-        throw new Error(`ვერ შევინახეთ (${res.status}) ${t}`);
+        if (res.status === 409) {
+          throw new Error("ასეთი პრომოკოდი უკვე არსებობს");
+        }
+        throw new Error(data?.message || "რედაქტირება ვერ მოხერხდა");
       }
+
       setMsg("ცვლილება შენახულია");
       cancelEdit(id);
-      fetchCoupons();
+      await fetchCoupons();
     } catch (e) {
       setErr(e.message || "შეცდომა რედაქტირებისას");
     }
   };
 
   const remove = async (id) => {
-    const ok =
-      typeof window !== "undefined" &&
-      window.confirm("წავშალოთ ეს პრომოკოდი?");
+    const ok = window.confirm("წავშალოთ ეს პრომოკოდი?");
     if (!ok) return;
 
     setMsg("");
     setErr("");
+
     try {
       const res = await fetch(`${API_BASE}/admin/coupons/${id}`, {
         method: "DELETE",
         headers: buildHeaders(),
-        credentials: "include",
       });
+
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const t = await res.text().catch(() => "");
-        throw new Error(`ვერ წავშალეთ (${res.status}) ${t}`);
+        throw new Error(data?.message || "წაშლა ვერ მოხერხდა");
       }
+
       setMsg("წაიშალა");
       setList((prev) => prev.filter((x) => x.id !== id));
+      cancelEdit(id);
     } catch (e) {
       setErr(e.message || "შეცდომა წაშლისას");
     }
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "24px auto", padding: 16 }}>
-      <h2>🎟️ Promo Codes</h2>
+    <div style={{ maxWidth: 1100, margin: "24px auto", padding: 16 }}>
+      <h2>🎟️ პრომოკოდები</h2>
 
       {msg && (
         <div
@@ -219,6 +306,7 @@ export default function PromoCodes() {
           {msg}
         </div>
       )}
+
       {err && (
         <div
           style={{
@@ -237,7 +325,7 @@ export default function PromoCodes() {
         onSubmit={handleCreate}
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 140px 120px",
+          gridTemplateColumns: "1.3fr 120px 140px 140px 140px auto",
           gap: 8,
           alignItems: "center",
           margin: "12px 0 20px",
@@ -246,39 +334,58 @@ export default function PromoCodes() {
         <input
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="პრომოკოდი (მაგ. WELCOME10)"
+          placeholder="პრომოკოდი"
           required
-          style={{
-            padding: "10px 12px",
-            borderRadius: 8,
-            border: "1px solid #ddd",
-          }}
+          style={inputBase}
         />
+
         <input
           type="number"
           value={percent}
           onChange={(e) => setPercent(e.target.value)}
-          placeholder="% (1-100)"
+          placeholder="%"
           min={1}
           max={100}
           required
-          style={{
-            padding: "10px 12px",
-            borderRadius: 8,
-            border: "1px solid #ddd",
-          }}
+          style={inputBase}
         />
-        <button
-          type="submit"
+
+        <input
+          type="number"
+          value={minSubtotal}
+          onChange={(e) => setMinSubtotal(e.target.value)}
+          placeholder="მინ. თანხა"
+          min={0}
+          step="0.01"
+          style={inputBase}
+        />
+
+        <input
+          type="number"
+          value={usageLimit}
+          onChange={(e) => setUsageLimit(e.target.value)}
+          placeholder="ლიმიტი"
+          min={1}
+          style={inputBase}
+        />
+
+        <label
           style={{
-            padding: "10px 12px",
-            borderRadius: 8,
-            border: "1px solid #2e6af7",
-            background: "#2e6af7",
-            color: "#fff",
-            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 14,
           }}
         >
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+          />
+          აქტიური
+        </label>
+
+        <button type="submit" style={btnPrimary}>
           დამატება
         </button>
       </form>
@@ -289,29 +396,32 @@ export default function PromoCodes() {
             <tr style={{ background: "#f6f8fb" }}>
               <th style={th}>ID</th>
               <th style={th}>კოდი</th>
-              <th style={th}>ფასდაკლება %</th>
+              <th style={th}>%</th>
               <th style={th}>აქტიური</th>
-              <th style={th}>გამოყენებულია</th>
-              <th style={th}>შექმნის თარიღი</th>
+              <th style={th}>მინ. თანხა</th>
+              <th style={th}>გამოყენება</th>
+              <th style={th}>შექმნილია</th>
               <th style={th}></th>
             </tr>
           </thead>
+
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} style={{ padding: 16 }}>
+                <td colSpan={8} style={{ padding: 16 }}>
                   იტვირთება…
                 </td>
               </tr>
             ) : sorted.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: 16 }}>
+                <td colSpan={8} style={{ padding: 16 }}>
                   ჩანაწერები არ არის
                 </td>
               </tr>
             ) : (
               sorted.map((row) => {
                 const ed = editing[row.id];
+
                 return (
                   <tr key={row.id}>
                     <td style={td}>{row.id}</td>
@@ -391,22 +501,68 @@ export default function PromoCodes() {
                     </td>
 
                     <td style={td}>
-                      {row.usage_count ?? 0}
-                      {row.usage_limit != null ? ` / ${row.usage_limit}` : ""}
+                      {ed ? (
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={ed.min_subtotal}
+                          onChange={(e) =>
+                            setEditing((prev) => ({
+                              ...prev,
+                              [row.id]: {
+                                ...prev[row.id],
+                                min_subtotal: e.target.value,
+                              },
+                            }))
+                          }
+                          style={inputMini}
+                        />
+                      ) : (
+                        row.min_subtotal ?? 0
+                      )}
                     </td>
 
-                    <td style={td}>{row.created_at}</td>
+                    <td style={td}>
+                      {ed ? (
+                        <input
+                          type="number"
+                          min={1}
+                          value={ed.usage_limit}
+                          onChange={(e) =>
+                            setEditing((prev) => ({
+                              ...prev,
+                              [row.id]: {
+                                ...prev[row.id],
+                                usage_limit: e.target.value,
+                              },
+                            }))
+                          }
+                          placeholder="უსასრულო"
+                          style={inputMini}
+                        />
+                      ) : (
+                        <>
+                          {row.usage_count ?? 0}
+                          {row.usage_limit != null ? ` / ${row.usage_limit}` : ""}
+                        </>
+                      )}
+                    </td>
+
+                    <td style={td}>{fmtDate(row.created_at)}</td>
 
                     <td style={td}>
                       {ed ? (
                         <>
                           <button
+                            type="button"
                             style={btnPrimary}
                             onClick={() => saveEdit(row.id)}
                           >
                             შენახვა
                           </button>
                           <button
+                            type="button"
                             style={btnGhost}
                             onClick={() => cancelEdit(row.id)}
                           >
@@ -415,8 +571,15 @@ export default function PromoCodes() {
                         </>
                       ) : (
                         <>
-                          
                           <button
+                            type="button"
+                            style={btnGhost}
+                            onClick={() => startEdit(row)}
+                          >
+                            რედაქტირება
+                          </button>
+                          <button
+                            type="button"
                             style={btnDanger}
                             onClick={() => remove(row.id)}
                           >
@@ -442,16 +605,24 @@ const th = {
   borderBottom: "1px solid #eee",
   fontWeight: 600,
 };
+
 const td = {
   padding: "10px",
   borderBottom: "1px solid #f0f0f0",
   verticalAlign: "top",
 };
+
+const inputBase = {
+  padding: "10px 12px",
+  borderRadius: 8,
+  border: "1px solid #ddd",
+};
+
 const inputMini = {
   padding: "8px 10px",
   border: "1px solid #ddd",
   borderRadius: 8,
-  width: 160,
+  width: 120,
 };
 
 const btnGhost = {
@@ -462,6 +633,7 @@ const btnGhost = {
   background: "#fff",
   cursor: "pointer",
 };
+
 const btnPrimary = {
   marginRight: 8,
   padding: "8px 10px",
@@ -471,6 +643,7 @@ const btnPrimary = {
   color: "#fff",
   cursor: "pointer",
 };
+
 const btnDanger = {
   padding: "8px 10px",
   borderRadius: 8,

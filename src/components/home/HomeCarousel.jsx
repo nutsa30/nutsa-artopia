@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useLang } from "../../LanguageContext";
 import styles from "./HomeCarousel.module.css";
 
 /* API BASE — იგივე ლოგიკა, რაც სხვაგან გაქვს */
@@ -8,8 +7,7 @@ const API_BASE =
   "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
 
 export default function HomeCarousel({ autoPlayMs = 5000 }) {
-  const { lang } = useLang();
-  const safeLang = lang === "en" ? "en" : "ka";
+
 
   const [items, setItems] = useState([]);
   const [idx, setIdx] = useState(0);
@@ -23,7 +21,7 @@ export default function HomeCarousel({ autoPlayMs = 5000 }) {
     let alive = true;
     (async () => {
       try {
-        const r = await fetch(`${API_BASE}/home-images/public?lang=${safeLang}`);
+        const r = await fetch(`${API_BASE}/home-images/public`);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const data = await r.json();
         if (alive) {
@@ -36,7 +34,7 @@ export default function HomeCarousel({ autoPlayMs = 5000 }) {
       }
     })();
     return () => { alive = false; };
-  }, [safeLang]);
+}, []);
 
   // autoplay
   useEffect(() => {
@@ -75,7 +73,7 @@ export default function HomeCarousel({ autoPlayMs = 5000 }) {
       <div className={styles.wrap}>
         <div className={styles.slideArea}>
           <div className={styles.empty}>
-            {safeLang === "ka" ? "სურათები ჯერ არ არის." : "No images yet."}
+{"სურათები ჯერ არ არის."}
           </div>
         </div>
       </div>

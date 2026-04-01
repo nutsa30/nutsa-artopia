@@ -1,18 +1,11 @@
-// src/components/Navbar/Navbar.jsx
 import React, { useState, createContext, useContext, useRef, forwardRef } from "react";
 import styles from "./Navbar.module.css";
-import LogoImg from "../../assets/Logo.png";
 import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../CartContext/CartContext";
 import CartDropdown from "../CartContext/CartDropdown";
 import { Home, ShoppingBag, LetterText, MessagesSquare } from "lucide-react";
 
-// ენის კონტექსტი
-import { useLang } from "../../LanguageContext";
-import georgia from "../../assets/georgiaflag.png";
-import british from "../../assets/britishflag.png";
-
-/* ---------- Tabs (route mapping) ---------- */
+/* ---------- Tabs ---------- */
 const tabs = [
   { id: "home", path: "/", icon: <Home size={18} /> },
   { id: "shopping", path: "/products", icon: <ShoppingBag size={18} /> },
@@ -20,29 +13,18 @@ const tabs = [
   { id: "contacts", path: "/contacts", icon: <MessagesSquare size={18} /> },
 ];
 
-/* ---------- ლეიბლები ორ ენაზე ---------- */
-const TAB_LABELS = {
-  ka: {
-    home: "მთავარი",
-    shopping: "პროდუქტები",
-    blogs: "არტ ბლოგი",
-    contacts: "კონტაქტები",
-    brand: "არტოპია",
-    cartAria: "კალათა",
-    navAria: "ნავიგაცია",
-  },
-  en: {
-    home: "Home",
-    shopping: "Products",
-    blogs: "Art Blogs",
-    contacts: "Contacts",
-    brand: "ARTOPIA",
-    cartAria: "Cart",
-    navAria: "Navigation",
-  },
+/* ---------- ერთენოვანი ლეიბლები ---------- */
+const L = {
+  home: "მთავარი",
+  shopping: "პროდუქტები",
+  blogs: "არტ ბლოგი",
+  contacts: "კონტაქტები",
+  brand: "არტოპია",
+  cartAria: "კალათა",
+  navAria: "ნავიგაცია",
 };
-
-/* ---------- Cart UI Refs Context ---------- */
+const LogoImg = "/Logo.png";
+/* ---------- Cart UI Context ---------- */
 const CartUiContext = createContext(null);
 
 export function CartUiProvider({ children }) {
@@ -62,18 +44,14 @@ export function useCartUiRefs() {
 
 /* ---------- Cart Icon ---------- */
 const CartIcon = forwardRef((props, ref) => (
-<button
-  ref={ref}
-  aria-label={props["aria-label"] || "Cart"}
-  className={styles.icon}
-  type="button"
-  tabIndex={-1}
->
-    <svg
-      viewBox="0 0 24 24"
-      className={styles.cartSvg}
-      aria-hidden="true"
-    >
+  <button
+    ref={ref}
+    aria-label={props["aria-label"] || "Cart"}
+    className={styles.icon}
+    type="button"
+    tabIndex={-1}
+  >
+    <svg viewBox="0 0 24 24" className={styles.cartSvg} aria-hidden="true">
       <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 
       0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 
       2 2-.9 2-2-.9-2-2-2zM7.16 
@@ -86,44 +64,7 @@ const CartIcon = forwardRef((props, ref) => (
     </svg>
   </button>
 ));
-
-
 CartIcon.displayName = "CartIcon";
-
-/* ---------- Lang Switcher ---------- */
-const LangSwitcher = () => {
-  const { lang, setLang } = useLang();
-
-  const handleLangChange = (newLang) => {
-    if (lang !== newLang) {
-      setLang(newLang);
-      // დამატებულია: ენის შეცვლისას სრულად აახლებს საიტს
-      window.location.reload();
-    }
-  };
-
-  return (
-    <div className={styles.langSwitcher}>
-      <button
-        onClick={() => handleLangChange("ka")}
-        className={lang === "ka" ? styles.langActive : ""}
-        aria-pressed={lang === "ka"}
-        aria-label="ქართული"
-      >
-        <img src={georgia} alt="" />
-      </button>
-      <span className={styles.langSep}>|</span>
-      <button
-        onClick={() => handleLangChange("en")}
-        className={lang === "en" ? styles.langActive : ""}
-        aria-pressed={lang === "en"}
-        aria-label="English"
-      >
-        <img src={british} alt="" />
-      </button>
-    </div>
-  );
-};
 
 /* ---------- Navbar ---------- */
 const Navbar = () => {
@@ -134,20 +75,15 @@ const Navbar = () => {
 
   const activeTab = tabs.find((tab) => tab.path === location.pathname)?.id || null;
   const { cartRef } = useCartUiRefs();
-  const { lang } = useLang();
-  const L = TAB_LABELS[lang] || TAB_LABELS.ka;
 
   return (
     <div className={styles.tabbar} role="navigation" aria-label={L.navAria}>
       {/* Header */}
       <div className={styles.header}>
-        {/* 🔗 ლოგო + სახელწოდება ერთიან clickable ლინკად, რომელიც სრულად აახლებს მთავარ გვერდს */}
         <Link to="/" reloadDocument className={styles.brandLink} aria-label={L.home}>
           <img className={styles.logo} src={LogoImg} alt={L.brand} />
           <h2 className={styles.h2}>{L.brand}</h2>
         </Link>
-
-        <LangSwitcher />
       </div>
 
       {/* Tabs */}
@@ -155,6 +91,7 @@ const Navbar = () => {
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const label = L[tab.id];
+
           return (
             <Link
               key={tab.id}
@@ -169,6 +106,7 @@ const Navbar = () => {
                   <div className={styles.blobAlt}></div>
                 </div>
               )}
+
               <div className={`${styles.iconWrap} ${isActive ? styles.iconWrapActive : ""}`}>
                 <span className={styles.iconAnim}>{tab.icon}</span>
                 <span className={styles.iconLabel}>{label}</span>
@@ -177,14 +115,14 @@ const Navbar = () => {
           );
         })}
 
-        {/* Cart Icon */}
-     <div
-  className={styles.navItem}
-  onClick={() => setShowCartOpen((prev) => !prev)}
-  role="button"
-  aria-label={L.cartAria}
-  aria-expanded={showCartOpen}
->
+        {/* Cart */}
+        <div
+          className={styles.navItem}
+          onClick={() => setShowCartOpen((prev) => !prev)}
+          role="button"
+          aria-label={L.cartAria}
+          aria-expanded={showCartOpen}
+        >
           <CartIcon ref={cartRef} aria-label={L.cartAria} />
           {itemCount > 0 && <span className={styles.cartCount}>{itemCount}</span>}
         </div>

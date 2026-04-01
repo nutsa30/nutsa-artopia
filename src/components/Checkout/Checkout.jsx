@@ -2,13 +2,10 @@ import React, { useState, useMemo, useEffect } from "react";
 import styles from "./Checkout.module.css";
 import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
-import { useLang } from "../../LanguageContext";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
 
-const DEFAULT_PICKUP_ADDRESS_EN =
-  "Pickup at Artopia store, Simon Chikovani 45, Tbilisi";
-const DEFAULT_PICKUP_ADDRESS_KA =
+const DEFAULT_PICKUP_ADDRESS =
   "ადგილზე გატანა - არტოპია, სიმონ ჩიკოვანის 45, თბილისი";
 
 const isTbilisi = (str) => {
@@ -26,78 +23,44 @@ const unitPrice = (it) => {
   }
   return +price.toFixed(2);
 };
-  const normalizeQuantity = (value) => {
+
+const normalizeQuantity = (value) => {
   const num = Number(value);
   return Number.isFinite(num) && num > 0 ? Math.floor(num) : 0;
 };
 
 const LBL = {
-  ka: {
-    cartEmpty: "კალათა ცარიელია",
-    orderDetails: "შეკვეთის დეტალები",
-    newBadge: "ახალი",
-    subtotal: "შეკვეთის ჯამური ღირებულება",
-    discount30: "ფასდაკლება 30%",
-    deliveryFee: "მიტანის საფასური",
-    total: "ჯამი",
-    firstName: "სახელი",
-    lastName: "გვარი",
-    email: "იმეილი",
-    phone: "ტელეფონი",
-    city: "აირჩიეთ ქალაქი",
-    address: "მისამართი",
-    promo: "პრომო კოდი",
-    comment: "კომენტარი",
-    deliveryOption: "აირჩიეთ მიტანის ვარიანტი",
-    paymentMethod: "აირჩიეთ გადახდის მეთოდი",
-    payCard: "ბარათით გადახდა",
-    optTomorrow: "მომდევნო დღე",
-    optPickup: "ადგილზე მისვლით",
-    optRegional: "რეგიონალური მიტანა (8 ₾)",
-    proceed: "გაგრძელება",
-    errOrderCreate: "შეკვეთის შექმნა ვერ მოხერხდა",
-    errChooseProduct: "გთხოვთ ჯერ აირჩიოთ პროდუქტი",
-    successPaid: "✅ შეკვეთა და ტესტ-გადახდა წარმატებით შესრულდა!",
-    successCreatedOnly: "✅ შეკვეთა შეიქმნა (ტესტ-გადახდა ვერ შესრულდა)",
-    successCreated: "✅ შეკვეთა შექმნილია.",
-    close: "დახურვა",
-    minus: "მინუსი",
-    plus: "პლუსი",
-    delete: "წაშლა",
-  },
-  en: {
-    cartEmpty: "Your cart is empty",
-    orderDetails: "Order details",
-    newBadge: "New",
-    subtotal: "Subtotal",
-    discount30: "Pickup discount 30%",
-    deliveryFee: "Delivery fee",
-    total: "Total",
-    firstName: "First name",
-    lastName: "Last name",
-    email: "Email",
-    phone: "Phone",
-    city: "Choose city",
-    address: "Address",
-    promo: "Promo code",
-    comment: "Comment",
-    deliveryOption: "Choose delivery option",
-    paymentMethod: "Choose payment method",
-    payCard: "Pay by card",
-    optTomorrow: "Next-day delivery",
-    optPickup: "Store pickup",
-    optRegional: "Regional delivery (8 ₾)",
-    proceed: "Continue",
-    errOrderCreate: "Order creation failed",
-    errChooseProduct: "Please add product(s) first",
-    successPaid: "✅ Order + test payment completed successfully!",
-    successCreatedOnly: "✅ Order created (test payment failed)",
-    successCreated: "✅ Order created.",
-    close: "Close",
-    minus: "Minus",
-    plus: "Plus",
-    delete: "Delete",
-  },
+  cartEmpty: "კალათა ცარიელია",
+  orderDetails: "შეკვეთის დეტალები",
+  newBadge: "ახალი",
+  subtotal: "შეკვეთის ჯამური ღირებულება",
+  discount30: "ფასდაკლება 30%",
+  deliveryFee: "მიტანის საფასური",
+  total: "ჯამი",
+  firstName: "სახელი",
+  lastName: "გვარი",
+  email: "იმეილი",
+  phone: "ტელეფონი",
+  city: "აირჩიეთ ქალაქი",
+  address: "მისამართი",
+  promo: "პრომო კოდი",
+  comment: "კომენტარი",
+  deliveryOption: "აირჩიეთ მიტანის ვარიანტი",
+  paymentMethod: "აირჩიეთ გადახდის მეთოდი",
+  payCard: "ბარათით გადახდა",
+  optTomorrow: "მომდევნო დღე",
+  optPickup: "ადგილზე მისვლით",
+  optRegional: "რეგიონალური მიტანა (8 ₾)",
+  proceed: "გაგრძელება",
+  errOrderCreate: "შეკვეთის შექმნა ვერ მოხერხდა",
+  errChooseProduct: "გთხოვთ ჯერ აირჩიოთ პროდუქტი",
+  successPaid: "✅ შეკვეთა და ტესტ-გადახდა წარმატებით შესრულდა!",
+  successCreatedOnly: "✅ შეკვეთა შეიქმნა (ტესტ-გადახდა ვერ შესრულდა)",
+  successCreated: "✅ შეკვეთა შექმნილია.",
+  close: "დახურვა",
+  minus: "მინუსი",
+  plus: "პლუსი",
+  delete: "წაშლა",
 };
 
 const CITIES_GE = [
@@ -161,10 +124,7 @@ const CITIES_GE = [
 const Checkout = () => {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
   const navigate = useNavigate();
-  const { lang } = useLang();
-  const T = LBL[lang] || LBL.ka;
-  const DEFAULT_PICKUP_ADDRESS =
-    lang === "en" ? DEFAULT_PICKUP_ADDRESS_EN : DEFAULT_PICKUP_ADDRESS_KA;
+  const T = LBL;
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -181,74 +141,72 @@ const Checkout = () => {
 
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-const [stockById, setStockById] = useState({});
-const [stockMessageById, setStockMessageById] = useState({});
+  const [stockById, setStockById] = useState({});
+  const [stockMessageById, setStockMessageById] = useState({});
+
   const subtotal = cartItems.reduce(
-    
     (s, it) => s + unitPrice(it) * (it.quantity || 0),
     0
   );
-const deliveryOptions = useMemo(() => {
-  if (isTbilisi(formData.city)) {
-    const deliveryLabel =
-      subtotal >= 50
-        ? (lang === "en"
-            ? "Next-day delivery (Free)"
-            : "მომდევნო დღე (უფასო)")
-        : (lang === "en"
-            ? "Next-day delivery (6 ₾)"
-            : "მომდევნო დღე (6 ₾)");
 
-    return [
-      { value: "deliveryTomorrow", label: deliveryLabel },
-      { value: "storePickup", label: T.optPickup },
-    ];
-  }
+  const deliveryOptions = useMemo(() => {
+    if (isTbilisi(formData.city)) {
+      const deliveryLabel =
+        subtotal >= 50
+          ? "მომდევნო დღე (უფასო)"
+          : "მომდევნო დღე (6 ₾)";
 
-  if (formData.city) {
-    const regionalLabel =
-      subtotal >= 70
-        ? "რეგიონალური მიტანა (უფასო)"
-        : "რეგიონალური მიტანა (8 ₾)";
-
-    return [{ value: "regionalDelivery", label: regionalLabel }];
-  }
-
-  return [];
-}, [formData.city, subtotal, lang, T]);
-
-useEffect(() => {
-  let ignore = false;
-
-  const fetchStocks = async () => {
-    const entries = await Promise.all(
-      cartItems.map(async (item) => {
-        const id = item.id;
-        try {
-          const res = await fetch(`${API_BASE}/products/${id}?lang=${lang}`);
-          if (!res.ok) return [id, 0];
-
-          const data = await res.json();
-          return [id, normalizeQuantity(data?.quantity)];
-        } catch {
-          return [id, 0];
-        }
-      })
-    );
-
-    if (!ignore) {
-      setStockById(Object.fromEntries(entries));
+      return [
+        { value: "deliveryTomorrow", label: deliveryLabel },
+        { value: "storePickup", label: T.optPickup },
+      ];
     }
-  };
 
-  if (cartItems.length > 0) {
-    fetchStocks();
-  }
+    if (formData.city) {
+      const regionalLabel =
+        subtotal >= 70
+          ? "რეგიონალური მიტანა (უფასო)"
+          : "რეგიონალური მიტანა (8 ₾)";
 
-  return () => {
-    ignore = true;
-  };
-}, [cartItems, lang]);
+      return [{ value: "regionalDelivery", label: regionalLabel }];
+    }
+
+    return [];
+  }, [formData.city, subtotal, T]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const fetchStocks = async () => {
+      const entries = await Promise.all(
+        cartItems.map(async (item) => {
+          const id = item.id;
+          try {
+            const res = await fetch(`${API_BASE}/products/${id}`);
+            if (!res.ok) return [id, 0];
+
+            const data = await res.json();
+            return [id, normalizeQuantity(data?.quantity)];
+          } catch {
+            return [id, 0];
+          }
+        })
+      );
+
+      if (!ignore) {
+        setStockById(Object.fromEntries(entries));
+      }
+    };
+
+    if (cartItems.length > 0) {
+      fetchStocks();
+    }
+
+    return () => {
+      ignore = true;
+    };
+  }, [cartItems]);
+
   useEffect(() => {
     if (formData.city && !isTbilisi(formData.city)) {
       setFormData((prev) => ({ ...prev, deliveryOption: "regionalDelivery" }));
@@ -260,17 +218,17 @@ useEffect(() => {
     let delivery_fee = 0;
     let extra_discount = 0;
 
-if (inTbilisi) {
-  if (formData.deliveryOption === "storePickup") {
-    delivery_fee = 0;
-  } else {
-    // თბილისი — 50₾+
-    delivery_fee = subtotal >= 50 ? 0 : 6;
-  }
-} else if (formData.city) {
-  // რეგიონი — 70₾+
-  delivery_fee = subtotal >= 70 ? 0 : 8;
-}
+    if (inTbilisi) {
+      if (formData.deliveryOption === "storePickup") {
+        delivery_fee = 0;
+      } else {
+        // თბილისი — 50₾+
+        delivery_fee = subtotal >= 50 ? 0 : 6;
+      }
+    } else if (formData.city) {
+      // რეგიონი — 70₾+
+      delivery_fee = subtotal >= 70 ? 0 : 8;
+    }
 
     const total = Math.max(
       0,
@@ -289,7 +247,6 @@ if (inTbilisi) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -397,14 +354,14 @@ if (inTbilisi) {
                     <div className={styles.itemPrice}>
                       {fmt(up)} ₾ × {item.quantity} = <b>{fmt(line)} ₾</b>
                     </div>
-{(stockMessageById[item.id] || item.quantity >= normalizeQuantity(stockById[item.id])) && (
-  <div className={styles.stockWarning}>
-    {stockMessageById[item.id] ||
-      (lang === "en"
-        ? `Only ${normalizeQuantity(stockById[item.id])} item(s) available.`
-        : `მარაგში მხოლოდ ${normalizeQuantity(stockById[item.id])} ცალია.`)}
-  </div>
-)}
+
+                    {(stockMessageById[item.id] || item.quantity >= normalizeQuantity(stockById[item.id])) && (
+                      <div className={styles.stockWarning}>
+                        {stockMessageById[item.id] ||
+                          `მარაგში მხოლოდ ${normalizeQuantity(stockById[item.id])} ცალია.`}
+                      </div>
+                    )}
+
                     <div className={styles.controls}>
                       <button
                         className={`${styles.qtyBtn} ${styles.minus}`}
@@ -421,28 +378,26 @@ if (inTbilisi) {
                         {item.quantity}
                       </span>
 
-              <button
-  className={`${styles.qtyBtn} ${styles.plus}`}
-  onClick={() => {
-    const maxQty = normalizeQuantity(stockById[item.id]);
+                      <button
+                        className={`${styles.qtyBtn} ${styles.plus}`}
+                        onClick={() => {
+                          const maxQty = normalizeQuantity(stockById[item.id]);
 
-    if (item.quantity >= maxQty) {
-      setStockMessageById((prev) => ({
-        ...prev,
-        [item.id]: lang === "en"
-          ? `Only ${maxQty} item(s) available.`
-          : `მარაგში მხოლოდ ${maxQty} ცალია.`,
-      }));
-      return;
-    }
+                          if (item.quantity >= maxQty) {
+                            setStockMessageById((prev) => ({
+                              ...prev,
+                              [item.id]: `მარაგში მხოლოდ ${maxQty} ცალია.`,
+                            }));
+                            return;
+                          }
 
-    setStockMessageById((prev) => ({
-      ...prev,
-      [item.id]: "",
-    }));
+                          setStockMessageById((prev) => ({
+                            ...prev,
+                            [item.id]: "",
+                          }));
 
-    updateQuantity(item.id, 1);
-  }}
+                          updateQuantity(item.id, 1);
+                        }}
                         type="button"
                         aria-label={T.plus}
                         title={T.plus}
@@ -497,10 +452,10 @@ if (inTbilisi) {
               {formData.deliveryOption && formData.deliveryOption !== "storePickup" && (
                 <div>
                   {T.deliveryFee}: <strong>
-  {preview.delivery_fee === 0
-    ? (lang === "en" ? "Free" : "უფასო")
-    : `${fmt(preview.delivery_fee)} ₾`}
-</strong>
+                    {preview.delivery_fee === 0
+                      ? "უფასო"
+                      : `${fmt(preview.delivery_fee)} ₾`}
+                  </strong>
                 </div>
               )}
 

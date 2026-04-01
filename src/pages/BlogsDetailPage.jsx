@@ -1,25 +1,12 @@
-// src/pages/BlogDetailPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import styles from "./BlogsDetailPage.module.css";
-import { useLang } from "../LanguageContext";
 
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
 
-/**
- * დეტალური ბლოგის გვერდი:
- * - ითხოვს ენას ?lang=${lang}
- * - აჩვენებს სათაურს
- * - აჯამებს ყველა სექციას სწორი მიმდევრობით:
- *    * blocks [{kind:"image"|"text", image_url?, text?, position}]
- *    * sections [{text, image_url}]
- *    * ან ბრტყელ ველებს: text_ka_1 / image_url_ka_1 / ... (ან EN)
- * - თითო სექციაში გამოაქვს ჯერ სურათი, მერე ტექსტი (თუ ორივე არსებობს).
- */
 export default function BlogDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { lang } = useLang(); // "ka" | "en"
 
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,25 +23,25 @@ export default function BlogDetailPage() {
 
     (async () => {
       try {
-        const res = await fetch(`${BASE}/${id}?lang=${lang}`);
+        const res = await fetch(`${BASE}/${id}`);
         const text = await res.text();
         let data = null;
         try {
           data = JSON.parse(text);
         } catch {}
+
         if (!res.ok) {
           throw new Error(
             (data && (data.message || data.error)) ||
               `HTTP ${res.status} ${res.statusText}`
           );
         }
+
         if (!alive) return;
         setBlog(data || {});
       } catch (e) {
         if (!alive) return;
-        setErr(
-          lang === "en" ? "Failed to load blog." : "ბლოგის ჩატვირთვა ვერ მოხერხდა."
-        );
+        setErr("ბლოგის ჩატვირთვა ვერ მოხერხდა.");
         console.error("Blog detail fetch error:", e);
       } finally {
         alive && setLoading(false);
@@ -64,7 +51,7 @@ export default function BlogDetailPage() {
     return () => {
       alive = false;
     };
-  }, [id, lang]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -82,7 +69,7 @@ export default function BlogDetailPage() {
       <div className={styles.blogDetailContainer}>
         <div className={styles.error}>{err}</div>
         <button className={styles.backBtn} onClick={() => navigate(-1)}>
-          {lang === "en" ? "Go back" : "უკან დაბრუნება"}
+          უკან დაბრუნება
         </button>
       </div>
     );
@@ -91,7 +78,7 @@ export default function BlogDetailPage() {
   if (!blog) return null;
 
   // ----------------------- Normalizers -----------------------
-  // blocks -> [{ position, text?, image_url? }]
+
   const normalizeFromBlocks = (obj) => {
     if (!Array.isArray(obj?.blocks)) return null;
     const grouped = {};
@@ -112,7 +99,6 @@ export default function BlogDetailPage() {
       }));
   };
 
-  // sections -> same shape
   const normalizeFromSections = (obj) => {
     if (!Array.isArray(obj?.sections)) return null;
     return obj.sections.map((s, idx) => ({
@@ -122,7 +108,6 @@ export default function BlogDetailPage() {
     }));
   };
 
-  // flat fields like text_ka_1, image_url_ka_1, etc.
   const normalizeFromFlat = (obj) => {
     if (!obj || typeof obj !== "object") return null;
     const rows = {};
@@ -131,15 +116,11 @@ export default function BlogDetailPage() {
       if (!rows[i]) rows[i] = {};
       rows[i][key] = val;
     };
+
     const entries = Object.entries(obj);
 
-    const reText = new RegExp(`^text(?:_${lang})?_(\\d+)$`, "i");
-    const reImg = new RegExp(
-      `^(?:image_url|image|photo)(?:_${lang})?_(\\d+)$`,
-      "i"
-    );
-    const reSecText = new RegExp(`^section(\\d+)_text(?:_${lang})?$`, "i");
-    const reSecImg = new RegExp(`^section(\\d+)_image(?:_${lang})?$`, "i");
+    const reText = /^text_(\d+)$/i;
+    const reImg = /^(?:image_url|image|photo)_(\d+)$/i;
 
     for (const [k, v] of entries) {
       let m = k.match(reText);
@@ -148,16 +129,6 @@ export default function BlogDetailPage() {
         continue;
       }
       m = k.match(reImg);
-      if (m) {
-        add(m[1], "image_url", v ?? null);
-        continue;
-      }
-      m = k.match(reSecText);
-      if (m) {
-        add(m[1], "text", v ?? "");
-        continue;
-      }
-      m = k.match(reSecImg);
       if (m) {
         add(m[1], "image_url", v ?? null);
       }
@@ -171,13 +142,14 @@ export default function BlogDetailPage() {
         text: rows[i].text ?? "",
         image_url: rows[i].image_url ?? null,
       }));
+
     return out.length ? out : null;
   };
 
   // ----------------------- Extract fields -----------------------
+
   const title = blog.title || blog.name || "";
 
-  // Cover: თუ ბექი ცალკე არ აგზავნის, ვცადოთ პირველი სექციის სურათი
   const coverExplicit = blog.cover_image || blog.image || null;
 
   const sectionsFromBlocks = normalizeFromBlocks(blog);
@@ -196,7 +168,7 @@ export default function BlogDetailPage() {
       {/* breadcrumb */}
       <div className={styles.breadcrumb}>
         <Link to="/blogs" className={styles.breadcrumbLink}>
-          {lang === "en" ? "← All blogs" : "← ყველა ბლოგი"}
+          ← ყველა ბლოგი
         </Link>
       </div>
 
@@ -206,10 +178,11 @@ export default function BlogDetailPage() {
       {/* ქავერი */}
       {cover && (
         <div className={styles.coverWrap}>
+          <img src={cover} alt={title} className={styles.cover} />
         </div>
       )}
 
-      {/* ყველა სექცია — თანმიმდევრობით */}
+      {/* სექციები */}
       {sections.length > 0 ? (
         <div className={styles.sections}>
           {sections.map((s, i) => (
@@ -223,6 +196,7 @@ export default function BlogDetailPage() {
                   />
                 </div>
               )}
+
               {s.text && (
                 <div className={styles.sectionBody}>
                   {String(s.text)
@@ -232,17 +206,13 @@ export default function BlogDetailPage() {
                     ))}
                 </div>
               )}
-              {!s.text && !s.image_url ? null : null}
             </section>
           ))}
         </div>
       ) : (
         <div className={styles.content}>
-          {/* fallback თუ სექციები არ მოივიდა */}
           {blog.content_html ? (
-            <div
-              dangerouslySetInnerHTML={{ __html: blog.content_html }}
-            />
+            <div dangerouslySetInnerHTML={{ __html: blog.content_html }} />
           ) : blog.content || blog.text ? (
             String(blog.content || blog.text)
               .split(/\n{2,}/)

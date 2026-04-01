@@ -1,26 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./ProductFilter.module.css";
-import { useLang } from "../../LanguageContext";
 
 const LABELS = {
-  ka: {
-    category: "კატეგორია:",
-    all: "ყველა",
-    search: "საძიებო სიტყვა...",
-  },
-  en: {
-    category: "Category:",
-    all: "All",
-    search: "Search...",
-  },
+  category: "კატეგორია:",
+  all: "ყველა",
+  search: "საძიებო სიტყვა...",
 };
 
 /* ---------------- helpers ---------------- */
-const catLabel = (cat, lang) => {
+const catLabel = (cat) => {
   if (!cat) return "";
   if (typeof cat === "string") return cat;
-  if (lang === "en") return cat.name_en ?? cat.name ?? cat.name_ka ?? "";
-  return cat.name ?? cat.name_ka ?? cat.name_en ?? "";
+  return cat.name ?? "";
 };
 
 /* ---------------- component ---------------- */
@@ -31,21 +22,20 @@ export default function ProductFilter({
   searchTerm,
   onSearchChange,
 }) {
-  const { lang } = useLang();
-  const L = LABELS[lang] || LABELS.ka;
+  const L = LABELS;
 
   const catObjs = useMemo(() => {
     if (!Array.isArray(categories)) return [];
     return categories.map((c, idx) =>
       typeof c === "string"
-        ? { id: null, name: c, name_ka: c, name_en: c, _key: `s-${idx}` }
+        ? { id: null, name: c, _key: `s-${idx}` }
         : { ...c, _key: `o-${c.id ?? idx}` }
     );
   }, [categories]);
 
   const catLabels = useMemo(
-    () => [L.all, ...catObjs.map((c) => catLabel(c, lang)).filter(Boolean)],
-    [catObjs, lang, L.all]
+    () => [L.all, ...catObjs.map((c) => catLabel(c)).filter(Boolean)],
+    [catObjs]
   );
 
   const [open, setOpen] = useState(false);
@@ -53,14 +43,14 @@ export default function ProductFilter({
   const triggerRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // click outside + ESC
   useEffect(() => {
     const onDoc = (e) => {
       if (
         triggerRef.current?.contains(e.target) ||
         dropdownRef.current?.contains(e.target)
-      )
+      ) {
         return;
+      }
       setOpen(false);
     };
 
@@ -91,7 +81,6 @@ export default function ProductFilter({
 
   return (
     <div className={styles.filterContainer}>
-      {/* კატეგორია */}
       <div className={styles.categoryWrapper}>
         <div className={styles.categoryRow}>
           <label htmlFor="cat-trigger">{L.category}</label>
@@ -127,8 +116,7 @@ export default function ProductFilter({
           <div className={styles.darkDropdown} ref={dropdownRef}>
             <ul className={styles.darkList}>
               {catLabels.map((label) => {
-                const isSelected =
-                  (selectedCategory || L.all) === label;
+                const isSelected = (selectedCategory || L.all) === label;
 
                 return (
                   <li
@@ -150,7 +138,6 @@ export default function ProductFilter({
         )}
       </div>
 
-      {/* search */}
       <input
         type="text"
         className={`${styles.searchInput} ${styles.searchField}`}

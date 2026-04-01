@@ -1,32 +1,32 @@
-import React from 'react'
-import styles from "./Auth.module.css"
+import React from "react";
+import styles from "./Auth.module.css";
 
 export const Auth = () => {
   return (
     <div className={styles.container}>
+      <div className={styles.glassBox}>
+        <h2 className={styles.h2}>შესვლა</h2>
 
+        <input
+          className={styles.usernameInput}
+          type="text"
+          placeholder="ელფოსტა ან მომხმარებლის სახელი"
+        />
 
-        <div className={styles.glassBox}>
-            <h2 className={styles.h2}>Log In</h2>
-            <input className={styles.usernameInput} type="text" placeholder='Username'/>
-            <input className={styles.passwordInput} type="password"  placeholder='Password'/>
-            
-            <button className={styles.forgotPassBtn}>Forgot Password?</button>
-            <button className={styles.loginBtn}>Log in</button>
-            <div className={styles.signupPage}>
-               <p className={styles.p}>Don't have an Account?</p>
-               <button className={styles.registerBtn}>Register</button>
-            </div>
-            
+        <input
+          className={styles.passwordInput}
+          type="password"
+          placeholder="პაროლი"
+        />
 
+        <button className={styles.forgotPassBtn}>დაგავიწყდა პაროლი?</button>
+        <button className={styles.loginBtn}>შესვლა</button>
 
-
+        <div className={styles.signupPage}>
+          <p className={styles.p}>ანგარიში არ გაქვს?</p>
+          <button className={styles.registerBtn}>რეგისტრაცია</button>
         </div>
-
-
-
-
-
+      </div>
     </div>
-  )
-}
+  );
+};

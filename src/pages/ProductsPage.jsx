@@ -2,22 +2,14 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import ProductCard from "../components/productCard/productsCard";
 import ProductFilter from "../components/productCard/ProductFilter";
 import styles from "./ProductsPage.module.css";
-import ProductModal from "../components/ProductModal/ProductModal";
 import { useCart } from "../components/CartContext/CartContext";
-import { useNavigate, useLocation, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import EdgePager from "../components/pagination/EdgePager";
-import { useLang } from "../LanguageContext";
 import SEO from "../components/SEO";
 
-const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
+const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const PRODUCTS_PER_PAGE = 20;
 const NO_IMAGE = "/noimage.jpeg";
-
-const slugify = (text = "") =>
-  String(text || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9ა-ჰ]+/gi, "-")
-    .replace(/^-+|-+$/g, "");
 
 const normalizeQuantity = (value) => {
   const num = Number(value);
@@ -74,12 +66,6 @@ const hasSale = (product) => {
   return Number.isFinite(sale) && sale > 0 && sale <= 100;
 };
 
-const getTimestamp = (product) => {
-  const raw = product?.discountUpdatedAt || product?.updatedAt || product?.createdAt || null;
-  const ts = raw ? new Date(raw).getTime() : 0;
-  return Number.isFinite(ts) ? ts : 0;
-};
-
 const normalizeProduct = (product) => {
   const quantity = normalizeQuantity(product?.quantity ?? 0);
 
@@ -90,22 +76,12 @@ const normalizeProduct = (product) => {
     __hasRealImage: hasRealImage(product),
   };
 };
-
 const compareProducts = (a, b) => {
   const aQty = normalizeQuantity(a?.quantity);
   const bQty = normalizeQuantity(b?.quantity);
 
   const aOut = aQty === 0;
   const bOut = bQty === 0;
-
-  console.log("[COMPARE]", {
-    a: a?.name,
-    aQty,
-    aOut,
-    b: b?.name,
-    bQty,
-    bOut,
-  });
 
   if (aOut !== bOut) return aOut ? 1 : -1;
 
@@ -119,38 +95,35 @@ const compareProducts = (a, b) => {
 
   return 0;
 };
+
 const ProductsPage = () => {
+  const [total, setTotal] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+
   const [searchParams, setSearchParams] = useSearchParams();
-  const params = useParams();
-  const { lang } = useLang();
   const { addToCart } = useCart();
   const topRef = useRef(null);
 
-  const slugFromUrl = params?.slug ? String(params.slug) : null;
-  const isProductRoute = !!slugFromUrl;
 
-  const productsTitle = lang === "en" ? "Products" : "პროდუქცია";
+  const productsTitle = "პროდუქცია";
   const productsDescription =
-    lang === "en"
-      ? "Browse Artopia products: art supplies, stationery, school accessories, office items and kids’ creative toys."
-      : "Brendi Artopia გთავაზობთ სამხატვრო, საკანცელარიო, სასკოლო და საბავშვო პროდუქციას. შეარჩიე ფანქრები, საღებავები, რვეულები, ჩანთები, სათამაშოები და სხვა ნივთები ერთ ონლაინ მაღაზიაში.";
+    "Brendi Artopia გთავაზობთ სამხატვრო, საკანცელარიო, სასკოლო და საბავშვო პროდუქციას. შეარჩიე ფანქრები, საღებავები, რვეულები, ჩანთები, სათამაშოები და სხვა ნივთები ერთ ონლაინ მაღაზიაში.";
   const productsUrl = "https://artopia.ge/products";
 
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-const [currentPage, setCurrentPage] = useState(
-  Number(searchParams.get("page")) || 1
-);
+  const [currentPage, setCurrentPage] = useState(
+    Number(searchParams.get("page")) || 1
+  );
   const [selectedCategory, setSelectedCategory] = useState(
-  searchParams.get("category") || "ყველა"
-);
+    searchParams.get("category") || "ყველა"
+  );
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  // idle | loading | success | not_found
 
   const scrollToTop = () => {
     const scroller =
@@ -177,11 +150,7 @@ const [currentPage, setCurrentPage] = useState(
     const requestedQty = Math.max(1, Math.floor(Number(quantity) || 1));
 
     if (maxQty === 0) {
-      alert(
-        lang === "en"
-          ? "This product is out of stock."
-          : "პროდუქტი არ არის მარაგში."
-      );
+      alert("პროდუქტი არ არის მარაგში.");
       return;
     }
 
@@ -195,11 +164,7 @@ const [currentPage, setCurrentPage] = useState(
     const requestedQty = Math.max(1, Math.floor(Number(quantity) || 1));
 
     if (maxQty === 0) {
-      alert(
-        lang === "en"
-          ? "This product is out of stock."
-          : "პროდუქტი არ არის მარაგში."
-      );
+      alert("პროდუქტი არ არის მარაგში.");
       return;
     }
 
@@ -212,208 +177,119 @@ const [currentPage, setCurrentPage] = useState(
     scrollToTop();
   }, [currentPage]);
 
-useEffect(() => {
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  setCurrentPage(pageFromUrl);
-}, [searchParams]);
-
   useEffect(() => {
-    let mounted = true;
-    const url = `${API_BASE}/products?lang=${lang}`;
-    const showDelay = setTimeout(() => {
-      if (mounted) setIsLoading(true);
-    }, 120);
+    const pageFromUrl = Number(searchParams.get("page")) || 1;
+    setCurrentPage(pageFromUrl);
+  }, [searchParams]);
 
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (!mounted) return;
-
-        const list = Array.isArray(data) ? data : [];
-        const normalized = list.map(normalizeProduct);
-
-        setProducts(normalized);
-
-        const uniqueCategories = [
-          ...new Set(
-            normalized
-              .map((p) => String(p?.category || "").trim())
-              .filter(Boolean)
-          ),
-        ];
-
-
-
-const sortedCats = uniqueCategories
-  .filter((c) => c !== "სხვა")
-  .sort((a, b) => a.localeCompare(b, "ka"));
-
-setCategories([...sortedCats, "სხვა"]);
-
-      })
-      .catch((err) => {
-        console.error("Failed to fetch products:", err);
-        if (mounted) {
-          setProducts([]);
-          setCategories([]);
-        }
-      })
-      .finally(() => {
-        clearTimeout(showDelay);
-        if (mounted) setIsLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-      clearTimeout(showDelay);
-    };
-  }, [lang]);
-
-
-  const filteredProducts = useMemo(() => {
-    const q = String(searchTerm || "").trim().toLowerCase();
-
-    return products.filter((product) => {
-      const productCategory = String(
-        product?.category || product?.details?.category || ""
-      ).trim();
-
-      const nameKa = String(product?.name || product?.name_ka || "").toLowerCase();
-      const nameEn = String(product?.name_en || "").toLowerCase();
-      const categoryKa = String(product?.category || "").toLowerCase();
-      const categoryEn = String(product?.category_en || "").toLowerCase();
-
-      const matchesSearch =
-        !q ||
-        nameKa.includes(q) ||
-        nameEn.includes(q) ||
-        categoryKa.includes(q) ||
-        categoryEn.includes(q);
-
-      const matchesCategory =
-  !selectedCategory ||
-  selectedCategory === "ყველა" ||
-  productCategory === selectedCategory;
-
-      return matchesCategory && matchesSearch;
-    });
-  }, [products, selectedCategory, searchTerm]);
-
-  const sortedFilteredProducts = useMemo(
-    () => [...filteredProducts].sort(compareProducts),
-    [filteredProducts]
-  );
 useEffect(() => {
-  console.log(
-    "[SORTED PRODUCTS]",
-    sortedFilteredProducts.map((p, index) => ({
-      index,
-      name: p?.name,
-      quantity: p?.quantity,
-      normalizedQuantity: normalizeQuantity(p?.quantity),
-      image: p?.image_url1,
-    }))
-  );
-}, [sortedFilteredProducts]);
-  const offset = currentPage * PRODUCTS_PER_PAGE;
-  const currentPageData = sortedFilteredProducts.slice(
-    offset - PRODUCTS_PER_PAGE,
-    offset
-  );
+  let mounted = true;
+
+  const url = `${API_BASE}/products/list?page=${currentPage}&limit=${PRODUCTS_PER_PAGE}&category=${selectedCategory}`;
+
+  setIsLoading(true);
+
+  fetch(url)
+    .then((res) => {
+      if (!res.ok) throw new Error(`${res.status}`);
+      return res.json();
+    })
+    .then((data) => {
+      if (!mounted) return;
+
+      const list = Array.isArray(data.items) ? data.items : [];
+      const normalized = list.map(normalizeProduct);
+
+      setProducts(normalized);
+setTotal(data.total);
+      // categories მაინც დავტოვოთ (ერთჯერადი)
+      const uniqueCategories = [
+        ...new Set(
+          normalized
+            .map((p) => String(p?.category_name || "").trim())
+            .filter(Boolean)
+        ),
+      ];
+
+    })
+    .catch(() => {
+      if (mounted) {
+        setProducts([]);
+        setCategories([]);
+      }
+    })
+    .finally(() => {
+      if (mounted) setIsLoading(false);
+    });
+
+  return () => {
+    mounted = false;
+  };
+}, [currentPage, selectedCategory]);
+useEffect(() => {
+  fetch(`${API_BASE}/products/categories`)
+    .then(res => res.json())
+    .then(data => {
+      setCategories(data);
+    });
+}, []);
 
   useEffect(() => {
     const catFromUrl = searchParams.get("category") || "ყველა";
     setSelectedCategory(catFromUrl);
-}, [searchParams]);
+  }, [searchParams]);
 
 
-useEffect(() => {
-  console.log(
-    "[CURRENT PAGE DATA]",
-    currentPageData.map((p, index) => ({
-      index,
-      name: p?.name,
-      quantity: p?.quantity,
-      normalizedQuantity: normalizeQuantity(p?.quantity),
-      image: p?.image_url1,
-    }))
-  );
-}, [currentPageData]);
+  const handlePageClick = ({ selected }) => {
+    const newPage = selected + 1;
+    setCurrentPage(newPage);
 
-const handlePageClick = ({ selected }) => {
-  const newPage = selected + 1;
-  setCurrentPage(newPage);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", newPage);
 
-  const params = new URLSearchParams(searchParams);
-  params.set("page", newPage);
+    setSearchParams(params);
 
-  setSearchParams(params);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(scrollToTop);
+    });
+  };
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(scrollToTop);
+  const handleCategoryChange = (newCategory) => {
+    setSelectedCategory(newCategory);
+    setCurrentPage(1);
+
+    const params = new URLSearchParams(location.search);
+
+    if (newCategory && newCategory !== "ყველა") {
+      params.set("category", newCategory);
+    } else {
+      params.delete("category");
+    }
+
+    params.set("page", 1);
+
+    setSearchParams(params);
+  };
+const handleProductClick = (product) => {
+  const slug = product?.slug;
+  if (!slug) return;
+
+  navigate(`/products/${slug}`, {
+    state: {
+      from: location.pathname + location.search
+    }
   });
 };
 
-const handleCategoryChange = (newCategory) => {
-  setSelectedCategory(newCategory);
-  setCurrentPage(1);
-
-  const params = new URLSearchParams(location.search);
-
-if (newCategory && newCategory !== "ყველა") {
-  params.set("category", newCategory);
-} else {
-  params.delete("category");
-}
-
-params.set("page", 1);
-
-setSearchParams(params);
-};
-  const handleProductClick = (product) => {
-    const slug = slugify(product?.name || product?.name_ka || product?.name_en || "");
-    if (!slug) return;
-    navigate(`/products/${slug}${location.search || ""}`);
-  };
-
-  useEffect(() => {
-    if (!slugFromUrl) {
-      setSelectedProduct(null);
-      return;
-    }
-
-    const found =
-      products.find((product) => {
-        const productSlug = slugify(
-          product?.name || product?.name_ka || product?.name_en || ""
-        );
-        return productSlug === slugFromUrl;
-      }) || null;
-
-    setSelectedProduct(found);
-  }, [slugFromUrl, products]);
-
-  const handleCloseModal = () => {
-    setSelectedProduct(null);
-    navigate(`/products${location.search || ""}`, { replace: true });
-  };
-
-  const productCanonicalUrl = slugFromUrl
-    ? `https://artopia.ge/products/${slugFromUrl}`
-    : "";
 
   return (
     <>
-      {!isProductRoute && (
-        <SEO
-          title={productsTitle}
-          description={productsDescription}
-          url={productsUrl}
-        />
-      )}
+ <SEO
+  title={productsTitle}
+  description={productsDescription}
+  url={productsUrl}
+/>
+    
 
       <div ref={topRef} className={styles.pageWrapper}>
         <div className={styles.filterBar}>
@@ -431,75 +307,60 @@ setSearchParams(params);
         {!isLoading && (
           <>
             <div className={`${styles.productsGrid} ${styles.catalogGrid}`}>
-              {currentPageData.length > 0 ? (
-currentPageData.map((product, index) => {
-  console.log("[RENDER ORDER]", {
-    index,
-    name: product?.name,
-    quantity: product?.quantity,
-    normalizedQuantity: normalizeQuantity(product?.quantity),
-    image: product?.image_url1,
-  });
+              {products.length > 0 ?(
+                products.map((product, index) => {
+                  console.log("[RENDER ORDER]", {
+                    index,
+                    name: product?.name,
+                    quantity: product?.quantity,
+                    normalizedQuantity: normalizeQuantity(product?.quantity),
+                    image: product?.image_url1,
+                  });
 
-  return (
-    <div
-      key={product._id || product.id}
-      onClick={() => handleProductClick(product)}
-      className={styles.cardWrap}
-    >
-      <ProductCard
-        product={product}
-        onAddToCart={(e, quantity, sourceProduct = product) => {
-          e.stopPropagation();
-          handleAddToCart(sourceProduct, quantity);
-        }}
-        onBuyNow={(e, quantity, sourceProduct = product) => {
-          e.stopPropagation();
-          handleBuyNow(sourceProduct, quantity);
-        }}
-      />
-    </div>
-  );
-})
+                  return (
+                    <div
+                      key={product._id || product.id}
+                      onClick={() => handleProductClick(product)}
+                      className={styles.cardWrap}
+                    >
+                      <ProductCard
+                        product={product}
+                        onAddToCart={(e, quantity, sourceProduct = product) => {
+                          e.stopPropagation();
+                          handleAddToCart(sourceProduct, quantity);
+                        }}
+                        onBuyNow={(e, quantity, sourceProduct = product) => {
+                          e.stopPropagation();
+                          handleBuyNow(sourceProduct, quantity);
+                        }}
+                      />
+                    </div>
+                  );
+                })
               ) : (
                 <div className={styles.emptyState}>
-                  {lang === "en"
-                    ? "No products found."
-                    : "პროდუქტები ვერ მოიძებნა."}
+                  პროდუქტები ვერ მოიძებნა.
                 </div>
               )}
             </div>
 
-            {selectedProduct && (
-          <ProductModal
-  product={selectedProduct}
-  onClose={handleCloseModal}
-  onAddToCart={handleAddToCart}
-  onBuyNow={handleBuyNow}
-  onProductClick={handleProductClick}
-  enableSeo={isProductRoute}
-  canonicalUrl={productCanonicalUrl}
-/>
-            )}
-
-            {sortedFilteredProducts.length > PRODUCTS_PER_PAGE && (
+            {total > PRODUCTS_PER_PAGE && (
               <EdgePager
-                totalPages={Math.ceil(
-                  sortedFilteredProducts.length / PRODUCTS_PER_PAGE
-                )}
+           totalPages={Math.ceil(total / PRODUCTS_PER_PAGE)}
+
                 currentPage={currentPage}
-         onChange={(page) => {
-  setCurrentPage(page);
+                onChange={(page) => {
+                  setCurrentPage(page);
 
-  const params = new URLSearchParams(searchParams);
-  params.set("page", page);
+                  const params = new URLSearchParams(searchParams);
+                  params.set("page", page);
 
-  setSearchParams(params);
+                  setSearchParams(params);
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(scrollToTop);
-  });
-}}
+                  requestAnimationFrame(() => {
+                    requestAnimationFrame(scrollToTop);
+                  });
+                }}
                 onPageChange={handlePageClick}
               />
             )}

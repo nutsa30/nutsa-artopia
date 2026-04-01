@@ -2,13 +2,11 @@ import React, { useState, useEffect } from "react";
 import BlogDetailModal from "./BlogDetailModal"; // თუ იყენებ, დარჩეს როგორც გაქვს
 import styles from "./BlogsPage.module.css";
 import { useNavigate } from "react-router-dom";
-import { useLang } from "../LanguageContext";
-import SEO from "../components/SEO"; // ✅ დაემატა SEO კომპონენტი
+import SEO from "../components/SEO";
 
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
 
 const BlogPage = () => {
-  const { lang } = useLang(); // ka | en
   const [blogs, setBlogs] = useState([]);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,37 +14,26 @@ const BlogPage = () => {
   const [selectedBlog, setSelectedBlog] = useState(null);
   const navigate = useNavigate();
 
-  // 🌐 SEO ტექსტები ორივე ენაზე
-  const pageTitle =
-    lang === "en"
-      ? "Blog – Articles & News"
-      : "ბლოგი – სტატიები და სიახლეები";
+  const pageTitle = "ბლოგი – სტატიები და სიახლეები";
   const pageDescription =
-    lang === "en"
-      ? "Read useful articles, tips and news about art supplies, stationery, kids' educational toys and school products from Artopia."
-      : "გაეცანი სტატიებს, რჩევებს და სიახლეებს სამხატვრო მასალებზე, საკანცელარიო ნივთებზე, საბავშვო განმავითარებელ სათამაშოებსა და სასკოლო პროდუქტებზე Artopia-ს ბლოგში.";
-  const pageUrl = "https://artopia.ge/blog"; // 📌 ბლოგების ლისტის კითხვის გვერდი
+    "გაეცანი სტატიებს, რჩევებს და სიახლეებს სამხატვრო მასალებზე, საკანცელარიო ნივთებზე, საბავშვო განმავითარებელ სათამაშოებსა და სასკოლო პროდუქტებზე Artopia-ს ბლოგში.";
+  const pageUrl = "https://artopia.ge/blog";
 
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const res = await fetch(`${BASE}?lang=${lang}`);
+        const res = await fetch(BASE);
         if (!res.ok) throw new Error("ბლოგების წამოღება ჩავარდა");
         const data = await res.json();
-        // API აბრუნებს: id, title, slug, cover_image, excerpt, created_at, is_active, lang
         setBlogs(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("ბლოგების წაკითხვის შეცდომა:", err);
-        setError(
-          lang === "en"
-            ? "Failed to fetch blogs."
-            : "ბლოგების მონაცემების წამოღება ვერ მოხერხდა."
-        );
+        setError("ბლოგების მონაცემების წამოღება ვერ მოხერხდა.");
       }
     };
 
     fetchBlogs();
-  }, [lang]);
+  }, []);
 
   const filteredBlogs = blogs.filter((b) =>
     (b.title || "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -63,12 +50,11 @@ const BlogPage = () => {
   };
 
   const openBlogDetail = (id) => {
-    navigate(`/blog/${id}`); // დეტალის გვერდზე, სადაც გამოიყენებ GET /blogs/:id?lang=${lang}
+    navigate(`/blog/${id}`);
   };
 
   return (
     <>
-      {/* ✅ SEO მხოლოდ დავამატე, სხვა არაფერი შემიხედავს */}
       <SEO
         title={pageTitle}
         description={pageDescription}
@@ -77,13 +63,11 @@ const BlogPage = () => {
       />
 
       <div className={styles.blogPageContainer}>
-        <h2>{lang === "en" ? " Blog List" : " ბლოგების სია"}</h2>
+        <h2>ბლოგების სია</h2>
 
         <input
           type="text"
-          placeholder={
-            lang === "en" ? "Search by title..." : "ძებნა სათაურით..."
-          }
+          placeholder="ძებნა სათაურით..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={styles.searchInput}
@@ -114,6 +98,7 @@ const BlogPage = () => {
                 >
                   {b.title}
                 </strong>
+
                 {b.excerpt ? (
                   <p
                     style={{ margin: 10, fontSize: 18, lineHeight: 1.25 }}
@@ -129,13 +114,13 @@ const BlogPage = () => {
                   onClick={() => openBlogDetail(b.id)}
                   className={styles.readMoreBtn}
                 >
-                  {lang === "en" ? "Read more" : "წაიკითხე მეტი"}
+                  წაიკითხე მეტი
                 </button>
 
                 {/* სურვილისას მოდალითაც შეგიძლიათ გახსნა "სკელეტონით" */}
                 {/* <button onClick={() => openModal(b)} className={styles.readMoreBtn}>
-                {lang === "en" ? "Preview" : "ნახვა"}
-              </button> */}
+                  ნახვა
+                </button> */}
               </div>
             </li>
           ))}

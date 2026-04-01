@@ -1,4 +1,3 @@
-// src/pages/ContactsPage.jsx
 import React, { useEffect, useState } from "react";
 import styles from "./ContactsPage.module.css";
 import {
@@ -11,7 +10,6 @@ import {
   FaClock,
   FaPhoneAlt,
 } from "react-icons/fa";
-import { useLang } from "../LanguageContext";
 
 const BASE =
   "https://artopia-backend-2024-54872c79acdd.herokuapp.com/contacts";
@@ -25,39 +23,23 @@ const toUrl = (val, fallback) => {
     : `https://${v}`;
 };
 
-const LBL = {
-  ka: {
-    title: "საკონტაქტო ინფორმაცია",
-    phone: "ტელეფონი",
-    email: "ელ. ფოსტა",
-    hours: "სამუშაო საათები",
-    empty: "📭 კონტაქტები ჯერ არ არის დამატებული",
-    address: "მისამართი",
-  },
-  en: {
-    title: "Contact Information",
-    phone: "Phone",
-    email: "Email",
-    hours: "Working hours",
-    empty: "📭 No contacts yet",
-    address: "Address",
-  },
+const T = {
+  title: "საკონტაქტო ინფორმაცია",
+  phone: "ტელეფონი",
+  email: "ელ. ფოსტა",
+  hours: "სამუშაო საათები",
+  empty: "📭 კონტაქტები ჯერ არ არის დამატებული",
+  address: "მისამართი",
 };
 
 const ContactsPage = () => {
-  const { lang } = useLang();
-  const T = LBL[lang] || LBL.ka;
-
   const [contacts, setContacts] = useState([]);
   const [error, setError] = useState("");
-
-  const pick = (ka, en) =>
-    lang === "en" ? en ?? ka ?? "" : ka ?? en ?? "";
 
   useEffect(() => {
     const fetchContacts = async () => {
       try {
-        const res = await fetch(`${BASE}?lang=${lang}`);
+        const res = await fetch(BASE);
         if (!res.ok) throw new Error("მონაცემების წაკითხვა ვერ მოხერხდა");
         const data = await res.json();
         setContacts(Array.isArray(data) ? data : []);
@@ -67,28 +49,21 @@ const ContactsPage = () => {
       }
     };
     fetchContacts();
-  }, [lang]);
+  }, []);
 
   if (error) return <div>{error}</div>;
 
   return (
     <div className={styles.contactContainer}>
-      {/* ▼ TikTok Gradient defs */}
+      {/* TikTok Gradient */}
       <svg width="0" height="0" style={{ position: "absolute" }}>
         <defs>
-          <linearGradient
-            id="tiktokGrad"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient id="tiktokGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#00f2ea" />
             <stop offset="100%" stopColor="#ff0050" />
           </linearGradient>
         </defs>
       </svg>
-      {/* ▲ */}
 
       <h2>{T.title}</h2>
 
@@ -112,11 +87,8 @@ const ContactsPage = () => {
               "https://youtube.com/@artopia_georgia?si=Yip4PF9jpE1o9S2g"
             );
 
-            const address = pick(c.address, c.address_en);
-            const workingHours = pick(
-              c.working_hours ?? c.workingHours,
-              c.working_hours_en ?? c.workingHoursEn
-            );
+            const address = c.address;
+            const workingHours = c.working_hours ?? c.workingHours;
 
             return (
               <div key={c.id} className={styles.contactCard}>
@@ -146,20 +118,11 @@ const ContactsPage = () => {
                 </p>
 
                 <div className={styles.socialRow}>
-                  <a
-                    href={ig}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Instagram"
-                  >
+                  <a href={ig} target="_blank" rel="noopener noreferrer">
                     <FaInstagram className={styles.instagram} />
                   </a>
-                  <a
-                    href={fb}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Facebook"
-                  >
+
+                  <a href={fb} target="_blank" rel="noopener noreferrer">
                     <FaFacebook className={styles.facebook} />
                   </a>
 
@@ -167,25 +130,16 @@ const ContactsPage = () => {
                     href={tt}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="TikTok"
                     className={styles.tiktokLink}
                   >
-                    <span
-                      className={styles.tiktokWrap}
-                      aria-hidden="true"
-                    >
+                    <span className={styles.tiktokWrap}>
                       <FaTiktok className={styles.tiktokBase} />
                       <FaTiktok className={styles.tiktokCyan} />
                       <FaTiktok className={styles.tiktokPink} />
                     </span>
                   </a>
 
-                  <a
-                    href={yt}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="YouTube"
-                  >
+                  <a href={yt} target="_blank" rel="noopener noreferrer">
                     <FaYoutube className={styles.youtube} />
                   </a>
                 </div>

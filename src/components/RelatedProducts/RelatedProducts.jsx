@@ -1,28 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "./RelatedProducts.module.css";
-import { useLang } from "../../LanguageContext";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
 
 const LBL = {
-  ka: {
-    title: "მსგავსი პროდუქტები",
-    prev: "წინა",
-    next: "შემდეგი",
-    empty: "მსგავსი პროდუქტები ვერ მოიძებნა.",
-  },
-  en: {
-    title: "Related products",
-    prev: "Prev",
-    next: "Next",
-    empty: "No related products found.",
-  },
+  title: "მსგავსი პროდუქტები",
+  prev: "წინა",
+  next: "შემდეგი",
+  empty: "მსგავსი პროდუქტები ვერ მოიძებნა.",
 };
 
-const normalizeQuantity = (value) => {
-  const num = Number(value);
-  return Number.isFinite(num) && num > 0 ? Math.floor(num) : 0;
-};
 
 const getDisplayImage = (product) => {
   return (
@@ -36,8 +23,7 @@ const getDisplayImage = (product) => {
   );
 };
 
-const getCategory = (product) =>
-  String(product?.category || product?.details?.category || "").trim();
+
 
 const getPrice = (product) => {
   const price = Number(product?.price || 0);
@@ -59,36 +45,41 @@ const getVisibleCount = () => {
 };
 
 export default function RelatedProducts({ currentProduct, onProductClick }) {
-  const { lang } = useLang();
-  const T = LBL[lang] || LBL.ka;
+  const T = LBL;
 
   const [products, setProducts] = useState([]);
   const [startIndex, setStartIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(getVisibleCount());
 
-  useEffect(() => {
-    let ignore = false;
+useEffect(() => {
+  let ignore = false;
 
-    const loadProducts = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/products?lang=${lang}`);
-        if (!res.ok) return;
+  const loadProducts = async () => {
+    try {
+      if (!currentProduct?.category_id || !currentProduct?.id) return;
 
-        const data = await res.json();
-        if (!ignore) {
-          setProducts(Array.isArray(data) ? data : []);
-        }
-      } catch {
-        if (!ignore) setProducts([]);
+      const res = await fetch(
+        `${API_BASE}/products/related/${currentProduct.category_id}/${currentProduct.id}`
+      );
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      if (!ignore) {
+        setProducts(Array.isArray(data) ? data : []);
       }
-    };
+    } catch {
+      if (!ignore) setProducts([]);
+    }
+  };
 
-    loadProducts();
+  loadProducts();
 
-    return () => {
-      ignore = true;
-    };
-  }, [lang]);
+  return () => {
+    ignore = true;
+  };
+}, [currentProduct]);
 
   useEffect(() => {
     const onResize = () => {
@@ -98,27 +89,7 @@ export default function RelatedProducts({ currentProduct, onProductClick }) {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-
-  const relatedProducts = useMemo(() => {
-    if (!currentProduct) return [];
-
-    const currentCategory = getCategory(currentProduct);
-    const currentPrice = getPrice(currentProduct);
-    const currentId = currentProduct?.id;
-
-    return products
-      .filter((item) => item?.id !== currentId)
-      .filter((item) => getCategory(item) === currentCategory)
-      .filter((item) => normalizeQuantity(item?.quantity) > 0)
-      .sort((a, b) => {
-        const aDiff = Math.abs(getPrice(a) - currentPrice);
-        const bDiff = Math.abs(getPrice(b) - currentPrice);
-
-        if (aDiff !== bDiff) return aDiff - bDiff;
-        return getPrice(a) - getPrice(b);
-      })
-      .slice(0, 15);
-  }, [products, currentProduct]);
+const relatedProducts = products;
 
   useEffect(() => {
     setStartIndex(0);

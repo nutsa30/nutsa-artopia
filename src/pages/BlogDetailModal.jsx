@@ -1,46 +1,32 @@
-// src/pages/BlogDetailModal.jsx
 import React, { useState, useMemo } from 'react';
 import styles from './BlogDetailModal.module.css';
 import { useNavigate } from 'react-router-dom';
-import { useLang } from '../LanguageContext';
 
 const LBL = {
-  ka: {
-    close: 'დახურვა',
-    backToBlogs: 'ბლოგებზე დაბრუნება',
-  },
-  en: {
-    close: 'Close',
-    backToBlogs: 'Back to blogs',
-  },
+  close: 'დახურვა',
+  backToBlogs: 'ბლოგებზე დაბრუნება',
 };
 
 const BlogDetailModal = ({ blog, onClose }) => {
   const navigate = useNavigate();
-  const { lang } = useLang();
-  const T = LBL[lang] || LBL.ka;
+  const T = LBL;
 
-  // ფოლბექი იმ შემთხვევისთვის, თუ ოდესმე მოდის title_en/title_ka და content_en/content_ka
   const title = useMemo(() => {
     if (!blog) return '';
-    if (blog.title) return blog.title;
-    if (lang === 'en') return blog.title_en || blog.title_ka || '';
-    return blog.title_ka || blog.title_en || '';
-  }, [blog, lang]);
+    return blog.title || blog.name || '';
+  }, [blog]);
 
   const content = useMemo(() => {
     if (!blog) return '';
-    if (blog.content) return blog.content;
-    if (lang === 'en') return blog.content_en || blog.content_ka || '';
-    return blog.content_ka || blog.content_en || '';
-  }, [blog, lang]);
+    return blog.content || blog.text || '';
+  }, [blog]);
 
   const [zoomedImage, setZoomedImage] = useState(null);
   const [showZoomed, setShowZoomed] = useState(false);
 
   const handleClose = () => {
     onClose?.();
-    navigate('/blogs'); // ბლოგების გვერდზე დაბრუნება
+    navigate('/blogs');
   };
 
   const handleZoomImage = (src) => {
@@ -86,7 +72,10 @@ const BlogDetailModal = ({ blog, onClose }) => {
         {/* Zoomed image */}
         {showZoomed && (
           <div className={styles.zoomedOverlay} onClick={handleCloseZoom}>
-            <div className={styles.zoomedContent} onClick={(e) => e.stopPropagation()}>
+            <div
+              className={styles.zoomedContent}
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
                 className={styles.closeBtn}
                 onClick={handleCloseZoom}

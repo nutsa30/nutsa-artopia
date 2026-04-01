@@ -1,12 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useLang } from "../../LanguageContext";
 import styles from "./HomeBlogs.module.css";
 
 /* API BASE */
 const API_BASE =
   (import.meta?.env?.VITE_API_BASE ?? "").trim() ||
-  "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
+  "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 const BASE = `${API_BASE}/blogs`;
 
@@ -24,9 +23,6 @@ const compareBlogs = (a, b) => {
 };
 
 export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
-  const { lang } = useLang();
-  const safeLang = lang === "en" ? "en" : "ka";
-
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -35,7 +31,7 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
     let alive = true;
     setLoading(true);
 
-    fetch(`${BASE}?lang=${safeLang}`)
+    fetch(BASE)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -55,20 +51,20 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
       })
       .finally(() => alive && setLoading(false));
 
-    return () => { alive = false; };
-  }, [safeLang, limit]);
-
-  const t = (ka, en) => (safeLang === "en" ? en : ka);
+    return () => {
+      alive = false;
+    };
+  }, [limit]);
 
   return (
     <section className={styles.section}>
       <div className={styles.head}>
         <h2 className={styles.title}>
-          {titleKa || titleEn ? t(titleKa || "", titleEn || "") : t("არტ ბლოგები", "Art Blogs")}
+          {titleKa || titleEn ? (titleKa || titleEn || "") : "არტ ბლოგები"}
         </h2>
 
         <Link to="/blogs" className={styles.seeAll}>
-          {t("ყველას ნახვა", "See all")}
+          ყველას ნახვა
         </Link>
       </div>
 
@@ -80,24 +76,27 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
         </div>
       ) : items.length === 0 ? (
         <div className={styles.empty}>
-          {t("ბლოგები ჯერ არ არის.", "No blogs yet.")}
+          ბლოგები ჯერ არ არის.
         </div>
       ) : (
         <div className={styles.grid}>
           {items.map((b) => {
             const id = b.id ?? b._id;
             const title = b.title || "";
-            const cover = b.cover_image || b.image || null;
+            const cover =
+              b.cover_image ||
+              b.image ||
+              b.image_url ||
+              b.image_url1 ||
+              null;
             const excerpt = b.excerpt || b.summary || "";
 
             return (
               <article
                 key={id}
-               
                 style={{ cursor: "pointer", position: "relative" }}
                 className={styles.cardLike}
               >
-                {/* სურათი */}
                 {cover ? (
                   <div className={styles.cardImageWrap}>
                     <img
@@ -109,11 +108,14 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
                   </div>
                 ) : null}
 
-                {/* ტექსტური ნაწილი */}
                 <div style={{ padding: 12 }}>
-                  <h3 style={{ margin: "4px 0 6px", fontSize: 18, lineHeight: 1.25 }} className={styles.cardTitleClamp}>
+                  <h3
+                    style={{ margin: "4px 0 6px", fontSize: 18, lineHeight: 1.25 }}
+                    className={styles.cardTitleClamp}
+                  >
                     {title}
                   </h3>
+
                   {excerpt ? (
                     <p className={styles.cardExcerptClamp}>
                       {excerpt}
@@ -121,17 +123,16 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
                   ) : null}
                 </div>
 
-                {/* ➕ Read more ღილაკი */}
                 <div className={styles.actions}>
                   <button
                     className={styles.readMoreBtn}
                     onClick={(e) => {
-                      e.stopPropagation(); // რომ article onClick არ გაეშვას ორჯერ
+                      e.stopPropagation();
                       navigate(`/blog/${id}`);
                     }}
                     type="button"
                   >
-                    {t("წაიკითხე მეტი", "Read more")}
+                    წაიკითხე მეტი
                   </button>
                 </div>
               </article>
