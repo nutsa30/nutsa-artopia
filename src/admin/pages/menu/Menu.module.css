@@ -49,12 +49,13 @@
 }
 
 .searchInput {
-  width: 85%;
+  width: auto;              /* ❌ 85% ამოიღე */
+  min-width: 180px;         /* 👈 მინიმალური ზომა */
+  flex: 1;                  /* 👈 ჭკვიანურად გაიწელება */
   padding: 10px 14px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
-  margin-bottom: 20px;
   outline: none;
 }
 
@@ -73,21 +74,18 @@
   margin-right: 8px;
 }
 
-.refresh{
-
-   width: 85%;
+.refresh {
+  width: auto;
+  min-width: 140px;
+  flex-shrink: 0; /* 👈 არ დაპატარავდეს */
   padding: 10px 14px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
-  margin-bottom: 20px;
-  outline: none;
   background-color: white;
   color: black;
   cursor: pointer;
-    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
-
-
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
 
 .refresh:hover{
