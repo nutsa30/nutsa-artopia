@@ -1,165 +1,99 @@
+/* ===================== FOOTER ===================== */
+
 .pageWrapper {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* ფუტერი ქვედა ნაწილში */
-  flex-grow: 1; /* ფუტერის და კონტენტის ავტომატური განლაგება */
-  padding: 40px;
+  justify-content: flex-start;
+  flex-grow: 1;
+  padding: 40px 20px;
 }
 
+/* ===================== FOOTER BASE ===================== */
+
 footer {
-  width: 100%; /* სრულ სიგანეზე */
-  border: 1px solid rgba(255, 255, 255, 0.2); 
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37); 
-  backdrop-filter: blur(15px); 
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(25px);
   color: white;
-  padding: 30px 0;
+
   text-align: center;
   font-size: 14px;
+
   border-top: 2px solid #34495e;
-  position: relative; /* ფუტერი მხოლოდ ქვედა ნაწილში */
-  bottom: 0; /* ქვედა ნაწილში */
-  left: 0;
-  z-index: 999; /* რომ სხვა ელემენტების ზემოთ იყოს */
-  margin-top: auto; /* ეს გახდის ფუტერს ბოლოში */
+  position: relative;
+  z-index: 999;
+
+  margin-top: auto;
+
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: wrap;
-  padding: 20px 10px;
+  padding: 20px 12px;
   gap: 20px;
 }
 
-/* Footer content */
+/* ===================== CONTENT ===================== */
+
 .footerContent {
   display: flex;
   justify-content: space-between;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  
 }
+
+/* ===================== COMPANY ===================== */
 
 .companyInfo {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px; /* ან 16px ან რაც უკეთესად გამოიყურება */
+  gap: 12px;
 }
 
-
-
-/* .socialMedia {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-} */
-
-.socialMedia img {
-  width: 30px;
-  height: 30px;
-  color: white;
-  
-}
-
-
-/* .icon {
-  color: white;
-  font-size: 26px;
-  transition: transform 0.15s ease, opacity 0.15s ease;
-
-}
-
-.icon:hover {
-  transform: translateY(-1px) scale(1.05);
-  opacity: 0.9;
-  color: #E1306C; /* Instagram ფერი მაგალითად */
-
-
-
-
-.footerLinks {
-  display: flex;
-  margin: auto;
-  justify-content: center; /* ჰორიზონტალურად ცენტრში */
-  gap: 40px; /* სექციებს შორის დაშორება */
-  flex-wrap: wrap; /* პატარა ეკრანებზე გადასალაგებლად */
-  margin-top: 24px; /* ან რაც საჭიროა ლოგოს სექციიდან დასაშორებლად */
-}
-
-
-.section h4 {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.section ul {
-  list-style: none;
-  padding: 0;
-}
-
-.section li {
-  font-size: 14px;
-  margin-bottom: 5px;
-}
-
-footer a {
-  color: white;
-  text-decoration: none;
-  margin: 0 10px;
-}
-
-footer a:hover {
-  color: #3498db; /* ლურჯი ფერი */
-}
-
-footer .footerBottom {
-  font-size: 12px;
-  margin-top: 20px;
-  color: #bdc3c7;
-}
-
-.footerBottom {
-  width: 100%;
-  text-align: right;
-  padding: 10px 20px; /* ცოტა სივრცე მარჯვენა კუთხიდან */
- 
-}
-
-
-
-.logo{
+.logo {
   width: 50px;
   height: 50px;
+  object-fit: contain;
 }
 
-
-
-.contact{
-  /* display: flex; */
-  /* flex-direction: row; */
-  justify-content: center;
+.contact {
+  display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-
-
-.mail{
+.mail {
   font-size: 16px;
 }
 
+/* ===================== SOCIAL ===================== */
 
-.instagram, .facebook, .tiktok, .youtube {
+.socialMedia {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.instagram,
+.facebook,
+.tiktok,
+.youtube {
   color: white;
   transition: transform 0.15s ease, opacity 0.15s ease;
   width: 30px;
   height: 30px;
 }
 
-/* Instagram hover */
+/* Instagram */
 .instagram:hover {
-   transform: translateY(-1px) scale(1.05);
-
+  transform: translateY(-1px) scale(1.05);
   background: radial-gradient(circle at 35% 90%, #fec564, transparent 50%),
               radial-gradient(circle at 0 140%, #fec564, transparent 50%),
               radial-gradient(ellipse at 0 -25%, #5258cf, transparent 50%),
@@ -172,16 +106,15 @@ footer .footerBottom {
   border-radius: 10px;
 }
 
-/* Facebook hover */
+/* Facebook */
 .facebook:hover {
-   transform: translateY(-1px) scale(1.05);
-
+  transform: translateY(-1px) scale(1.05);
   background: linear-gradient(to bottom, #1877F2, #3b5998);
   -webkit-text-fill-color: transparent;
   border-radius: 50%;
 }
 
-/* --- TikTok triple-layer effect --- */
+/* TikTok */
 .tiktokLink {
   display: inline-flex;
   width: 30px;
@@ -192,46 +125,36 @@ footer .footerBottom {
   position: relative;
   width: 30px;
   height: 30px;
-  display: inline-block;
 }
 
-/* საერთო სტილი ყველა ფენისთვის */
 .tiktokBase,
 .tiktokCyan,
 .tiktokPink {
   position: absolute;
-  inset: 0;               /* top:0 right:0 bottom:0 left:0 */
+  inset: 0;
   width: 100%;
   height: 100%;
   transition: transform .18s ease, opacity .18s ease, filter .18s ease;
 }
 
-/* 1) ძირითადი თეთრი ლოგო (ყოველთვის ჩანს) */
 .tiktokBase {
   color: #ffffff;
   z-index: 3;
-  filter: drop-shadow(0 0 0 rgba(0,0,0,0));
 }
 
-/* 2) ცისფერი „ყაუში“ — hover-ზე გამოჩნდეს და ოდნავ მარცხნივ/ზემოთ გადაიწიოს */
 .tiktokCyan {
   color: #25f4ee;
   z-index: 2;
-  opacity: 0;                 /* default ფარულია */
-  transform: translate(0,0);
+  opacity: 0;
 }
 
-/* 3) ვარდისფერი „ყაუში“ — hover-ზე გამოჩნდეს და ოდნავ მარჯვნივ/ქვემოთ გადაიწიოს */
 .tiktokPink {
   color: #fe2c55;
   z-index: 1;
-  opacity: 0;                 /* default ფარულია */
-  transform: translate(0,0);
+  opacity: 0;
 }
 
-/* Hover state: ჩართე ფერები და გააკეთე ოპტიკური წანაცვლება */
 .tiktokLink:hover .tiktokCyan {
-
   opacity: 1;
   transform: translate(-2px, -1px);
 }
@@ -239,83 +162,122 @@ footer .footerBottom {
 .tiktokLink:hover .tiktokPink {
   opacity: 1;
   transform: translate(2px, 1px);
-     /* transform: translateY(-1px) scale(1.05); */
-
 }
 
-/* სურვილის მიხედვით პატარა ჩრდილი, რომ „სითეთრე“ არ დაიკარგოს ბნელ ფონზე */
 .tiktokLink:hover .tiktokBase {
   filter: drop-shadow(0 1px 0 rgba(0,0,0,.35));
-     transform: translateY(-1px) scale(1.05);
-
+  transform: translateY(-1px) scale(1.05);
 }
 
-
-/* YouTube hover */
+/* YouTube */
 .youtube:hover {
   color: #ff0033;
-   transform: translateY(-1px) scale(1.05);
-
+  transform: translateY(-1px) scale(1.05);
 }
 
+/* ===================== LINKS ===================== */
 
-/* ლინკი აუცილებლად clickable იყოს */
+.footerLinks {
+  display: flex;
+  margin: auto;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+footer a {
+  color: white;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+footer a:hover {
+  color: #3498db;
+}
+
+/* ===================== BOTTOM ===================== */
+
+.footerBottom {
+  width: 100%;
+  text-align: right;
+  padding: 10px 20px;
+  font-size: 12px;
+  color: #bdc3c7;
+}
+
+/* ===================== CONTACT LINK ===================== */
+
 .contactLink {
   color: #fff;
   text-decoration: none;
   margin-left: 6px;
   transition: color .2s ease;
-  pointer-events: auto;     /* თუ სადმე იყო გამორთული */
-  position: relative;       /* overlay-ებისგან*/
+  position: relative;
   z-index: 2;
 }
 
-.contactLink:hover { color: #4a90e2; text-decoration: underline; }
+.contactLink:hover {
+  color: #4a90e2;
+  text-decoration: underline;
+}
 
-/* ზოგჯერ მშობელს შეიძლება ჰქონდეს pointer-events:none; */
-.contact { pointer-events: auto; }
+/* ===================== RESPONSIVE ===================== */
 
-/* თუ სადმე გაქვს ზედ დამხატული overlay (მაგ. :before), დარწმუნდი რომ არ ფარავს */
-
-
-@media (max-width: 380px) {
-  .footerContent{
-    display: flex;
-    justify-content: center;
+/* tablet */
+@media (max-width: 900px) {
+  .footerContent {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
   }
 
-  .footerLinks{
-    margin: 0;
+  .footerBottom {
+    text-align: center;
   }
 }
 
-
-@media (max-width: 430px) {
-  .footerContent{
-    display: flex;
-    justify-content: center;
+/* mobile */
+@media (max-width: 640px) {
+  .pageWrapper {
+    padding: 24px 12px;
   }
 
-  .footerLinks{
-    margin: 0;
+  footer {
+    padding: 16px 10px;
+    gap: 16px;
+  }
+
+  .footerContent {
+    gap: 20px;
+  }
+
+  .logo {
+    width: 44px;
+    height: 44px;
+  }
+
+  .instagram,
+  .facebook,
+  .tiktok,
+  .youtube {
+    width: 26px;
+    height: 26px;
+  }
+
+  .footerLinks {
+    gap: 20px;
   }
 }
 
+/* პატარა ტელეფონები */
+@media (max-width: 400px) {
+  .logo {
+    width: 40px;
+    height: 40px;
+  }
 
-/* ====== @media skeleton (mobile-first) ====== */
-/* xs: base styles */
-
-/* sm */
-@media (min-width: 480px){ /* small tweaks */ }
-
-/* md- */
-@media (min-width: 640px){ /* small/medium tweaks */ }
-
-/* md */
-@media (min-width: 768px){ /* medium screens */ }
-
-/* lg */
-@media (min-width: 1024px){ /* large screens */ }
-
-/* xl */
-@media (min-width: 1280px){ /* extra large screens */ }
+  .footerLinks {
+    gap: 16px;
+  }
+}

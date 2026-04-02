@@ -1,3 +1,5 @@
+/* ===================== BLOG DETAIL PAGE ===================== */
+
 .page {
   min-height: 100vh;
   padding: 120px 20px 72px;
@@ -10,7 +12,8 @@
   max-width: 1120px;
 }
 
-/* STATES */
+/* ===================== STATES ===================== */
+
 .loader {
   margin-top: 200px;
   text-align: center;
@@ -51,7 +54,8 @@
   background: #ffffff;
 }
 
-/* BACK */
+/* ===================== BACK ===================== */
+
 .back {
   display: inline-flex;
   align-items: center;
@@ -63,14 +67,16 @@
   font-weight: 700;
 }
 
-/* ARTICLE */
+/* ===================== ARTICLE ===================== */
+
 .article {
   display: flex;
   flex-direction: column;
   gap: 40px;
 }
 
-/* HERO */
+/* ===================== HERO ===================== */
+
 .hero {
   display: flex;
   flex-direction: column;
@@ -97,6 +103,17 @@
   line-height: 1.85;
 }
 
+.metaInfo {
+  margin-top: 12px;
+  color: #94a3b8;
+  font-size: 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ===================== COVER IMAGE (მთავარი ფიქსი) ===================== */
+
 .coverWrap {
   overflow: hidden;
   border-radius: 22px;
@@ -107,18 +124,21 @@
 .coverImage {
   display: block;
   width: 100%;
-  height: 520px;
+  height: auto;              /* 🔥 მთავარი ცვლილება */
+  max-height: 520px;         /* desktop limit */
   object-fit: cover;
 }
 
-/* CONTENT */
+/* ===================== CONTENT ===================== */
+
 .content {
   display: flex;
   flex-direction: column;
   gap: 56px;
 }
 
-/* SECTION */
+/* ===================== SECTION ===================== */
+
 .section {
   display: grid;
   grid-template-columns: 1fr;
@@ -147,6 +167,8 @@
   grid-template-columns: 1fr;
 }
 
+/* ===================== SECTION IMAGE ===================== */
+
 .sectionImageWrap {
   overflow: hidden;
   border-radius: 18px;
@@ -157,8 +179,12 @@
   display: block;
   width: 100%;
   height: auto;
+  max-height: 420px;
+  object-fit: cover;
   border-radius: 18px;
 }
+
+/* ===================== TEXT ===================== */
 
 .sectionText {
   display: flex;
@@ -174,19 +200,31 @@
   word-break: break-word;
 }
 
-/* RESPONSIVE */
+/* LINKS */
+.sectionText a {
+  color: #60a5fa;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(96, 165, 250, 0.4);
+  transition: all 0.2s ease;
+}
+
+.sectionText a:hover {
+  color: #93c5fd;
+  border-bottom: 1px solid #93c5fd;
+}
+
+/* ===================== RESPONSIVE ===================== */
+
+/* tablet layout */
 @media (min-width: 860px) {
   .section {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 32px;
   }
-
-  .sectionTextOnly,
-  .sectionImageOnly {
-    grid-template-columns: 1fr;
-  }
 }
 
+/* tablet down */
 @media (max-width: 900px) {
   .title {
     font-size: 36px;
@@ -197,22 +235,23 @@
   }
 
   .coverImage {
-    height: 420px;
+    max-height: 420px;
   }
 }
 
+/* mobile */
 @media (max-width: 640px) {
   .page {
-    padding: 104px 16px 56px;
+    padding: 100px 14px 50px;
   }
 
   .title {
-    font-size: 30px;
+    font-size: 28px;
   }
 
   .description {
     margin-top: 14px;
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.8;
   }
 
@@ -221,11 +260,15 @@
   }
 
   .coverImage {
-    height: 260px;
+    max-height: 260px;
   }
 
   .content {
     gap: 36px;
+  }
+
+  .sectionImage {
+    max-height: 260px;
   }
 
   .sectionText p {
@@ -233,23 +276,18 @@
     line-height: 1.85;
   }
 }
-.metaInfo {
-  margin-top: 12px;
-  color: #94a3b8;
-  font-size: 14px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.sectionText a {
-  color: #60a5fa; /* ლამაზი ლურჯი */
-  font-weight: 600;
-  text-decoration: none;
-  border-bottom: 1px solid rgba(96, 165, 250, 0.4);
-  transition: all 0.2s ease;
-}
 
-.sectionText a:hover {
-  color: #93c5fd;
-  border-bottom: 1px solid #93c5fd;
+/* პატარა ტელეფონები */
+@media (max-width: 420px) {
+  .title {
+    font-size: 24px;
+  }
+
+  .coverImage {
+    max-height: 220px;
+  }
+
+  .sectionImage {
+    max-height: 220px;
+  }
 }
