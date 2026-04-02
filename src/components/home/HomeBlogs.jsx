@@ -8,9 +8,22 @@ const API_BASE =
   "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 const BASE = `${API_BASE}/blogs`;
+const FALLBACK_IMAGE = "/noimage.jpeg";
+
+function normalizeText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function stripHtml(html) {
+  if (!html) return "";
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || div.innerText || "";
+}
 
 const getTS = (b) => {
-  const raw = b?.updated_at || b?.created_at || b?.updatedAt || b?.createdAt || null;
+  const raw =
+    b?.updated_at || b?.created_at || b?.updatedAt || b?.createdAt || null;
   const ts = raw ? new Date(raw).getTime() : 0;
   return Number.isFinite(ts) ? ts : 0;
 };
@@ -43,13 +56,16 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
           .filter((b) => b?.is_active !== false)
           .sort(compareBlogs)
           .slice(0, limit);
+
         setItems(filtered);
       })
       .catch((e) => {
         console.error("HomeBlogs fetch error:", e);
         if (alive) setItems([]);
       })
-      .finally(() => alive && setLoading(false));
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
 
     return () => {
       alive = false;
@@ -75,38 +91,62 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className={styles.empty}>
-          ბლოგები ჯერ არ არის.
-        </div>
+        <div className={styles.empty}>ბლოგები ჯერ არ არის.</div>
       ) : (
         <div className={styles.grid}>
           {items.map((b) => {
             const id = b.id ?? b._id;
-            const title = b.title || "";
+            const slug = normalizeText(b?.slug);
+            const title = normalizeText(b?.title) || "უსათაურო ბლოგი";
             const cover =
-              b.cover_image ||
-              b.image ||
-              b.image_url ||
-              b.image_url1 ||
-              null;
-            const excerpt = b.excerpt || b.summary || "";
+              normalizeText(b?.cover_image) ||
+              normalizeText(b?.image) ||
+              normalizeText(b?.image_url) ||
+              normalizeText(b?.image_url1) ||
+              FALLBACK_IMAGE;
+
+            const rawExcerpt =
+              normalizeText(b?.description) ||
+              normalizeText(b?.excerpt) ||
+              normalizeText(b?.summary) ||
+              "";
+
+            const excerpt = stripHtml(rawExcerpt);
+
+            const openBlog = () => {
+              if (!slug) {
+                console.warn("HomeBlogs: slug not found for blog:", b);
+                return;
+              }
+              navigate(`/blog/${slug}`);
+            };
 
             return (
               <article
                 key={id}
-                style={{ cursor: "pointer", position: "relative" }}
                 className={styles.cardLike}
+                style={{ cursor: slug ? "pointer" : "default", position: "relative" }}
+                onClick={openBlog}
+                role="button"
+                tabIndex={slug ? 0 : -1}
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === " ") && slug) {
+                    e.preventDefault();
+                    openBlog();
+                  }
+                }}
+                aria-label={`${title} - ბლოგის გახსნა`}
               >
-                {cover ? (
-                  <div className={styles.cardImageWrap}>
-                    <img
-                      src={cover}
-                      alt={title}
-                      className={styles.productImage}
-                      style={{ objectFit: "cover" }}
-                    />
-                  </div>
-                ) : null}
+                <div className={styles.cardImageWrap}>
+                  <img
+                    src={cover}
+                    alt={title}
+                    className={styles.productImage}
+                    style={{ objectFit: "cover" }}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
 
                 <div style={{ padding: 12 }}>
                   <h3
@@ -117,9 +157,7 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
                   </h3>
 
                   {excerpt ? (
-                    <p className={styles.cardExcerptClamp}>
-                      {excerpt}
-                    </p>
+                    <p className={styles.cardExcerptClamp}>{excerpt}</p>
                   ) : null}
                 </div>
 
@@ -128,7 +166,7 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
                     className={styles.readMoreBtn}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/blog/${id}`);
+                      openBlog();
                     }}
                     type="button"
                   >

@@ -1,0 +1,13 @@
+User-agent: *
+
+# ❌ private
+Disallow: /admin/
+Disallow: /login
+Disallow: /checkout
+Disallow: /payment/
+Disallow: /*?*
+
+# ✅ allow everything else
+Allow: /
+
+Sitemap: https://artopia.ge/sitemap.xml
