@@ -242,7 +242,7 @@
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .sectionCardHeader {
@@ -286,7 +286,8 @@
 .fieldGroup {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+  margin-bottom: 10px;
 }
 
 .label {
@@ -657,4 +658,185 @@
   .submitButton {
     width: 100%;
   }
+}
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #000;
+}
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.infoWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.infoButton {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.18s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.infoButton:hover {
+  background: #dbeafe;
+  transform: translateY(-1px);
+}
+
+.infoButtonActive {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.infoTooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 30;
+  width: min(320px, 75vw);
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.24);
+}
+
+.autoHint {
+  margin: -2px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid #dbe2ea;
+  background: #ffffff;
+  font-size: 15px;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.16);
+}
+
+@media (max-width: 768px) {
+  .infoTooltip {
+    width: min(280px, 80vw);
+    left: 0;
+  }
+}
+.seoPreviewBox {
+  margin-top: 16px;
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.seoPreviewTitle {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.seoRow {
+  margin-bottom: 10px;
+  word-break: break-word;
+}
+
+.seoRow strong {
+  display: inline-block;
+  min-width: 140px;
+}
+
+.seoImageWrap {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.seoImage {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+.ql-tooltip {
+  top: -60px !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+  z-index: 9999;
+}
+.ql-container {
+  min-height: 260px;
+}
+
+.ql-editor {
+  min-height: 220px;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.sectionText h1 {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 16px 0;
+}
+
+.sectionText h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 14px 0;
+}
+
+.sectionText h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 12px 0;
+}
+
+.sectionText ul {
+  padding-left: 20px;
+}
+
+.sectionText li {
+  margin-bottom: 6px;
 }

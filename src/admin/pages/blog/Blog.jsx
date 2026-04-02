@@ -1,7 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./Blog.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
-
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+const modules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],   // სათაურები
+    ["bold", "italic", "underline"],
+    [{ color: [] }, { background: [] }], // ფერები
+    [{ size: ["small", false, "large", "huge"] }], // ზომა
+    [{ list: "ordered" }, { list: "bullet" }], // სიები
+    ["link"],
+    ["clean"] // clear formatting
+  ]
+};
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
 const MAX_SECTIONS = 10;
 
@@ -27,29 +39,99 @@ async function uploadToCloudinary(file) {
   const data = await res.json();
   return data?.secure_url || null;
 }
-
 const emptySection = () => ({
   text: "",
   image_file: null,
   image_preview: null,
 });
+const DEFAULT_FORM = {
+  title: "",
+  description: "",
+  keywords: "",
+  cover_image: "",
+  is_active: true,
+};
 
+const DEFAULT_MANUAL = {
+  title: false,
+  slug: false,
+  meta_title: false,
+  meta_description: false,
+  keywords: false,
+  cover_image: false,
+  og_title: false,
+  og_description: false,
+  og_image: false,
+  canonical_url: false,
+};
+
+const FIELD_HELP = {
+  is_active: "თუ ჩართულია, ბლოგი გამოჩნდება საიტზე. თუ გამორთულია, დარჩება მხოლოდ ადმინისთვის.",
+  title: "ბლოგის მთავარი სათაური. თუ არ შეავსებ, შეიძლება პირველი სექციის ტექსტიდან შეივსოს ავტომატურად.",
+  slug: "URL-ის ბოლო ნაწილი. შეგიძლია არ ჩაწერო — სათაურიდან დაგენერირდება preview.",
+  meta_title: "SEO სათაური Google-ისთვის. თუ ცარიელია, სათაურის მიხედვით შეივსება preview.",
+  meta_description: "მოკლე SEO აღწერა. თუ ცარიელია, პირველი ტექსტიდან შეიქმნება preview.",
+  keywords: "საკვანძო სიტყვები მძიმეებით გამოყოფილი. მაგალითად: ხელნაკეთი, დეკორი, საჩუქარი.",
+  cover_image: "ბლოგის მთავარი cover სურათი. თუ ცარიელია, პირველი section-ის ფოტოს გამოვიყენებთ preview-ად.",
+  og_title: "სათაური Facebook/LinkedIn share-ისთვის. თუ არ ჩაწერ, meta title/title-დან შეივსება preview.",
+  og_description: "აღწერა share-ისთვის. თუ არ ჩაწერ, meta description-იდან შეივსება preview.",
+  og_image: "სურათი share-ისთვის. თუ ცარიელია, cover image-ის preview გამოვიყენებთ.",
+  canonical_url: "ბლოგის ოფიციალური canonical URL. ეს ველი ჯობს ხელით შეავსო მხოლოდ მაშინ, როცა ზუსტად იცი public URL.",
+  section_text: "ამ სექციის ტექსტი. თუ ეს პირველი ტექსტიანი სექციაა, მისგან შეიძლება title/meta description preview შეიქმნას.",
+  section_image: "ამ სექციის ფოტო. თუ ეს პირველი ფოტოიანი სექციაა, მისგან შეიძლება cover/og image preview შეიქმნას.",
+};
+
+const GEO_MAP = {
+  "ა": "a", "ბ": "b", "გ": "g", "დ": "d", "ე": "e",
+  "ვ": "v", "ზ": "z", "თ": "t", "ი": "i", "კ": "k",
+  "ლ": "l", "მ": "m", "ნ": "n", "ო": "o", "პ": "p",
+  "ჟ": "zh", "რ": "r", "ს": "s", "ტ": "t", "უ": "u",
+  "ფ": "f", "ქ": "q", "ღ": "gh", "ყ": "y", "შ": "sh",
+  "ჩ": "ch", "ც": "ts", "ძ": "dz", "წ": "w", "ჭ": "ch",
+  "ხ": "kh", "ჯ": "j", "ჰ": "h",
+};
+
+function trimTo(val, max) {
+  return (val || "").trim().slice(0, max);
+}
+
+
+function getFirstSectionText(sections) {
+  const item = sections.find((s) => (s.text || "").trim());
+  return item ? item.text.trim() : "";
+}
+
+function getFirstSectionImage(sections) {
+  const item = sections.find((s) => s.image_preview);
+  return item?.image_preview || "";
+}
 export default function Blog() {
   const navigate = useNavigate();
   const location = useLocation();
   const editingBlog = location.state?.blog || null;
 
   const topRef = useRef(null);
+  const [seoData, setSeoData] = useState(null);
 
-  const [form, setForm] = useState({
-    is_active: true,
-  });
-
+const [form, setForm] = useState(DEFAULT_FORM);
+const [manual, setManual] = useState(DEFAULT_MANUAL);
+const [pinnedTooltip, setPinnedTooltip] = useState(null);
+const [hoveredTooltip, setHoveredTooltip] = useState(null);
+const tooltipRefs = useRef({});
   const [sections, setSections] = useState([emptySection()]);
   const [blogs, setBlogs] = useState([]);
   const [editingId, setEditingId] = useState(editingBlog?.id || null);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
+  const [coverFile, setCoverFile] = useState(null);
+const [coverPreview, setCoverPreview] = useState(null);
+const firstSectionText = getFirstSectionText(sections);
+const firstSectionImage = getFirstSectionImage(sections);
+
+const resolvedTitle = (form.title || "").trim() || trimTo(firstSectionText, 255);
+const resolvedCoverImage =
+  (form.cover_image || "").trim() || firstSectionImage;
+
 
   /* ---------------- FETCH LIST ---------------- */
   const fetchBlogs = async () => {
@@ -65,7 +147,21 @@ export default function Blog() {
   useEffect(() => {
     fetchBlogs();
   }, []);
+useEffect(() => {
+  const handleOutsideClick = (e) => {
+    if (!pinnedTooltip) return;
 
+    const node = tooltipRefs.current[pinnedTooltip];
+    if (node && !node.contains(e.target)) {
+      setPinnedTooltip(null);
+    }
+  };
+
+  document.addEventListener("mousedown", handleOutsideClick);
+  return () => {
+    document.removeEventListener("mousedown", handleOutsideClick);
+  };
+}, [pinnedTooltip]);
   /* ---------------- FETCH DETAIL ---------------- */
   const fetchDetail = async (id) => {
     try {
@@ -73,10 +169,37 @@ export default function Blog() {
       if (!res.ok) return;
       const data = await res.json();
 
-      setForm({
-        is_active: data.is_active ?? true,
-      });
+setForm({
+  title: data.title || "",
+  description: data.description || "",
+  keywords: data.keywords || "",
+  cover_image: data.cover_image || "",
+  is_active: data.is_active ?? true,
+});
+setSeoData({
+  slug: data.slug || "",
+  meta_title: data.meta_title || "",
+  meta_description: data.meta_description || "",
+  og_title: data.og_title || "",
+  og_description: data.og_description || "",
+  og_image: data.og_image || "",
+  canonical_url: data.canonical_url || "",
 
+  created_at: data.created_at || "",
+  updated_at: data.updated_at || "",
+});
+setManual({
+  title: !!data.title,
+  slug: !!data.slug,
+  meta_title: !!data.meta_title,
+  meta_description: !!data.meta_description,
+  keywords: !!data.keywords,
+  cover_image: !!data.cover_image,
+  og_title: !!data.og_title,
+  og_description: !!data.og_description,
+  og_image: !!data.og_image,
+  canonical_url: !!data.canonical_url,
+});
       const normalized =
         data.sections?.map((s) => ({
           text: s.text || "",
@@ -114,23 +237,35 @@ export default function Blog() {
     try {
       await fetch(`${BASE}/${id}`, { method: "DELETE" });
       fetchBlogs();
-
-      if (editingId === id) {
-        setForm({ is_active: true });
-        setSections([emptySection()]);
-        setEditingId(null);
-      }
+if (editingId === id) {
+  setForm(DEFAULT_FORM);
+  setManual(DEFAULT_MANUAL);
+  setSections([emptySection()]);
+  setEditingId(null);
+  setSeoData(null);
+}
     } catch (err) {
       console.error(err);
     }
   };
 
   /* ---------------- FORM ---------------- */
-  const handleChange = (e) => {
-    const { name, checked } = e.target;
-    setForm((f) => ({ ...f, [name]: checked }));
-  };
+const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
+  const nextValue = type === "checkbox" ? checked : value;
 
+  setForm((f) => ({
+    ...f,
+    [name]: nextValue,
+  }));
+
+  if (type !== "checkbox" && name in DEFAULT_MANUAL) {
+    setManual((m) => ({
+      ...m,
+      [name]: value.trim().length > 0,
+    }));
+  }
+};
   const handleTextChange = (idx, value) => {
     setSections((arr) =>
       arr.map((s, i) => (i === idx ? { ...s, text: value } : s))
@@ -155,6 +290,19 @@ export default function Blog() {
     );
   };
 
+  const handleCoverChange = (file) => {
+  if (!file) return;
+
+  const preview = URL.createObjectURL(file);
+
+  setCoverFile(file);
+  setCoverPreview(preview);
+  setForm((f) => ({ ...f, cover_image: preview }));
+
+  // manual flag რომ ჩაირთოს
+  setManual((m) => ({ ...m, cover_image: true }));
+};
+
   const addSection = () => {
     if (sections.length >= MAX_SECTIONS) return;
     setSections((arr) => [...arr, emptySection()]);
@@ -164,12 +312,21 @@ export default function Blog() {
     setSections((arr) => arr.filter((_, i) => i !== idx));
   };
 
-  const resetForm = () => {
-    setForm({ is_active: true });
-    setSections([emptySection()]);
-    setEditingId(null);
-    setError("");
-  };
+const resetForm = () => {
+  setForm(DEFAULT_FORM);
+  setManual(DEFAULT_MANUAL);
+  setSections([emptySection()]);
+  setEditingId(null);
+  setSeoData(null);
+  setError("");
+
+  // 👇 ეს დაამატე
+  setCoverFile(null);
+  setCoverPreview(null);
+
+  setPinnedTooltip(null);
+  setHoveredTooltip(null);
+};
 
   /* ---------------- SUBMIT ---------------- */
   const handleSubmit = async (e) => {
@@ -177,50 +334,101 @@ export default function Blog() {
     setError("");
 
     const fd = new FormData();
-    fd.append("is_active", form.is_active ? "true" : "false");
+fd.append("title", resolvedTitle);
+fd.append("description", form.description);
+fd.append("keywords", form.keywords.trim());
+if (coverFile instanceof File) {
+  const uploaded = await uploadToCloudinary(coverFile);
+  if (uploaded) {
+    fd.append("cover_image", uploaded);
+  }
+} else {
+  fd.append("cover_image", resolvedCoverImage);
+}
 
-    try {
-      for (let i = 0; i < sections.length; i++) {
-        const s = sections[i];
-        const pos = i + 1;
+try {
+  for (let i = 0; i < sections.length; i++) {
+    const s = sections[i];
+    const pos = i + 1;
 
-        if (s.text) {
-          fd.append(`text_${pos}`, s.text);
-        }
-
-        if (s.image_file instanceof File) {
-          const uploadedUrl = await uploadToCloudinary(s.image_file);
-          if (uploadedUrl) {
-            fd.append(`image_url_${pos}`, uploadedUrl);
-          }
-        } else if (s.image_preview) {
-          fd.append(`image_url_${pos}`, s.image_preview);
-        }
-      }
-
-      const url = editingId ? `${BASE}/${editingId}` : BASE;
-      const method = editingId ? "PUT" : "POST";
-
-      const res = await fetch(url, { method, body: fd });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data?.error || "შეცდომა");
-        return;
-      }
-
-      alert(editingId ? "განახლდა" : "დაემატა");
-
-      resetForm();
-      fetchBlogs();
-
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (err) {
-      console.error(err);
-      setError("სერვერის შეცდომა");
+    if (s.text) {
+      fd.append(`text_${pos}`, s.text);
     }
-  };
 
+    if (s.image_file instanceof File) {
+      const uploadedUrl = await uploadToCloudinary(s.image_file);
+      if (uploadedUrl) {
+        fd.append(`image_url_${pos}`, uploadedUrl);
+      }
+    } else if (s.image_preview) {
+      fd.append(`image_url_${pos}`, s.image_preview);
+    }
+  }
+
+  const url = editingId ? `${BASE}/${editingId}` : BASE;
+  const method = editingId ? "PUT" : "POST";
+
+  const res = await fetch(url, { method, body: fd });
+  const data = await res.json();
+
+  if (!res.ok) {
+    setError(data?.error || "შეცდომა");
+    return;
+  }
+
+  alert(editingId ? "განახლდა" : "დაემატა");
+
+  resetForm();
+  fetchBlogs();
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+} catch (err) {
+  console.error(err);
+  setError("სერვერის შეცდომა");
+}
+};
+const activeTooltip = pinnedTooltip || hoveredTooltip;
+
+const renderLabel = (text, key, helpText) => (
+  <div
+    className={styles.labelRow}
+    ref={(node) => {
+      if (node) tooltipRefs.current[key] = node;
+    }}
+  >
+    <label className={styles.label}>{text}</label>
+
+    <div
+      className={styles.infoWrap}
+      onMouseEnter={() => {
+        if (pinnedTooltip !== key) setHoveredTooltip(key);
+      }}
+      onMouseLeave={() => {
+        if (pinnedTooltip !== key) setHoveredTooltip(null);
+      }}
+    >
+      <button
+        type="button"
+        className={`${styles.infoButton} ${
+          activeTooltip === key ? styles.infoButtonActive : ""
+        }`}
+        onClick={() => {
+          setPinnedTooltip((prev) => (prev === key ? null : key));
+          setHoveredTooltip(null);
+        }}
+        aria-label={`${text} info`}
+      >
+        i
+      </button>
+
+      {activeTooltip === key && (
+        <div className={styles.infoTooltip}>
+          {helpText}
+        </div>
+      )}
+    </div>
+  </div>
+);
   const filteredBlogs = blogs.filter((b) =>
     (b.title || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -263,6 +471,7 @@ export default function Blog() {
 
             <form onSubmit={handleSubmit} className={styles.form}>
               <div className={styles.statusRow}>
+                {renderLabel("სტატუსი", "is_active", FIELD_HELP.is_active)}
                 <label className={styles.statusToggle}>
                   <input
                     type="checkbox"
@@ -283,6 +492,150 @@ export default function Blog() {
                   </strong>
                 </div>
               </div>
+
+              {editingId && seoData && (
+  <div className={styles.seoPreviewBox}>
+    <h3 className={styles.seoPreviewTitle}>SEO მონაცემები (backend-generated)</h3>
+
+    <div className={styles.seoRow}>
+      <strong>Slug:</strong> <span>{seoData.slug || "-"}</span>
+    </div>
+
+    <div className={styles.seoRow}>
+      <strong>Meta Title:</strong> <span>{seoData.meta_title || "-"}</span>
+    </div>
+
+    <div className={styles.seoRow}>
+      <strong>Meta Description:</strong> <span>{seoData.meta_description || "-"}</span>
+    </div>
+
+    <div className={styles.seoRow}>
+      <strong>OG Title:</strong> <span>{seoData.og_title || "-"}</span>
+    </div>
+
+    <div className={styles.seoRow}>
+      <strong>OG Description:</strong> <span>{seoData.og_description || "-"}</span>
+    </div>
+
+    <div className={styles.seoRow}>
+      <strong>Canonical URL:</strong> <span>{seoData.canonical_url || "-"}</span>
+    </div>
+<div className={styles.seoRow}>
+  <strong>Author:</strong> <span>Artopia</span>
+</div>
+
+<div className={styles.seoRow}>
+  <strong>Created:</strong>{" "}
+  <span>
+    {seoData.created_at
+      ? new Date(seoData.created_at).toLocaleString()
+      : "-"}
+  </span>
+</div>
+
+<div className={styles.seoRow}>
+  <strong>Updated:</strong>{" "}
+  <span>
+    {seoData.updated_at
+      ? new Date(seoData.updated_at).toLocaleString()
+      : "-"}
+  </span>
+</div>
+    {seoData.og_image && (
+      <div className={styles.seoImageWrap}>
+        <strong>OG Image:</strong>
+        <img src={seoData.og_image} alt="OG Preview" className={styles.seoImage} />
+      </div>
+    )}
+  </div>
+)}
+
+<div className={styles.fieldGroup}>
+  {renderLabel("სათაური (title)", "title", FIELD_HELP.title)}
+  <input
+    type="text"
+    name="title"
+    value={form.title}
+    onChange={handleChange}
+    className={styles.input}
+    placeholder={resolvedTitle && !manual.title ? resolvedTitle : ""}
+  />
+  {!manual.title && resolvedTitle && (
+    <p className={styles.autoHint}>ავტო-preview: {resolvedTitle}</p>
+  )}
+</div>
+
+<div className={styles.fieldGroup}>
+  {renderLabel("აღწერა", "description", "ბლოგის მოკლე აღწერა (SEO და intro)")}
+  <textarea
+    name="description"
+    value={form.description}
+    onChange={handleChange}
+    className={styles.textarea}
+    placeholder="მოკლე აღწერა..."
+  />
+</div>
+
+<div className={styles.fieldGroup}>
+  {renderLabel("Keywords", "keywords", FIELD_HELP.keywords)}
+  <input
+    type="text"
+    name="keywords"
+    value={form.keywords}
+    onChange={handleChange}
+    className={styles.input}
+  />
+</div>
+
+<div className={styles.fieldGroup}>
+  {renderLabel("Cover Image", "cover_image", FIELD_HELP.cover_image)}
+
+  {/* preview */}
+  {(coverPreview || form.cover_image) ? (
+    <div className={styles.imagePreviewCard}>
+      <img
+        src={coverPreview || form.cover_image}
+        className={styles.blogImage}
+        alt="cover"
+      />
+
+      <button
+        type="button"
+        className={styles.removeBtn}
+        onClick={() => {
+          setCoverFile(null);
+          setCoverPreview(null);
+          setForm((f) => ({ ...f, cover_image: "" }));
+          setManual((m) => ({ ...m, cover_image: false }));
+        }}
+        style={{ position: "absolute", top: 8, right: 8 }}
+      >
+        ✕
+      </button>
+    </div>
+  ) : (
+    <div className={styles.emptyImageBox}>
+      <span>ქავერ ფოტო არ არის არჩეული</span>
+    </div>
+  )}
+
+  {/* upload */}
+  <label className={styles.uploadBtn}>
+    ფოტოს ატვირთვა
+    <input
+      type="file"
+      accept="image/*"
+      className={styles.hiddenInput}
+      onChange={(e) => handleCoverChange(e.target.files?.[0])}
+    />
+  </label>
+
+  {/* fallback preview */}
+  {!manual.cover_image && resolvedCoverImage && (
+    <p className={styles.autoHint}>ავტო-preview: პირველი სექციის ფოტო</p>
+  )}
+</div>
+
 
               <div className={styles.sectionsToolbar}>
                 <div>
@@ -320,18 +673,21 @@ export default function Blog() {
                       )}
                     </div>
 
+                   
+                   
                     <div className={styles.fieldGroup}>
-                      <label className={styles.label}>ტექსტი</label>
-                      <textarea
-                        className={styles.textarea}
-                        value={s.text}
-                        onChange={(e) => handleTextChange(idx, e.target.value)}
-                        placeholder="ჩაწერე ტექსტი..."
-                      />
+
+{renderLabel("ტექსტი", `section_text_${idx}`, FIELD_HELP.section_text)}
+ <ReactQuill
+  value={s.text}
+  onChange={(value) => handleTextChange(idx, value)}
+  modules={modules}
+  theme="snow"
+/>
                     </div>
 
                     <div className={styles.fieldGroup}>
-                      <label className={styles.label}>ფოტო</label>
+{renderLabel("ფოტო", `section_image_${idx}`, FIELD_HELP.section_image)}
 
                       {s.image_preview ? (
                         <div className={styles.imagePreviewCard}>

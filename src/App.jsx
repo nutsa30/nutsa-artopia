@@ -123,7 +123,7 @@ function App() {
 <Route path="/products/:slug" element={<SingleProductPage />} />
 
                   <Route path="/blogs" element={<BlogsPage />} />
-                  <Route path="/blog/:id" element={<BlogDetailPage />} />
+<Route path="/blog/:slug" element={<BlogDetailPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/payment/result" element={<PaymentResult />} />
