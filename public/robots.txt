@@ -8,4 +8,4 @@ Disallow: /*?*
 
 Allow: /
 
-Sitemap: https://artopia-backend-2024-54872c79acdd.herokuapp.com/sitemap.xml
+Sitemap: https://artopia.ge/sitemap.xml
