@@ -1,3 +1,5 @@
+/* ===================== BLOGS PAGE ===================== */
+
 .page {
   min-height: 100vh;
   padding: 120px 20px 72px;
@@ -10,7 +12,8 @@
   max-width: 1240px;
 }
 
-/* HERO */
+/* ===================== HERO ===================== */
+
 .hero {
   margin-bottom: 40px;
 }
@@ -75,7 +78,8 @@
   color: #94a3b8;
 }
 
-/* STATES */
+/* ===================== STATES ===================== */
+
 .loader,
 .error,
 .empty {
@@ -105,14 +109,16 @@
   color: #cbd5e1;
 }
 
-/* GRID */
+/* ===================== GRID ===================== */
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
 }
 
-/* CARD */
+/* ===================== CARD ===================== */
+
 .card {
   display: flex;
   flex-direction: column;
@@ -139,6 +145,8 @@
   outline-offset: 3px;
 }
 
+/* ===================== IMAGE (ძალიან მნიშვნელოვანია) ===================== */
+
 .imageWrap {
   position: relative;
   overflow: hidden;
@@ -157,6 +165,8 @@
 .card:hover .image {
   transform: scale(1.04);
 }
+
+/* ===================== BODY ===================== */
 
 .cardBody {
   display: flex;
@@ -179,6 +189,7 @@
   color: #cbd5e1;
   font-size: 15px;
   line-height: 1.75;
+
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
@@ -213,42 +224,75 @@
   transform: translateX(4px);
 }
 
-/* RESPONSIVE */
+/* ===================== RESPONSIVE ===================== */
+
+/* tablet */
 @media (max-width: 1080px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
+/* mobile */
 @media (max-width: 680px) {
   .page {
-    padding: 104px 16px 56px;
+    padding: 100px 14px 50px;
   }
 
   .heroInner {
-    padding: 22px 18px;
-    border-radius: 20px;
+    padding: 20px 16px;
+    border-radius: 18px;
   }
 
   .heading {
-    font-size: 32px;
+    font-size: 28px;
   }
 
   .subheading {
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .search {
+    max-width: 100%;
+    font-size: 14px;
+    padding: 12px 14px;
   }
 
   .grid {
     grid-template-columns: 1fr;
-    gap: 18px;
+    gap: 16px;
+  }
+
+  .cardBody {
+    padding: 16px;
   }
 
   .cardTitle {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .cardDescription,
   .cardDescriptionMuted {
     font-size: 14px;
+  }
+
+  .imageWrap {
+    aspect-ratio: 16 / 11;
+  }
+}
+
+/* პატარა ტელეფონები */
+@media (max-width: 420px) {
+  .heading {
+    font-size: 24px;
+  }
+
+  .cardTitle {
+    font-size: 16px;
+  }
+
+  .imageWrap {
+    aspect-ratio: 16 / 12;
   }
 }

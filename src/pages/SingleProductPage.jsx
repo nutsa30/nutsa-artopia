@@ -248,7 +248,25 @@ const visibleRelatedProducts = relatedProducts.slice(
       : description || "ნახე ეს პროდუქტი Artopia-ზე.";
 
   const seoImage = images[0] || "https://artopia.ge/social-preview.png";
-
+const productSchema = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  name: title,
+  image: images,
+  description: description,
+  brand: {
+    "@type": "Brand",
+    name: "Artopia",
+  },
+  offers: {
+    "@type": "Offer",
+    price: product.price,
+    priceCurrency: "GEL",
+    availability: inStock
+      ? "https://schema.org/InStock"
+      : "https://schema.org/OutOfStock",
+  },
+};
   return (
     <>
       <SEO
@@ -258,7 +276,10 @@ const visibleRelatedProducts = relatedProducts.slice(
         image={seoImage}
         type="product"
       />
-
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+/>
       <div className={styles.page}>
         <div className={styles.topBar}>
           <button
@@ -308,11 +329,13 @@ navigate(-1);
                 </button>
               )}
 
-              <img
-                src={images.length > 0 ? images[currentImageIndex] : NO_IMAGE}
-                alt={title || "product"}
-                className={styles.productImage}
-              />
+         <img
+  src={images.length > 0 ? images[currentImageIndex] : NO_IMAGE}
+  alt={`${title} - ${category} Artopia`}
+  className={styles.productImage}
+  loading="eager"
+  decoding="async"
+/>
 
               {images.length > 1 && (
                 <button
@@ -483,11 +506,12 @@ navigate(-1);
             className={styles.relatedCard}
             onClick={() => handleRelatedProductClick(item)}
           >
-            <img
-              src={item.image_url1 || NO_IMAGE}
-              alt={item.name || ""}
-              className={styles.relatedImage}
-            />
+        <img
+  src={item.image_url1 || NO_IMAGE}
+  alt={`${item.name} Artopia`}
+  className={styles.relatedImage}
+  loading="lazy"
+/>
 
             <div className={styles.relatedName}>{item.name}</div>
 

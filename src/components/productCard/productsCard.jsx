@@ -116,8 +116,12 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
 
   return (
     <>
-      <div className={`${styles.productCard} product-card`}>
-        {product?.is_new && (
+<div
+  className={`${styles.productCard} product-card`}
+  itemScope
+  itemType="https://schema.org/Product"
+>
+          {product?.is_new && (
           <div className={styles.ribbon}>
             <span>{T.new}</span>
           </div>
@@ -131,15 +135,17 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
           </div>
         )}
 
-        <img
-          ref={imgRef}
-          className={styles.image}
-          src={product.image_url1 || "/noimage.jpeg"}
-          alt={title || "product"}
-        />
+<img
+  ref={imgRef}
+  className={styles.image}
+  src={product.image_url1 || "/noimage.jpeg"}
+  alt={`${title} - ${category} Artopia`}
+  loading="lazy"
+  decoding="async"
+  itemProp="image"
+/>
 
-        {title ? <h3>{title}</h3> : <h3>—</h3>}
-
+{title ? <h3 title={title} itemProp="name">{title}</h3> : <h3>—</h3>}
         {category ? (
           <p className={styles.category}>
             {T.category}: {category}

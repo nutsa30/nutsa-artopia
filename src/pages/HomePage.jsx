@@ -63,12 +63,49 @@ export default function HomePage() {
   return (
     <>
       <SEO
-        title="არტოპია"
+        title="სამხატვრო და საკანცელარიო მაღაზია | Artopia"
         description="Artopia არის სამხატვრო და საკანცელარიო ონლაინ მაღაზია, სადაც ონლაინ შეიძენ სამხატვრო მასალას, სკოლის ნივთებს, საბავშვო განმავითარებელ სათამაშოებს და საოფისე პროდუქტებს"
         url="https://artopia.ge/"
       />
+      <script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "Artopia",
+      url: "https://artopia.ge/",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: "https://artopia.ge/products?search={search_term_string}",
+        "query-input": "required name=search_term_string",
+      },
+    }),
+  }}
+/>
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "Artopia",
+      url: "https://artopia.ge",
+      logo: "https://artopia.ge/logo.png",
+      sameAs: [
+        "https://www.instagram.com/artopia_tbilisi/",
+        "https://www.facebook.com/profile.php?id=100093336648910",
+        "https://www.tiktok.com/@artopia_tbilisi",
+        "https://youtube.com/@artopia_georgia"
+      ],
+    }),
+  }}
+/>
 
       <div className={styles?.page || ""} style={{ padding: "16px 20px" }}>
+        <h1 style={{ display: "none" }}>
+  სამხატვრო და საკანცელარიო მაღაზია Artopia
+</h1>
         <HomeCarousel autoPlayMs={6000} />
 
         <section className={styles.section}>

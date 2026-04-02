@@ -10,6 +10,7 @@ import {
   FaClock,
   FaPhoneAlt,
 } from "react-icons/fa";
+import SEO from "../components/SEO";
 
 const BASE =
   "https://artopia-backend-2024-54872c79acdd.herokuapp.com/contacts";
@@ -53,7 +54,33 @@ const ContactsPage = () => {
 
   if (error) return <div>{error}</div>;
 
-  return (
+return (
+  <>
+    <SEO
+      title="კონტაქტი | Artopia"
+      description="დაგვიკავშირდი Artopia-ს. ნახე ჩვენი მისამართი, ტელეფონი, ელფოსტა და სოციალური ქსელები."
+      url="https://artopia.ge/contact"
+    />
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Store",
+      name: "Artopia",
+      url: "https://artopia.ge",
+      telephone: contacts?.[0]?.phone || "",
+      email: contacts?.[0]?.email || "",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: contacts?.[0]?.address || "",
+        addressLocality: "Tbilisi",
+        addressCountry: "GE",
+      },
+    }),
+  }}
+/>
+
     <div className={styles.contactContainer}>
       {/* TikTok Gradient */}
       <svg width="0" height="0" style={{ position: "absolute" }}>
@@ -65,7 +92,7 @@ const ContactsPage = () => {
         </defs>
       </svg>
 
-      <h2>{T.title}</h2>
+<h1>{T.title}</h1>
 
       {contacts.length > 0 ? (
         <div className={styles.contactInfo}>
@@ -144,6 +171,7 @@ const ContactsPage = () => {
                   </a>
                 </div>
               </div>
+              
             );
           })}
         </div>
@@ -151,6 +179,7 @@ const ContactsPage = () => {
         <p>{T.empty}</p>
       )}
     </div>
+    </>
   );
 };
 

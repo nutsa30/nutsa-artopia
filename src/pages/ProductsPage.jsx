@@ -106,10 +106,6 @@ const ProductsPage = () => {
   const topRef = useRef(null);
 
 
-  const productsTitle = "პროდუქცია";
-  const productsDescription =
-    "Brendi Artopia გთავაზობთ სამხატვრო, საკანცელარიო, სასკოლო და საბავშვო პროდუქციას. შეარჩიე ფანქრები, საღებავები, რვეულები, ჩანთები, სათამაშოები და სხვა ნივთები ერთ ონლაინ მაღაზიაში.";
-  const productsUrl = "https://artopia.ge/products";
 
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -122,7 +118,20 @@ const ProductsPage = () => {
   );
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+const productsTitle =
+  selectedCategory && selectedCategory !== "ყველა"
+    ? `${selectedCategory} - პროდუქცია | Artopia`
+    : "პროდუქცია | Artopia";
 
+const productsDescription =
+  selectedCategory && selectedCategory !== "ყველა"
+    ? `აღმოაჩინე ${selectedCategory.toLowerCase()} Artopia-ზე. შეკვეთა ონლაინ, მრავალფეროვანი არჩევანი და ხარისხიანი პროდუქცია ერთ სივრცეში.`
+    : "Brendi Artopia გთავაზობთ სამხატვრო, საკანცელარიო, სასკოლო და საბავშვო პროდუქციას. შეარჩიე ფანქრები, საღებავები, რვეულები, ჩანთები, სათამაშოები და სხვა ნივთები ერთ ონლაინ მაღაზიაში.";
+
+const productsUrl =
+  selectedCategory && selectedCategory !== "ყველა"
+    ? `https://artopia.ge/products?category=${encodeURIComponent(selectedCategory)}`
+    : "https://artopia.ge/products";
   // idle | loading | success | not_found
 
   const scrollToTop = () => {
@@ -316,7 +325,23 @@ const handleProductClick = (product) => {
   });
 };
 const filteredProducts = products;
-
+const collectionSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: productsTitle,
+  description: productsDescription,
+  url: productsUrl,
+  mainEntity: {
+    "@type": "ItemList",
+    numberOfItems: filteredProducts.length,
+    itemListElement: filteredProducts.map((product, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: product?.slug ? `https://artopia.ge/products/${product.slug}` : undefined,
+      name: product?.name || "",
+    })),
+  },
+};
   return (
     <>
  <SEO
@@ -324,9 +349,14 @@ const filteredProducts = products;
   description={productsDescription}
   url={productsUrl}
 />
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
+/>
     
 
       <div ref={topRef} className={styles.pageWrapper}>
+        <h1 style={{ display: "none" }}>{productsTitle}</h1>
         <div className={styles.filterBar}>
           <div className={styles.selectDecor}>
        <ProductFilter
@@ -357,20 +387,22 @@ const filteredProducts = products;
             <div className={`${styles.productsGrid} ${styles.catalogGrid}`}>
 {filteredProducts.length > 0 ?(
 filteredProducts.map((product, index) => {
-                    console.log("[RENDER ORDER]", {
-                    index,
-                    name: product?.name,
-                    quantity: product?.quantity,
-                    normalizedQuantity: normalizeQuantity(product?.quantity),
-                    image: product?.image_url1,
-                  });
+                  
 
                   return (
-                    <div
-                      key={product._id || product.id}
-                      onClick={() => handleProductClick(product)}
-                      className={styles.cardWrap}
-                    >
+                 <div
+  key={product._id || product.id}
+  onClick={() => handleProductClick(product)}
+  className={styles.cardWrap}
+  role="link"
+  tabIndex={0}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleProductClick(product);
+    }
+  }}
+>
                       <ProductCard
                         product={product}
                         onAddToCart={(e, quantity, sourceProduct = product) => {

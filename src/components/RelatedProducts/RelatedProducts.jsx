@@ -156,11 +156,13 @@ const relatedProducts = products;
               title={item?.name || ""}
             >
               <div className={styles.imageWrap}>
-                <img
-                  src={getDisplayImage(item)}
-                  alt={item?.name || ""}
-                  className={styles.image}
-                />
+<img
+  src={getDisplayImage(item)}
+  alt={`${item?.name} - მსგავსი პროდუქტი Artopia`}
+  className={styles.image}
+  loading="lazy"
+  decoding="async"
+/>
               </div>
 
               <div className={styles.name}>{item?.name}</div>

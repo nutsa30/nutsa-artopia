@@ -1,3 +1,5 @@
+/* ===================== CONTACT PAGE ===================== */
+
 .contactContainer {
   display: flex;
   flex-direction: column;
@@ -6,30 +8,28 @@
   padding: 20px;
   color: #fff;
 
-  /* 🔥 უფრო გამოკვეთილი, მრავალფენიანი ჩრდილი მუქ ლურჯ ფონზე */
   box-shadow:
-    0 10px 24px rgba(0, 0, 0, 0.60),         /* ძირითადი ჩრდილი */
-    0 30px 90px rgba(0, 0, 0, 0.55),         /* შორი, ფაფუკი */
-    0 0 0 1px rgba(255,255,255,0.12),        /* თხელი გარე ხაზისკენ რგოლი */
-    0 0 52px 14px rgba(20, 54, 109, 0.40),   /* ლურჯი „ჰალო“ */
-    inset 0 2px 0 1px rgba(255,255,255,0.06);/* მსუბუქი შიდა ნათება */
+    0 10px 24px rgba(0, 0, 0, 0.60),
+    0 30px 90px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255,255,255,0.12),
+    0 0 52px 14px rgba(20, 54, 109, 0.40),
+    inset 0 2px 0 1px rgba(255,255,255,0.06);
 
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(25px);
+
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  position: relative;
-  top: 0;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.2);
+
   margin-top: 180px;
 
-  /* სმუთ ანიმაცია */
   transition: box-shadow 180ms ease, transform 160ms ease, border-color 160ms ease;
 }
 
-
+/* ===================== CONTENT ===================== */
 
 .contactInfo {
   width: 100%;
@@ -41,7 +41,7 @@
 
 .contactCard {
   padding: 20px;
-  margin: 10px 0px;
+  margin: 10px 0;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
@@ -51,35 +51,42 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
+  flex-wrap: wrap;
+  text-align: center;
 }
 
 .contactCard strong {
   color: #bfcfff;
   display: flex;
   flex-direction: row;
-  margin-left: 5px;
-  gap: 5px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
+
+/* ===================== SOCIAL ===================== */
 
 .socialRow {
   display: flex;
   justify-content: center;
   gap: 12px;
   margin-top: 8px;
+  flex-wrap: wrap;
 }
 
-.instagram, .facebook, .tiktok, .youtube {
+.instagram,
+.facebook,
+.tiktok,
+.youtube {
   color: white;
   transition: transform 0.15s ease, opacity 0.15s ease;
   width: 30px;
   height: 30px;
 }
 
-/* Instagram hover */
+/* Instagram */
 .instagram:hover {
-   transform: translateY(-1px) scale(1.05);
-
+  transform: translateY(-1px) scale(1.05);
   background: radial-gradient(circle at 35% 90%, #fec564, transparent 50%),
               radial-gradient(circle at 0 140%, #fec564, transparent 50%),
               radial-gradient(ellipse at 0 -25%, #5258cf, transparent 50%),
@@ -92,16 +99,15 @@
   border-radius: 10px;
 }
 
-/* Facebook hover */
+/* Facebook */
 .facebook:hover {
-   transform: translateY(-1px) scale(1.05);
-
+  transform: translateY(-1px) scale(1.05);
   background: linear-gradient(to bottom, #1877F2, #3b5998);
   -webkit-text-fill-color: transparent;
   border-radius: 50%;
 }
 
-/* --- TikTok triple-layer effect --- */
+/* TikTok */
 .tiktokLink {
   display: inline-flex;
   width: 30px;
@@ -112,46 +118,36 @@
   position: relative;
   width: 30px;
   height: 30px;
-  display: inline-block;
 }
 
-/* საერთო სტილი ყველა ფენისთვის */
 .tiktokBase,
 .tiktokCyan,
 .tiktokPink {
   position: absolute;
-  inset: 0;               /* top:0 right:0 bottom:0 left:0 */
+  inset: 0;
   width: 100%;
   height: 100%;
   transition: transform .18s ease, opacity .18s ease, filter .18s ease;
 }
 
-/* 1) ძირითადი თეთრი ლოგო (ყოველთვის ჩანს) */
 .tiktokBase {
   color: #ffffff;
   z-index: 3;
-  filter: drop-shadow(0 0 0 rgba(0,0,0,0));
 }
 
-/* 2) ცისფერი „ყაუში“ — hover-ზე გამოჩნდეს და ოდნავ მარცხნივ/ზემოთ გადაიწიოს */
 .tiktokCyan {
   color: #25f4ee;
   z-index: 2;
-  opacity: 0;                 /* default ფარულია */
-  transform: translate(0,0);
+  opacity: 0;
 }
 
-/* 3) ვარდისფერი „ყაუში“ — hover-ზე გამოჩნდეს და ოდნავ მარჯვნივ/ქვემოთ გადაიწიოს */
 .tiktokPink {
   color: #fe2c55;
   z-index: 1;
-  opacity: 0;                 /* default ფარულია */
-  transform: translate(0,0);
+  opacity: 0;
 }
 
-/* Hover state: ჩართე ფერები და გააკეთე ოპტიკური წანაცვლება */
 .tiktokLink:hover .tiktokCyan {
-
   opacity: 1;
   transform: translate(-2px, -1px);
 }
@@ -159,51 +155,69 @@
 .tiktokLink:hover .tiktokPink {
   opacity: 1;
   transform: translate(2px, 1px);
-     /* transform: translateY(-1px) scale(1.05); */
-
 }
 
-/* სურვილის მიხედვით პატარა ჩრდილი, რომ „სითეთრე“ არ დაიკარგოს ბნელ ფონზე */
 .tiktokLink:hover .tiktokBase {
   filter: drop-shadow(0 1px 0 rgba(0,0,0,.35));
-     transform: translateY(-1px) scale(1.05);
-
+  transform: translateY(-1px) scale(1.05);
 }
 
-
-/* YouTube hover */
+/* YouTube */
 .youtube:hover {
   color: #ff0033;
-   transform: translateY(-1px) scale(1.05);
-
+  transform: translateY(-1px) scale(1.05);
 }
 
+/* ===================== MOBILE FIX (მთავარი ნაწილი) ===================== */
 
-@media (max-width:400px){
-  .contactContainer{
-    width: 350px;
+@media (max-width: 640px) {
+  .contactContainer {
+    margin-top: 120px;
+    padding: 16px 12px;
   }
 
-  .contactContainer h2{
-    width: 150px;
+  .contactInfo {
+    padding: 10px;
+  }
+
+  .contactCard {
+    padding: 16px;
+  }
+
+  .contactCard p {
+    font-size: 14px;
+    gap: 4px;
+  }
+
+  .contactCard strong {
+    font-size: 14px;
+  }
+
+  .socialRow {
+    gap: 10px;
+  }
+
+  .instagram,
+  .facebook,
+  .tiktok,
+  .youtube {
+    width: 26px;
+    height: 26px;
   }
 }
 
+/* პატარა ეკრანები */
+@media (max-width: 400px) {
+  .contactContainer {
+    margin-top: 100px;
+    padding: 14px 10px;
+  }
 
-/* ====== @media skeleton (mobile-first) ====== */
-/* xs: base styles */
+  .contactCard {
+    padding: 14px;
+  }
 
-/* sm */
-@media (min-width: 480px){ /* small tweaks */ }
-
-/* md- */
-@media (min-width: 640px){ /* small/medium tweaks */ }
-
-/* md */
-@media (min-width: 768px){ /* medium screens */ }
-
-/* lg */
-@media (min-width: 1024px){ /* large screens */ }
-
-/* xl */
-@media (min-width: 1280px){ /* extra large screens */ }
+  .contactCard p {
+    font-size: 13px;
+  }
+}
