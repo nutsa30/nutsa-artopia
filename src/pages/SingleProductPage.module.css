@@ -147,37 +147,6 @@
   gap: 12px;
 }
 
-.qtyBtn {
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 12px;
-  background-color: #457b9d;
-  color: #f1faee;
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
-}
-
-.qtyBtn:hover:not(:disabled) {
-  background-color: #1d3557;
-}
-
-.qtyBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.qtyDisplay {
-  min-width: 40px;
-  text-align: center;
-  font-size: 22px;
-  font-weight: 700;
-  color: #fff;
-}
 
 .actionButtons {
   display: flex;
@@ -261,20 +230,78 @@
   transform: translateZ(5px) scale(0.9) rotate(-5deg);
 }
 .buyNowBtn {
-  background-color: #e63946;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 52px;
+  padding: 14px 24px;
+
   border: none;
-  min-height: 50px;
-  padding: 12px 24px;
-  color: #f1faee;
-  border-radius: 16px;
+  border-radius: 20px;
+
+  background: linear-gradient(to bottom, #28a745, #1e7e34);
+  color: #fff;
+
   font-weight: 700;
   cursor: pointer;
+
   flex: 1 1 180px;
-  transition: background-color 0.2s ease;
+  overflow: hidden;
+
+  box-shadow:
+    inset 0 5px 10px rgba(255, 255, 255, 0.18),
+    inset 0 -5px 10px rgba(0, 0, 0, 0.22),
+    0 5px 15px rgba(0, 0, 0, 0.28);
+
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  transform: perspective(500px) rotateX(5deg);
+  transform-style: preserve-3d;
 }
 
+.buyNowText {
+  position: relative;
+  z-index: 1;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: translateZ(10px);
+}
+
+/* 🔥 EXACT same hover */
 .buyNowBtn:hover {
-  background-color: #d62828;
+  transform: perspective(500px) rotateX(0deg) translateY(-3px);
+
+  background: linear-gradient(to bottom, #34d058, #28a745);
+
+  box-shadow:
+    inset 0 6px 12px rgba(255, 255, 255, 0.22),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.28),
+    0 8px 20px rgba(0, 0, 0, 0.34);
+}
+
+.buyNowBtn:hover .buyNowText {
+  transform: translateZ(15px) translateY(-4px);
+}
+
+/* active */
+.buyNowBtn:active {
+  transform: perspective(500px) rotateX(2deg) translateY(2px);
+
+  background: linear-gradient(to bottom, #1e7e34, #155724);
+
+  box-shadow:
+    inset 0 3px 6px rgba(255, 255, 255, 0.12),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.buyNowBtn:active .buyNowText {
+  transform: translateZ(5px) translateY(1px);
 }
 
 .cartIcon {
@@ -523,14 +550,77 @@
     justify-content: center;
   }
 
-  .qtyBtn {
-    width: 40px;
-    height: 40px;
-  }
+.qtyBtn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background-color: #457b9d;
+  color: #f1faee;
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+  overflow: hidden;
+  transition: background-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
 
-  .qtyDisplay {
-    font-size: 20px;
-  }
+.qtyBtn:hover:not(:disabled) {
+  background-color: #1d3557;
+}
+
+.qtyBtn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.qtyBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.qtyFlip {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: block;
+  transform-style: preserve-3d;
+}
+
+.qtyFront,
+.qtyBack {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  color: #f1faee;
+  background: transparent;
+  transition: transform 0.4s ease;
+}
+
+.qtyFront {
+  transform: rotateY(0deg);
+}
+
+.qtyBack {
+  transform: rotateY(180deg);
+}
+
+.qtyBtn:hover:not(:disabled) .qtyFront {
+  transform: rotateY(180deg);
+}
+
+.qtyBtn:hover:not(:disabled) .qtyBack {
+  transform: rotateY(360deg);
+}
 
   .actionButtons {
     flex-direction: column;
@@ -713,4 +803,86 @@
   .title {
     font-size: 26px;
   }
+}
+.checkboxWrapper {
+  position: relative;
+}
+
+/* hidden input */
+.checkbox {
+  display: none;
+}
+
+/* label */
+.checkboxLabel {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+/* flip container */
+.checkboxFlip {
+  width: 44px;
+  height: 44px;
+  perspective: 1000px;
+  position: relative;
+}
+
+/* sides */
+.checkboxFront,
+.checkboxBack {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  font-size: 24px;
+  font-weight: 700;
+  color: #f1faee;
+
+  background-color: #457b9d; /* შენი ფერი */
+
+  backface-visibility: hidden;
+  transition: transform 0.4s ease;
+}
+
+/* front */
+.checkboxFront {
+  transform: rotateY(0deg);
+}
+
+/* back */
+.checkboxBack {
+  transform: rotateY(180deg);
+}
+
+/* checked flip */
+.checkbox:checked + .checkboxLabel .checkboxFront {
+  transform: rotateY(180deg);
+}
+
+.checkbox:checked + .checkboxLabel .checkboxBack {
+  transform: rotateY(0deg);
+}
+
+/* hover scale */
+.checkboxWrapper:hover .checkboxFlip {
+  transform: scale(1.08);
+}
+
+/* disabled */
+.checkbox:disabled + .checkboxLabel {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.qtyDisplay {
+  min-width: 40px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
 }

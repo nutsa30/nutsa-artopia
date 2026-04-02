@@ -251,9 +251,64 @@ transform-origin: center;
 }
 
 
-.buyNow { background-color: rgba(40, 167, 69, 0.6); }
-.buyNow:hover { background-color: rgba(40, 167, 69, 0.8); }
+.buyNow {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 18px;
+
+  border: none;
+  border-radius: 25px;
+
+  background: linear-gradient(to bottom, #28a745, #1e7e34);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+
+  overflow: hidden;
+
+  box-shadow:
+    inset 0 5px 10px rgba(255,255,255,0.15),
+    inset 0 -5px 10px rgba(0,0,0,0.25),
+    0 5px 15px rgba(0,0,0,0.25);
+
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  transform: perspective(500px) rotateX(5deg);
+  transform-style: preserve-3d;
+}
+
+.buyNowText {
+  position: relative;
+  z-index: 1;
+
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: translateZ(10px);
+}
+
+/* 🔥 მთავარი რაც გინდა */
+.buyNow:hover .buyNowText {
+  transform: translateZ(15px) translateY(-4px);
+}
+
+/* hover button effect */
+.buyNow:hover {
+  transform: perspective(500px) rotateX(0deg) translateY(-3px);
+  background: linear-gradient(to bottom, #34d058, #28a745);
+}
+
+/* active */
+.buyNow:active {
+  transform: perspective(500px) rotateX(2deg) translateY(2px);
+}
+
+.buyNow:active .buyNowText {
+  transform: translateZ(5px) translateY(1px);
+}
 /* ბეიჯები ფოტოზე ზემოთ, მაგრამ დროპდაუნზე ქვემოთ (z=2) */
 
 .outOfStock {

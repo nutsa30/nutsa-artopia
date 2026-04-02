@@ -363,48 +363,62 @@ const Checkout = () => {
                     )}
 
                     <div className={styles.controls}>
-                      <button
-                        className={`${styles.qtyBtn} ${styles.minus}`}
-                        onClick={() => updateQuantity(item.id, -1)}
-                        disabled={item.quantity === 1}
-                        type="button"
-                        aria-label={T.minus}
-                        title={T.minus}
-                      >
-                        –
-                      </button>
+{/* MINUS */}
+<div className={styles.checkboxWrapper}>
+  <input
+    type="checkbox"
+    className={styles.checkbox}
+    id={`minus-${item.id}`}
+    onClick={() => updateQuantity(item.id, -1)}
+    disabled={item.quantity === 1}
+  />
 
-                      <span className={styles.quantityDisplay}>
-                        {item.quantity}
-                      </span>
+  <label htmlFor={`minus-${item.id}`} className={styles.checkboxLabel}>
+    <div className={styles.checkboxFlip}>
+      <div className={styles.checkboxFront}>−</div>
+      <div className={styles.checkboxBack}>−</div>
+    </div>
+  </label>
+</div>
 
-                      <button
-                        className={`${styles.qtyBtn} ${styles.plus}`}
-                        onClick={() => {
-                          const maxQty = normalizeQuantity(stockById[item.id]);
+<span className={styles.quantityDisplay}>
+  {item.quantity}
+</span>
 
-                          if (item.quantity >= maxQty) {
-                            setStockMessageById((prev) => ({
-                              ...prev,
-                              [item.id]: `მარაგში მხოლოდ ${maxQty} ცალია.`,
-                            }));
-                            return;
-                          }
+{/* PLUS */}
+<div className={styles.checkboxWrapper}>
+  <input
+    type="checkbox"
+    className={styles.checkbox}
+    id={`plus-${item.id}`}
+    onClick={() => {
+      const maxQty = normalizeQuantity(stockById[item.id]);
 
-                          setStockMessageById((prev) => ({
-                            ...prev,
-                            [item.id]: "",
-                          }));
+      if (item.quantity >= maxQty) {
+        setStockMessageById((prev) => ({
+          ...prev,
+          [item.id]: `მარაგში მხოლოდ ${maxQty} ცალია.`,
+        }));
+        return;
+      }
 
-                          updateQuantity(item.id, 1);
-                        }}
-                        type="button"
-                        aria-label={T.plus}
-                        title={T.plus}
-                        disabled={item.quantity >= normalizeQuantity(stockById[item.id])}
-                      >
-                        +
-                      </button>
+      setStockMessageById((prev) => ({
+        ...prev,
+        [item.id]: "",
+      }));
+
+      updateQuantity(item.id, 1);
+    }}
+    disabled={item.quantity >= normalizeQuantity(stockById[item.id])}
+  />
+
+  <label htmlFor={`plus-${item.id}`} className={styles.checkboxLabel}>
+    <div className={styles.checkboxFlip}>
+      <div className={styles.checkboxFront}>+</div>
+      <div className={styles.checkboxBack}>+</div>
+    </div>
+  </label>
+</div>
 
                       <button
                         className={styles.binButton}

@@ -103,6 +103,7 @@
   align-items: center;
   justify-content: center;
   transition: 0.3s;
+  cursor: pointer;
 }
 
 .binTop {
@@ -359,4 +360,84 @@
   font-size: 13px;
   margin-top: 6px;
   font-weight: 500;
+}
+.checkboxWrapper {
+  position: relative;
+}
+
+.checkbox {
+  display: none;
+}
+
+.checkboxLabel {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.checkboxFlip {
+  width: 36px;
+  height: 36px;
+  perspective: 1000px;
+  position: relative;
+}
+
+.checkboxFront,
+.checkboxBack {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  backface-visibility: hidden;
+  transition: transform 0.4s ease;
+
+  color: white;
+}
+
+/* MINUS STYLE */
+.checkboxFront {
+  background: #e5e7eb;
+  color: #333;
+  transform: rotateY(0deg);
+}
+
+.checkboxBack {
+  background: #e5e7eb;
+  color: #333;
+  transform: rotateY(180deg);
+}
+
+/* PLUS STYLE */
+.checkboxWrapper:last-of-type .checkboxFront,
+.checkboxWrapper:last-of-type .checkboxBack {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+/* flip */
+.checkbox:checked + .checkboxLabel .checkboxFront {
+  transform: rotateY(180deg);
+}
+
+.checkbox:checked + .checkboxLabel .checkboxBack {
+  transform: rotateY(0deg);
+}
+
+/* hover */
+.checkboxWrapper:hover .checkboxFlip {
+  transform: scale(1.08);
+}
+
+/* disabled */
+.checkbox:disabled + .checkboxLabel {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

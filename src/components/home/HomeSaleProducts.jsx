@@ -64,9 +64,14 @@ const saleProducts = items.slice(0, limit);
             ? (titleKa || titleEn || "")
             : "ფასდაკლებები"}
         </h2>
-        <Link to="/products" className={styles.seeAll}>
-          ყველას ნახვა
-        </Link>
+  <Link to="/products" className={styles.seeAll}>
+  <span className={styles.circle1}></span>
+  <span className={styles.circle2}></span>
+  <span className={styles.circle3}></span>
+  <span className={styles.circle4}></span>
+  <span className={styles.circle5}></span>
+  <span className={styles.text}>ყველას ნახვა</span>
+</Link>
       </div>
 
       {loading ? (

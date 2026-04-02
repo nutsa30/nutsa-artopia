@@ -180,8 +180,8 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
               </button>
 
               <button className={styles.buyNow} onClick={buyOne}>
-                {T.buyNow}
-              </button>
+  <span className={styles.buyNowText}>{T.buyNow}</span>
+</button>
             </div>
           ) : (
             <div className={styles.outOfStock}>

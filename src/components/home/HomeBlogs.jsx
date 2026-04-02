@@ -79,9 +79,14 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
           {titleKa || titleEn ? (titleKa || titleEn || "") : "არტ ბლოგები"}
         </h2>
 
-        <Link to="/blogs" className={styles.seeAll}>
-          ყველას ნახვა
-        </Link>
+   <Link to="/blogs" className={styles.seeAll}>
+  <span className={styles.circle1}></span>
+  <span className={styles.circle2}></span>
+  <span className={styles.circle3}></span>
+  <span className={styles.circle4}></span>
+  <span className={styles.circle5}></span>
+  <span className={styles.text}>ყველას ნახვა</span>
+</Link>
       </div>
 
       {loading ? (

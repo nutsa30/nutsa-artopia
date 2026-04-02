@@ -397,27 +397,45 @@ navigate(-1);
                 <div className={styles.stockWarning}>{stockMessage}</div>
               ) : null}
 
-              <div className={styles.quantityControl}>
-                <button
-                  onClick={decrement}
-                  className={styles.qtyBtn}
-                  disabled={quantity <= 1}
-                  type="button"
-                >
-                  –
-                </button>
+<div className={styles.quantityControl}>
+  {/* MINUS */}
+  <div className={styles.checkboxWrapper}>
+    <input
+      type="checkbox"
+      className={styles.checkbox}
+      id="minusBtn"
+      onClick={decrement}
+      disabled={quantity <= 1}
+    />
 
-                <span className={styles.qtyDisplay}>{quantity}</span>
+    <label htmlFor="minusBtn" className={styles.checkboxLabel}>
+      <div className={styles.checkboxFlip}>
+        <div className={styles.checkboxFront}>−</div>
+        <div className={styles.checkboxBack}>−</div>
+      </div>
+    </label>
+  </div>
 
-                <button
-                  onClick={increment}
-                  className={styles.qtyBtn}
-                  disabled={!inStock}
-                  type="button"
-                >
-                  +
-                </button>
-              </div>
+  <span className={styles.qtyDisplay}>{quantity}</span>
+
+  {/* PLUS */}
+  <div className={styles.checkboxWrapper}>
+    <input
+      type="checkbox"
+      className={styles.checkbox}
+      id="plusBtn"
+      onClick={increment}
+      disabled={!inStock}
+    />
+
+    <label htmlFor="plusBtn" className={styles.checkboxLabel}>
+      <div className={styles.checkboxFlip}>
+        <div className={styles.checkboxFront}>+</div>
+        <div className={styles.checkboxBack}>+</div>
+      </div>
+    </label>
+  </div>
+</div>
 
               <div className={styles.actionButtons}>
                 {inStock ? (
@@ -433,13 +451,13 @@ navigate(-1);
                       <span className={styles.addToCartText}>{L.addToCart}</span>
                     </button>
 
-                    <button
-                      onClick={handleBuyNow}
-                      className={styles.buyNowBtn}
-                      type="button"
-                    >
-                      {L.buyNow}
-                    </button>
+              <button
+  onClick={handleBuyNow}
+  className={styles.buyNowBtn}
+  type="button"
+>
+  <span className={styles.buyNowText}>{L.buyNow}</span>
+</button>
                   </>
                 ) : (
                   <div className={styles.outOfStock}>{L.outOfStock}</div>

@@ -197,35 +197,70 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
                         )}
 
                         <div className={styles.controls}>
-                          <button
-                            className={`${styles.qtyBtn} ${styles.minus}`}
-                            onClick={() => handleDecrease(item)}
-                            disabled={item.quantity === 1}
-                            type="button"
-                          >
-                            –
-                          </button>
+                {/* MINUS */}
+<div className={styles.checkboxWrapper}>
+  <input
+    type="checkbox"
+    className={styles.checkbox}
+    id={`minus-${id}`}
+    onClick={() => handleDecrease(item)}
+    disabled={item.quantity === 1}
+  />
 
-                          <span className={styles.quantityDisplay}>
-                            {item.quantity}
-                          </span>
+  <label htmlFor={`minus-${id}`} className={styles.checkboxLabel}>
+    <div className={styles.checkboxFlip}>
+      <div className={styles.checkboxFront}>−</div>
+      <div className={styles.checkboxBack}>−</div>
+    </div>
+  </label>
+</div>
 
-                          <button
-                            className={`${styles.qtyBtn} ${styles.plus}`}
-                            onClick={() => handleIncrease(item)}
-                            disabled={plusDisabled}
-                            type="button"
-                          >
-                            +
-                          </button>
+<span className={styles.quantityDisplay}>
+  {item.quantity}
+</span>
 
-                          <button
-                            className={styles.binButton}
-                            onClick={() => removeFromCart(id)}
-                            type="button"
-                          >
-                            🗑
-                          </button>
+{/* PLUS */}
+<div className={styles.checkboxWrapper}>
+  <input
+    type="checkbox"
+    className={styles.checkbox}
+    id={`plus-${id}`}
+    onClick={() => handleIncrease(item)}
+    disabled={plusDisabled}
+  />
+
+  <label htmlFor={`plus-${id}`} className={styles.checkboxLabel}>
+    <div className={styles.checkboxFlip}>
+      <div className={styles.checkboxFront}>+</div>
+      <div className={styles.checkboxBack}>+</div>
+    </div>
+  </label>
+</div>
+
+                   <button
+  className={styles.binButton}
+  onClick={() => removeFromCart(id)}
+  type="button"
+>
+  <svg className={styles.binTop} viewBox="0 0 39 7" fill="none">
+    <line y1="5" x2="39" y2="5" stroke="white" strokeWidth="4" />
+    <line
+      x1="12"
+      y1="1.5"
+      x2="26"
+      y2="1.5"
+      stroke="white"
+      strokeWidth="3"
+    />
+  </svg>
+
+  <svg className={styles.binBottom} viewBox="0 0 33 39" fill="none">
+    <path
+      d="M0 0H33V35C33 37 31 39 29 39H4C2 39 0 37 0 35V0Z"
+      fill="white"
+    />
+  </svg>
+</button>
                         </div>
                       </div>
                     </div>
