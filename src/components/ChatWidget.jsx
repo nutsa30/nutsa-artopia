@@ -445,6 +445,51 @@ const DATA = {
 .close-btn .close {
   display: none;
 }
+  @media (max-width: 480px) {
+  .chat-button {
+    width: 70px;
+    height: 70px;
+  }
+
+  .chat-circle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .chat-logo {
+    width: 22px;
+  }
+
+  .chat-text span {
+    font-size: 8px;
+  }
+}
+  @media (max-width: 480px) {
+  .chat-box {
+    width: 92%;
+    height: 70%;
+    right: 4%;
+    bottom: 10px;
+    border-radius: 14px;
+  }
+}
+  @media (max-width: 480px) {
+  .bubble {
+    font-size: 13px;
+    padding: 8px;
+    line-height: 1.4;
+  }
+
+  .question {
+    font-size: 13px;
+  }
+}
+  @media (max-width: 480px) {
+  .chip {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}
       `}</style>
     </>
   );

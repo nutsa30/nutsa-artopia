@@ -135,3 +135,18 @@
 
 /* xl */
 @media (min-width: 1280px){ /* extra large screens */ }
+@media (max-width: 480px) {
+  .seeAll {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 32px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .head {
+    gap: 8px;
+  }
+}

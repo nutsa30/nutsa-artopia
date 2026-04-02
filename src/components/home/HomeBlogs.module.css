@@ -220,3 +220,10 @@
 
 /* xl */
 @media (min-width: 1280px){ /* extra large screens */ }
+@media (max-width: 480px) {
+  .readMoreBtn {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 32px; 
+  }
+}
