@@ -490,6 +490,19 @@ const DATA = {
     padding: 6px 8px;
   }
 }
+  @media (min-width: 1440px) {
+  .chat-button,
+  .chat-box {
+    right: 35px !important;
+  }
+}
+  @media (min-width: 1600px) {
+  .chat-button,
+  .chat-box {
+    right: 40px !important;
+  }
+}
+  
       `}</style>
     </>
   );
