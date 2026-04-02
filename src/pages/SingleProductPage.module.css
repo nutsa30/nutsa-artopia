@@ -886,3 +886,52 @@
   font-weight: 700;
   color: #ffffff;
 }
+@media (max-width: 480px) {
+  .actionButtons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .addToCartBtn,
+  .buyNowBtn {
+    width: 100%;
+    min-height: 40px;     /* 👈 ინდუსტრი სტანდარტი */
+    padding: 8px 12px;    /* ნაკლები padding */
+    font-size: 13px;
+    border-radius: 14px;
+  }
+
+  .addToCartText,
+  .buyNowText {
+    font-size: 13px;
+  }
+
+  .cartIcon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .addToCartBtn,
+  .buyNowBtn {
+    flex: none !important;        /* 👈 მთავარი fix */
+    width: 100%;
+
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+
+    font-size: 13px !important;
+    border-radius: 14px;
+  }
+
+  .addToCartText,
+  .buyNowText {
+    font-size: 13px !important;
+  }
+
+  .cartIcon {
+    width: 18px;
+    height: 18px;
+  }
+}
