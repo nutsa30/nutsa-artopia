@@ -1,380 +1,209 @@
-// src/components/ChatWidget.jsx
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
-// შენი ახალი ბექენდის მისამართი — ბოლო სლაში გარეშე
-const BOT_BASE = "https://artopia-bot-geo-78145bff4475.herokuapp.com";
-
-// ჰელპერი: აგენერირებს коррект URL-ს (არ გამოვა ორმაგი სლაში)
-const api = (path) => new URL(path, BOT_BASE).toString();
-
-/**
- * Props:
- * - siteLang: "ka" | "en"
- */
 export default function ChatWidget({ siteLang = "ka" }) {
-  // ადმინზე ჩატბოტი არ უნდა ჩანდეს
   const path = typeof window !== "undefined" ? window.location.pathname : "/";
   if (/^\/admin\b/.test(path)) return null;
 
   const [open, setOpen] = useState(false);
-
-  // Views: start | russia_warning | menu | answer | goodbye
   const [view, setView] = useState("start");
-
-  // Data buckets
-  const [greeting, setGreeting] = useState({ ka: "", en: "" });
-  const [startLanguages, setStartLanguages] = useState([]); // [{code,label}]
-  const [error, setError] = useState("");
-
-  // Russia warning flow
-  const [warningText, setWarningText] = useState("");
-  const [selectAnother, setSelectAnother] = useState("");
-  const warningTimerRef = useRef(null);
-
-  // Selected functional language (ka/en) after pick
-  const [lang, setLang] = useState(null); // "ka" | "en"
-
-  // Menu + Answer data
-  const [menuItems, setMenuItems] = useState([]); // [{id,label}]
-  const [answerData, setAnswerData] = useState(null); // {answer, another_question, yes_no}
+  const [lang, setLang] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const timerRef = useRef(null);
 
   const buttonLabel = useMemo(
     () => (siteLang === "en" ? "Art Bot" : "არტ ბოტი"),
     [siteLang]
   );
 
-  // Fetch /start whenever panel opens
-  useEffect(() => {
-    if (!open) return;
-    let ignore = false;
+  // 🔥 FRONT DATA
+const DATA = {
+  greeting: {
+    ka: "აირჩიე ენა:",
+    en: "Choose a language:",
+  },
 
-    const getStart = async () => {
-      try {
-        setError("");
-        const res = await fetch(api("/start"));
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (ignore) return;
-        setGreeting(data.message || {});
-        setStartLanguages(data.languages || []);
-        setLang(null);
-        setMenuItems([]);
-        setAnswerData(null);
-        setView("start");
-      } catch (e) {
-        console.error("GET /start failed:", e);
-        setError(
-          siteLang === "en"
-            ? "Failed to reach bot API."
-            : "ბოტის API-მდე ვერ მივდივართ."
-        );
-      }
-    };
+  goodbye: {
+    ka: "გმადლობთ! სასიამოვნო შოპინგს გისურვებთ არტოპიაში 🌟",
+    en: "Thank you! Enjoy your shopping at Artopia 🌟",
+  },
 
-    getStart();
-    return () => {
-      ignore = true;
-    };
-  }, [open, siteLang]);
+  another: {
+    ka: "გსურთ კიდევ რამე?",
+    en: "Do you need anything else?",
+  },
 
-  // Clear timers on unmount
-  useEffect(() => {
-    return () => {
-      if (warningTimerRef.current) {
-        clearTimeout(warningTimerRef.current);
-        warningTimerRef.current = null;
-      }
-    };
-  }, []);
+  yesno: {
+    ka: { yes: "დიახ", no: "არა" },
+    en: { yes: "Yes", no: "No" },
+  },
 
-  const onPickLanguage = async (code) => {
-    if (code === "ru") {
-      // Russia flow
-      try {
-        const res = await fetch(api("/russia"));
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+  warning: {
+    text: "20% of Georgia is occupied by Russia. Please select another language.",
+    delay: 3000,
+  },
 
-        setWarningText(
-          data.warning ||
-            "RUSSIA IS OCCUPIER AND 20% OF GEORGIA IS OCCUPIED BY RUSSIA."
-        );
-        setSelectAnother(
-          data.select_another || "Please select another language."
-        );
-        setView("russia_warning");
+  langs: {
+    ka: "ქართული",
+    en: "English",
+    ru: "Русский",
+  },
 
-        const delay = Number(data.delay_ms || 2000);
-        if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+  start: ["ka", "en", "ru"],
 
-        // race-condition fix — გამოვიყენოთ data-ს მნიშვნელობები
-        warningTimerRef.current = setTimeout(() => {
-          const msg = data.select_another || "Please select another language.";
-          setGreeting((prev) => ({ ...prev, en: msg, ka: msg }));
-          setStartLanguages(data.languages || []); // now only ka/en
-          setView("start");
-        }, delay);
-      } catch (e) {
-        console.error("GET /russia failed:", e);
-        setError(
-          siteLang === "en"
-            ? "Failed to reach bot API."
-            : "ბოტის API-მდე ვერ მივდივართ."
-        );
-      }
-      return;
-    }
+  menu: {
+    ka: [
+      { id: "tbilisi_delivery", label: "მიწოდება თბილისში" },
+      { id: "regions_delivery", label: "მიწოდება რეგიონში" },
+      { id: "pickup", label: "ადგილზე აღება" },
+      { id: "address", label: "მაღაზიის მისამართი" },
+      { id: "hours", label: "მაღაზიის სამუშაო საათები" },
+      { id: "exchange", label: "გაცვლა/დაბრუნება" },
+      { id: "contact", label: "კონტაქტი" },
+    ],
+    en: [
+      { id: "tbilisi_delivery", label: "Delivery in Tbilisi" },
+      { id: "regions_delivery", label: "Delivery in the Region" },
+      { id: "pickup", label: "Pickup at Artopia" },
+      { id: "address", label: "Address" },
+      { id: "hours", label: "Working hours" },
+      { id: "exchange", label: "Exchange/Returns" },
+      { id: "contact", label: "Contact" },
+    ],
+  },
 
-    // ka/en → load menu
-    try {
-      setError("");
-      const res = await fetch(api(`/menu/${code}`));
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setLang(data.lang || code);
-      setMenuItems(data.items || []);
-      setAnswerData(null);
-      setView("menu");
-    } catch (e) {
-      console.error(`GET /menu/${code} failed:`, e);
-      setError(
-        siteLang === "en"
-          ? "Failed to load menu."
-          : "მენიუს ჩატვირთვა ვერ მოხერხდა."
-      );
-    }
-  };
+  answers: {
+    tbilisi_delivery: {
+      ka: "თბილისში მიწოდების შემთხვევაში გვაქვს 2 სახის მიწოდების სერვისი:\n1) ადგილზე აღება;\n2) მიწოდება მომდევნო სამუშაო დღეს — 6ლ (მიწოდება უფასოა 50ლ-დან);",
+      en: "We offer 2 options in Tbilisi:\n1) Pickup at Artopia;\n2) Next-day delivery — 6 GEL (free if order is more than 50 GEL).",
+    },
 
-  const onPickMenuItem = async (itemId) => {
-    if (!lang) return;
-    try {
-      setError("");
-      const res = await fetch(api(`/answer/${lang}/${itemId}`));
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setAnswerData(data || null);
-      setView("answer");
-    } catch (e) {
-      console.error(`GET /answer/${lang}/${itemId} failed:`, e);
-      setError(
-        siteLang === "en"
-          ? "Failed to load answer."
-          : "პასუხის ჩატვირთვა ვერ მოხერხდა."
-      );
-    }
-  };
+    regions_delivery: {
+      ka: "რეგიონებში საკურიერო მომსახურების საფასურია 8ლ. 70 ლარიდან კი უფასოა. მიწოდების ვადა არის 3–4 სამუშაო დღე.",
+      en: "Delivery fee in the regions is 8 GEL, but it's free if the order is more than 70 GEL. Delivery time is 3–4 business days.",
+    },
 
-  const onYes = () => {
-    // Back to menu
-    setAnswerData(null);
-    setView("menu");
-  };
+    pickup: {
+      ka: "შეკვეთის ადგილზე აღება შესაძლებელია არტოპიაში.",
+      en: "You can collect your order from the store.",
+    },
 
-  const onNo = async () => {
-    if (!lang) return;
-    try {
-      setError("");
-      const res = await fetch(api(`/goodbye/${lang}`));
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setAnswerData({ goodbye: data.message });
-      setView("goodbye");
-    } catch (e) {
-      console.error(`GET /goodbye/${lang} failed:`, e);
-      setError(
-        siteLang === "en"
-          ? "Failed to load goodbye."
-          : "დამშვიდობება ვერ ჩაიტვირთა."
-      );
-    }
-  };
+    address: {
+      ka: "ჩვენი მისამართია: თბილისი, სიმონ ჩიქოვანის ქ. 45 (ავერსის აფთიაქის გვერდით), მეტრო „ტექნიკურიდან“ ~10 წუთი.",
+      en: "Our address is: Tbilisi, 45 Simon Chiqovani St. (next to Aversi pharmacy), ~10 minutes from Technical University metro.",
+    },
+
+    hours: {
+      ka: "მაღაზიის სამუშაო საათებია: ყოველდღე 11:30–20:30.",
+      en: "Artopia working hours: everyday 11:30–20:30.",
+    },
+
+    exchange: {
+      ka: "გაცვლა/დაბრუნება შესაძლებელია შეკვეთის მიღებიდან 2 დღის განმავლობაში, თუ პროდუქტი არ არის გახსნილი/დაზიანებული და არის იმავე მდგომარეობაში, როგორშიც მიიღეთ. დაგვიკავშირდით ელ-ფოსტაზე ან ნომერზე.",
+      en: "Exchange/Returns is allowed within 2 days after delivery, only if the product is unopened/undamaged and in the same condition as received. Please contact us via email or phone.",
+    },
+
+    contact: {
+      ka: "ელ-ფოსტა: info@artopia.ge\nმობილურის ნომერი: +995 593 20 40 98\nმობილურის ნომერი (სარეზერვო): +995 505 05 16 16",
+      en: "Mail: info@artopia.ge\nMobile number: +995 593 20 40 98\nMobile number (Backup): +995 505 05 16 16",
+    },
+  },
+};
+
+  const letters = "არტ ბოტი არტ ბოტი".split("");
 
   return (
     <>
-      {/* Collapsed button */}
+      {/* 🔥 BUTTON — untouched */}
       {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          aria-label={buttonLabel}
-          style={{
-            position: "fixed",
-            right: 16,
-            bottom: 16,
-            zIndex: 9999,
-            background: "#7EC3F3",
-            color: "#0B2B3B",
-            border: "none",
-            borderRadius: 9999,
-            padding: "12px 16px",
-            fontWeight: 600,
-            boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
-            cursor: "pointer",
-          }}
-        >
-          {buttonLabel}
+        <button onClick={() => setOpen(true)} className="chat-button">
+          <p className="chat-text">
+            {letters.map((l, i) => (
+              <span key={i} style={{ "--index": i }}>
+                {l}
+              </span>
+            ))}
+          </p>
+          <div className="chat-circle">
+            <img src="/Logo.png" className="chat-logo" />
+          </div>
         </button>
       )}
 
-      {/* Panel */}
+      {/* 🔥 CHAT PANEL */}
       {open && (
-        <div
-          style={{
-            position: "fixed",
-            right: 16,
-            bottom: 16,
-            zIndex: 10000,
-            width: 360,
-            maxWidth: "90vw",
-            height: 480,
-            maxHeight: "70vh",
-            background: "white",
-            borderRadius: 16,
-            boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            border: "1px solid #E5E7EB",
-          }}
-          role="dialog"
-          aria-modal="true"
-        >
-          {/* Header */}
-          <div
-            style={{
-              background: "#7EC3F3",
-              color: "#0B2B3B",
-              padding: "10px 12px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <strong>{buttonLabel}</strong>
-            <button
-              onClick={() => {
-                setOpen(false);
-                // reset state
-                setView("start");
-                setLang(null);
-                setMenuItems([]);
-                setAnswerData(null);
-              }}
-              aria-label={siteLang === "en" ? "Close chat" : "ჩატის დახურვა"}
-              style={{
-                maxWidth: "40px",
-                background: "transparent",
-                border: "none",
-                fontSize: 18,
-                cursor: "pointer",
-                color: "#0B2B3B",
-              }}
-            >
-              ×
-            </button>
+        <div className="chat-box">
+          <div className="chat-header">
+            <span>{buttonLabel}</span>
+<button
+  className="close-btn"
+  onClick={() => {
+    setOpen(false);
+    setView("start");
+    setLang(null);
+    setSelected(null);
+  }}
+>
+  <span className="X"></span>
+  <span className="Y"></span>
+  <div className="close">Close</div>
+</button>
           </div>
 
-          {/* Body */}
-          <div style={{ flex: 1, padding: 12, overflow: "auto" }}>
-            {error && (
-              <div
-                style={{
-                  color: "#b91c1c",
-                  background: "#FEF2F2",
-                  border: "1px solid #FECACA",
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 8,
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            {view === "russia_warning" && (
-              <div
-                style={{
-                  color: "#b91c1c",
-                  background: "#FEF2F2",
-                  border: "1px solid #FECACA",
-                  borderRadius: 12,
-                  padding: 12,
-                  fontWeight: 700,
-                  fontSize: 15,
-                  lineHeight: 1.4,
-                }}
-              >
-                {warningText ||
-                  "RUSSIA IS OCCUPIER AND 20% OF GEORGIA IS OCCUPIED BY RUSSIA."}
-              </div>
-            )}
-
+          <div className="chat-body">
+            {/* START */}
             {view === "start" && (
               <>
-                <div
-                  style={{
-                    fontSize: 14,
-                    color: "#334155",
-                    background: "#F8FAFC",
-                    border: "1px solid #E5E7EB",
-                    borderRadius: 12,
-                    padding: 12,
-                    marginBottom: 12,
-                  }}
-                >
-                  {greeting?.[siteLang] ||
-                    greeting?.en ||
-                    (siteLang === "en" ? "Choose a language:" : "აირჩიე ენა:")}
+                <div className="bubble">
+                  {DATA.greeting[siteLang]}
                 </div>
 
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {startLanguages.map((l) => (
+                <div className="grid">
+                  {DATA.start.map((l) => (
                     <button
-                      key={l.code}
-                      onClick={() => onPickLanguage(l.code)}
-                      style={{
-                        color: "#0B2B3B",
-                        padding: "8px 12px",
-                        borderRadius: 10,
-                        border: "1px solid #cbd5e1",
-                        cursor: "pointer",
-                        background: "white",
+                      key={l}
+                      className="chip"
+                      onClick={() => {
+                        if (l === "ru") {
+                          setView("warn");
+                          timerRef.current = setTimeout(
+                            () => setView("start"),
+                            DATA.warning.delay
+                          );
+                          return;
+                        }
+                        setLang(l);
+                        setView("menu");
                       }}
                     >
-                      {l.label}
+                      {DATA.langs[l]}
                     </button>
                   ))}
                 </div>
               </>
             )}
 
+            {/* WARNING */}
+            {view === "warn" && (
+              <div className="warn">
+                {DATA.warning.text}
+              </div>
+            )}
+
+            {/* MENU */}
             {view === "menu" && (
               <>
-                <div
-                  style={{
-                    fontSize: 14,
-                    color: "#334155",
-                    background: "#F8FAFC",
-                    border: "1px solid #E5E7EB",
-                    borderRadius: 12,
-                    padding: 12,
-                    marginBottom: 12,
-                  }}
-                >
-                  {lang === "en" ? "Choose a topic:" : "აირჩიე თემა:"}
+                <div className="bubble">
+                  {lang === "en" ? "Choose topic:" : "აირჩიე თემა:"}
                 </div>
 
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {menuItems.map((item) => (
+                <div className="grid">
+                  {DATA.menu[lang].map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => onPickMenuItem(item.id)}
-                      style={{
-                        color: "#0B2B3B",
-                        padding: "8px 12px",
-                        borderRadius: 10,
-                        border: "1px solid #cbd5e1",
-                        cursor: "pointer",
-                        background: "white",
+                      className="chip"
+                      onClick={() => {
+                        setSelected(item.id);
+                        setView("answer");
                       }}
                     >
                       {item.label}
@@ -384,93 +213,239 @@ export default function ChatWidget({ siteLang = "ka" }) {
               </>
             )}
 
-            {view === "answer" && answerData && (
+            {/* ANSWER */}
+            {view === "answer" && (
               <>
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    fontSize: 14,
-                    color: "#334155",
-                    background: "#F8FAFC",
-                    border: "1px solid #E5E7EB",
-                    borderRadius: 12,
-                    padding: 12,
-                    marginBottom: 12,
-                  }}
-                >
-                  {answerData.answer}
+                <div className="bubble">
+{DATA.answers[selected]?.[lang] || (lang === "en" ? "Answer not found." : "პასუხი ვერ მოიძებნა.")}
                 </div>
 
-                <div
-                  style={{
-                    fontSize: 14,
-                    color: "#334155",
-                    marginBottom: 8,
-                  }}
-                >
-                  {answerData.another_question}
+                <div className="question">
+                  {DATA.another[lang]}
                 </div>
 
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    onClick={onYes}
-                    style={{
-                      color: "#0B2B3B",
-                      padding: "8px 12px",
-                      borderRadius: 10,
-                      border: "1px solid #cbd5e1",
-                      cursor: "pointer",
-                      background: "white",
-                    }}
-                  >
-                    {answerData.yes_no?.yes || (lang === "en" ? "Yes" : "დიახ")}
+                <div className="row">
+                  <button className="chip" onClick={() => setView("menu")}>
+                    {DATA.yesno[lang].yes}
                   </button>
-                  <button
-                    onClick={onNo}
-                    style={{
-                      color: "#0B2B3B",
-                      padding: "8px 12px",
-                      borderRadius: 10,
-                      border: "1px solid #cbd5e1",
-                      cursor: "pointer",
-                      background: "white",
-                    }}
-                  >
-                    {answerData.yes_no?.no || (lang === "en" ? "No" : "არა")}
+                  <button className="chip" onClick={() => setView("bye")}>
+                    {DATA.yesno[lang].no}
                   </button>
                 </div>
               </>
             )}
 
-            {view === "goodbye" && (
-              <div
-                style={{
-                  fontSize: 14,
-                  color: "#334155",
-                  background: "#F8FAFC",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: 12,
-                  padding: 12,
-                }}
-              >
-                {answerData?.goodbye ||
-                  (lang === "en"
-                    ? "Thank you! Enjoy your shopping at Artopia 🌟"
-                    : "გმადლობთ! სასიამოვნო შოპინგს გისურვებთ არტოპიაში 🌟")}
+            {/* GOODBYE */}
+            {view === "bye" && (
+              <div className="bubble">
+                {DATA.goodbye[lang]}
               </div>
             )}
           </div>
-
-          {/* Footer (input disabled in this step) */}
-          <div
-            style={{
-              borderTop: "1px solid #E5E7EB",
-              padding: 8,
-              background: "#F9FAFB",
-            }}
-          ></div>
         </div>
       )}
+
+      {/* 🔥 UI STYLES */}
+      <style>{`
+        .chat-box {
+          position: fixed;
+          right: 16px;
+          bottom: 16px;
+          width: 340px;
+          height: 480px;
+          background: #0f172a;
+          border-radius: 16px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .chat-header {
+          background: linear-gradient(135deg,#5865f2,#7c3aed);
+          padding: 12px;
+          color: white;
+          display: flex;
+          justify-content: space-between;
+        }
+
+        .chat-body {
+          flex: 1;
+          padding: 12px;
+          overflow: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .bubble {
+          background: #1e293b;
+          color: white;
+          padding: 10px;
+          border-radius: 12px;
+          font-size: 14px;
+        }
+
+        .warn {
+          background: #7f1d1d;
+          padding: 12px;
+          border-radius: 12px;
+          color: white;
+          font-weight: bold;
+        }
+
+        .grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .chip {
+          background: #334155;
+          color: white;
+          border: none;
+          padding: 8px 10px;
+          border-radius: 10px;
+          cursor: pointer;
+          font-size: 13px;
+        }
+
+        .chip:hover {
+          background: #5865f2;
+        }
+
+        .row {
+          display: flex;
+          gap: 8px;
+        }
+
+        /* BUTTON ORIGINAL */
+.chat-button {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+
+  cursor: pointer;
+  border: none;
+  background: #5865f2;
+  color: #fff;
+
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+
+  overflow: hidden;
+  display: grid;
+  place-content: center;
+
+  transition: background 300ms, transform 200ms;
+}
+
+        .chat-text {
+          position: absolute;
+          inset: 0;
+          animation: rotateText 8s linear infinite;
+        }
+
+        .chat-text span {
+          position: absolute;
+          transform: rotate(calc(20deg * var(--index)));
+          inset: 6px;
+          font-size: 10px;
+          color: white;
+        }
+          .question {
+  color: #7dd3fc; /* ცისფერი */
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.chat-circle {
+  width: 48px;
+  height: 48px;
+  background: #111;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+  .chat-button:hover {
+  background: #000;
+  transform: scale(1.05);
+}
+
+.chat-button:hover .chat-logo {
+  filter: brightness(1.08);
+}
+
+        .chat-logo {
+          width: 30px;
+        }
+
+        @keyframes rotateText {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .close-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.close-btn:hover {
+  background: rgb(211, 21, 21);
+}
+
+.close-btn:active {
+  background: rgb(130, 0, 0);
+}
+
+.close-btn .X {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  background: white;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.close-btn .Y {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  background: white;
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.close-btn .close {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  color: #7dd3fc;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.close-btn .close {
+  display: none;
+}
+      `}</style>
     </>
   );
 }
