@@ -1,14 +1,11 @@
 User-agent: *
 
-# ❌ private
 Disallow: /admin/
 Disallow: /login
 Disallow: /checkout
 Disallow: /payment/
 Disallow: /*?*
 
-# ✅ allow everything else
 Allow: /
 
-# ✅ sitemap (მთავარი)
 Sitemap: https://artopia-backend-2024-54872c79acdd.herokuapp.com/sitemap.xml
