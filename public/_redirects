@@ -1,5 +1,5 @@
 
- /*    /index.html   200
 
-
-/admin/*    /admin/index.html   200
+ / sitemap.xml  https://artopia-backend-2024-54872c79acdd.herokuapp.com/sitemap.xml  301
+ /admin/*    /admin/index.html   200
+/ *    /index.html   200
