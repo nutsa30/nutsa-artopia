@@ -5,6 +5,9 @@ import HomeNewProducts from "../components/home/HomeNewProducts";
 import HomeSaleProducts from "../components/home/HomeSaleProducts";
 import HomeBlogs from "../components/home/HomeBlogs";
 import SEO from "../components/SEO";
+import storeLightOff from "../assets/homepic/store-lightoff.png";
+import storeLight from "../assets/homepic/store-light.png";
+
 
 /* -------- API BASE -------- */
 const API_BASE =
@@ -41,7 +44,7 @@ export default function HomePage() {
     }
   };
 
-  useEffect(() => { fetchPublic(); /* eslint-disable-line */ }, []);
+// useEffect(() => { fetchPublic(); }, []);
   const hasItems = useMemo(() => items?.length > 0, [items]);
 
   // ჩუმი autoplay (ბრაუზერის წესების შესასრულებლად)
@@ -53,8 +56,37 @@ export default function HomePage() {
       await v.play();
     } catch (_) {}
   };
+  
+const [isOpen, setIsOpen] = useState(false);
+const [showButton, setShowButton] = useState(true);
+const [startZoom, setStartZoom] = useState(false);
+const [hideBanner, setHideBanner] = useState(false);
+const [showContent, setShowContent] = useState(false);
+  
+useEffect(() => {
+  if (!isOpen) return;
 
-  const handleEnded = () => {
+  // 1) ღია ფოტო 1 წამში ჩნდება (ეს opacity transition-ით ხდება CSS-ში)
+  // 2) ამის მერე 1 წამი დგას
+  // 3) მერე იწყებს 1 წამში zoom-ს
+  // 4) zoom-ის დაწყებიდან 0.9 წამზე ვიწყებთ გაქრობას და კონტენტის ჩვენებას
+
+  const startZoomTimer = setTimeout(() => {
+    setStartZoom(true);
+  }, 2000); // 1s fade-in + 1s pause
+
+  const revealContentTimer = setTimeout(() => {
+    setHideBanner(true);
+    setShowContent(true);
+  }, 2900); // 2000 + 900ms
+
+  return () => {
+    clearTimeout(startZoomTimer);
+    clearTimeout(revealContentTimer);
+  };
+}, [isOpen]);
+
+const handleEnded = () => {
     const v = videoRef.current;
     if (!v) return;
     v.pause();
@@ -106,13 +138,67 @@ export default function HomePage() {
         <h1 style={{ display: "none" }}>
   სამხატვრო და საკანცელარიო მაღაზია Artopia
 </h1>
-        <HomeCarousel autoPlayMs={6000} />
+{/* დროებითი ბანერი */}
+<div
+  className={`${styles.bannerStage} ${hideBanner ? styles.bannerStageHidden : ""}`}
+>
+{showButton && (
+    <div className={styles.scene}>
+    <div className={styles.buttonWrap}>
+      <div
+        className={`${styles.cube} ${isOpen ? styles.cubeActive : ""}`}
 
-        <section className={styles.section}>
-          <HomeNewProducts limit={4} />
-          <HomeSaleProducts limit={4} />
-          <HomeBlogs limit={4} />
-        </section>
+
+onClick={() => {
+  setIsOpen(true);
+
+  setTimeout(() => {
+    setShowButton(false);
+  }, 1000); // ⬅️ 1 წამი რჩება
+}}
+    >
+      <span className={`${styles.side} ${styles.top}`}>
+        ღიაა
+      </span>
+      <span className={`${styles.side} ${styles.front}`}>
+        დაკეტილია
+      </span>
+    </div>
+      </div>
+
+  </div>
+)}
+<div className={styles.imageWrapper}>
+  
+  {/* დახურული */}
+  <img
+    src={storeLightOff}
+    className={`${styles.bannerImg} ${isOpen ? styles.fadeOut : styles.fadeIn}`}
+    alt="closed"
+  />
+
+  {/* ღია */}
+<img
+  src={storeLight}
+className={`${styles.bannerImg} ${isOpen ? styles.fadeIn : styles.fadeOut} ${startZoom ? styles.zoomIn : ""}`}
+style={{
+  willChange: "transform",
+}}
+alt="open"
+/>
+
+</div>
+
+</div>
+
+{/* <HomeCarousel autoPlayMs={6000} /> */}
+{showContent && (
+  <section className={`${styles.section} ${styles.contentReveal}`}>
+    <HomeNewProducts limit={4} />
+    <HomeSaleProducts limit={4} />
+    <HomeBlogs limit={4} />
+  </section>
+)}
       </div>
     </>
   );
