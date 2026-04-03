@@ -1,4 +1,3 @@
-import { useNavigate, useLocation } from "react-router-dom";
 import { markOpeningSeen } from "../utils/openingGate";
 import styles from "./OpeningPage.module.css";
 import { useState } from "react";
@@ -8,9 +7,7 @@ import deskLight from "../assets/newhome/desk-light.png";
 import mobDark from "../assets/newhome/mob-dark.png";
 import mobLight from "../assets/newhome/mob-light.png";
 
-export default function OpeningPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
+export default function OpeningPage({ onFinish }) {
 
   const [isLight, setIsLight] = useState(false);
   const [hideButton, setHideButton] = useState(false);
@@ -22,17 +19,15 @@ export default function OpeningPage() {
 
     setIsLight(true);
 
-    setTimeout(() => setHideButton(true), 10);
-
+setHideButton(true);
     setTimeout(() => {
       setZoom(true);
 
       setTimeout(() => setFadeOut(true), 900);
 
-      setTimeout(() => {
-        const redirectTo = location.state?.from || "/";
-        navigate(redirectTo, { replace: true });
-      }, 1000);
+    setTimeout(() => {
+  onFinish();
+}, 1000);
     }, 1500);
   };
 

@@ -32,9 +32,6 @@ import { useCart } from "./components/CartContext/CartContext";
 import SingleProductPage from "./pages/SingleProductPage";
 import AppLoader from "./components/loaders/AppLoader";
 
-import OpeningPage from "./pages/OpeningPage";
-import OpeningGuard from "./components/OpeningGuard";
-
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 
 const CartToastWrapper = () => {
@@ -114,9 +111,8 @@ const ChatMountIfNotAdmin = () => {
   const { pathname } = useLocation();
 
   const isAdmin = pathname.startsWith("/admin");
-  const isOpening = pathname === "/opening";
 
-  if (isAdmin || isOpening) return null;
+  if (isAdmin) return null;
 
   return <ChatWidgetMount />;
 };
@@ -134,120 +130,57 @@ const ChatMountIfNotAdmin = () => {
 
 <Routes>
   {/* 🔥 OPENING PAGE — CHROME-ის გარეთ */}
-  <Route path="/opening" element={<OpeningPage />} />
 
   {/* 🔥 დანარჩენი ყველაფერი CHROME-ის შიგნით */}
   <Route
     path="*"
     element={
-      <Chrome
-        cartItems={cartItems}
-        showCart={showCart}
-        lastAddedId={lastAddedId}
-      >
-        <Routes>
-          {/* 🔥 PUBLIC ROUTES WITH GUARD */}
-          <Route
-            path="/"
-            element={
-              <OpeningGuard>
-                <HomePage />
-              </OpeningGuard>
-            }
-          />
+<Chrome
+  cartItems={cartItems}
+  showCart={showCart}
+  lastAddedId={lastAddedId}
+>
+  <Routes>
 
-          <Route
-            path="/products"
-            element={
-              <OpeningGuard>
-                <ProductsPage />
-              </OpeningGuard>
-            }
-          />
+    <Route path="/" element={<HomePage />} />
 
-          <Route
-            path="/products/:slug"
-            element={
-              <OpeningGuard>
-                <SingleProductPage />
-              </OpeningGuard>
-            }
-          />
+    <Route path="/products" element={<ProductsPage />} />
 
-          <Route
-            path="/blogs"
-            element={
-              <OpeningGuard>
-                <BlogsPage />
-              </OpeningGuard>
-            }
-          />
+    <Route path="/products/:slug" element={<SingleProductPage />} />
 
-          <Route
-            path="/blog/:slug"
-            element={
-              <OpeningGuard>
-                <BlogDetailPage />
-              </OpeningGuard>
-            }
-          />
+    <Route path="/blogs" element={<BlogsPage />} />
 
-          <Route
-            path="/login"
-            element={
-              <OpeningGuard>
-                <LoginPage />
-              </OpeningGuard>
-            }
-          />
+    <Route path="/blog/:slug" element={<BlogDetailPage />} />
 
-          <Route
-            path="/checkout"
-            element={
-              <OpeningGuard>
-                <Checkout />
-              </OpeningGuard>
-            }
-          />
+    <Route path="/login" element={<LoginPage />} />
 
-          <Route
-            path="/payment/result"
-            element={
-              <OpeningGuard>
-                <PaymentResult />
-              </OpeningGuard>
-            }
-          />
+    <Route path="/checkout" element={<Checkout />} />
 
-          <Route
-            path="/contacts"
-            element={
-              <OpeningGuard>
-                <ContactsPage />
-              </OpeningGuard>
-            }
-          />
+    <Route path="/payment/result" element={<PaymentResult />} />
 
-          {/* --- REDIRECTS --- */}
-          <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
-          <Route path="/addProducts" element={<Navigate to="/admin/addProducts" replace />} />
-          <Route path="/addProducts/:id" element={<OldAddProductRedirect />} />
-          <Route path="/order_history" element={<Navigate to="/admin/order_history" replace />} />
-          <Route path="/blog" element={<Navigate to="/admin/blog" replace />} />
-          <Route path="/promo-codes" element={<Navigate to="/admin/promo-codes" replace />} />
-          <Route path="/home-images" element={<Navigate to="/admin/home-images" replace />} />
+    <Route path="/contacts" element={<ContactsPage />} />
 
-          {/* 🔥 ADMIN (UNTOUCHED) */}
-          <Route
-            path="/admin/*"
-            element={
-              <React.Suspense fallback={<div style={{ padding: "2rem" }}>Loading admin…</div>}>
-                <AdminApp />
-              </React.Suspense>
-            }
-          />
-        </Routes>
-      </Chrome>
+    {/* REDIRECTS */}
+    <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
+    <Route path="/addProducts" element={<Navigate to="/admin/addProducts" replace />} />
+    <Route path="/addProducts/:id" element={<OldAddProductRedirect />} />
+    <Route path="/order_history" element={<Navigate to="/admin/order_history" replace />} />
+    <Route path="/blog" element={<Navigate to="/admin/blog" replace />} />
+    <Route path="/promo-codes" element={<Navigate to="/admin/promo-codes" replace />} />
+    <Route path="/home-images" element={<Navigate to="/admin/home-images" replace />} />
+
+    {/* ADMIN */}
+    <Route
+      path="/admin/*"
+      element={
+        <React.Suspense fallback={<div style={{ padding: "2rem" }}>Loading admin…</div>}>
+          <AdminApp />
+        </React.Suspense>
+      }
+    />
+
+  </Routes>
+</Chrome>
     }
   />
 </Routes>

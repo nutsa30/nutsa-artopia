@@ -5,13 +5,16 @@ import HomeCarousel from "../components/home/HomeCarousel";
 import HomeSaleProducts from "../components/home/HomeSaleProducts";
 import HomeNewProducts from "../components/home/HomeNewProducts";
 import HomeBlogs from "../components/home/HomeBlogs";
+import OpeningPage from "./OpeningPage";
+import { hasSeenOpening } from "../utils/openingGate";
+
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 export default function HomePage() {
   const [homeImages, setHomeImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+const [showOpening, setShowOpening] = useState(false);
   // 🔥 HOME IMAGES FETCH (admin-იდან)
   useEffect(() => {
     const fetchImages = async () => {
@@ -36,6 +39,14 @@ export default function HomePage() {
     fetchImages();
   }, []);
 
+  useEffect(() => {
+  if (!hasSeenOpening()) {
+    setShowOpening(true);
+  }
+}, []);
+const handleOpeningDone = () => {
+  setShowOpening(false);
+};
   return (
     <div className={styles.page}>
       
@@ -63,6 +74,8 @@ export default function HomePage() {
       <section className={styles.section}>
         <HomeBlogs />
       </section>
+
+      {showOpening && <OpeningPage onFinish={handleOpeningDone} />}
 
     </div>
   );
