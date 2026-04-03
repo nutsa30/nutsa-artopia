@@ -41,10 +41,10 @@
 .tabsWrapper {
   display: flex;
   align-items: center;
-  justify-content: center; /* ცენტრი */
+  justify-content: center;
   gap: 1rem;
-  flex-wrap: wrap;
-  /* flex: 1 1 auto;    */
+  flex-wrap: nowrap;   /* 👈 ეს შეცვალე */
+  overflow-x: auto;    /* 👈 ეს დაამატე */
   margin: 0 1rem;
 }
 
@@ -72,7 +72,8 @@
   gap: 6px;
   color: white;
   flex: 0 0 auto;           /* ფიქსად მარჯვნივ */
-  margin-left: auto;        /* ბრენდი ↔︎ ენები შორის tabsWrapper თანაბრად ცენტრში რჩება */
+  margin-left: auto; 
+    white-space: nowrap;
 }
 
 .langSwitcher button {
