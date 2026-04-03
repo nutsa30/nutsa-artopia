@@ -139,6 +139,8 @@ const Checkout = () => {
     comment: "",
   });
 
+
+
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [stockById, setStockById] = useState({});
@@ -148,7 +150,37 @@ const Checkout = () => {
     (s, it) => s + unitPrice(it) * (it.quantity || 0),
     0
   );
+const [couponDiscount, setCouponDiscount] = useState(0);
 
+useEffect(() => {
+  const applyCoupon = async () => {
+    if (!formData.coupon_code) {
+      setCouponDiscount(0);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/promo-codes`);
+      const data = await res.json();
+
+      const code = formData.coupon_code.toUpperCase().trim();
+
+      const found = data.find((c) => c.code === code && c.is_active);
+
+      if (found) {
+        const discount = +(subtotal * (found.percent / 100)).toFixed(2);
+        setCouponDiscount(discount);
+      } else {
+        setCouponDiscount(0);
+      }
+    } catch (e) {
+      console.error(e);
+      setCouponDiscount(0);
+    }
+  };
+
+  applyCoupon();
+}, [formData.coupon_code, subtotal]);
   const deliveryOptions = useMemo(() => {
     if (isTbilisi(formData.city)) {
       const deliveryLabel =
@@ -213,36 +245,34 @@ const Checkout = () => {
     }
   }, [formData.city]);
 
-  const preview = useMemo(() => {
-    const inTbilisi = isTbilisi(formData.city);
-    let delivery_fee = 0;
-    let extra_discount = 0;
+const preview = useMemo(() => {
+  const inTbilisi = isTbilisi(formData.city);
+  let delivery_fee = 0;
+let extra_discount = couponDiscount;
+  // 🔥 ეს ჩაამატე
 
-    if (inTbilisi) {
-      if (formData.deliveryOption === "storePickup") {
-        delivery_fee = 0;
-      } else {
-        // თბილისი — 50₾+
-        delivery_fee = subtotal >= 50 ? 0 : 6;
-      }
-    } else if (formData.city) {
-      // რეგიონი — 70₾+
-      delivery_fee = subtotal >= 70 ? 0 : 8;
+  if (inTbilisi) {
+    if (formData.deliveryOption === "storePickup") {
+      delivery_fee = 0;
+    } else {
+      delivery_fee = subtotal >= 50 ? 0 : 6;
     }
+  } else if (formData.city) {
+    delivery_fee = subtotal >= 70 ? 0 : 8;
+  }
 
-    const total = Math.max(
-      0,
-      +(subtotal - extra_discount + delivery_fee).toFixed(2)
-    );
+  const total = Math.max(
+    0,
+    +(subtotal - extra_discount + delivery_fee).toFixed(2)
+  );
 
-    return {
-      subtotal: +subtotal.toFixed(2),
-      delivery_fee,
-      extra_discount,
-      total,
-    };
-  }, [subtotal, formData.city, formData.deliveryOption]);
-
+  return {
+    subtotal: +subtotal.toFixed(2),
+    delivery_fee,
+    extra_discount,
+    total,
+  };
+}, [subtotal, formData.city, formData.deliveryOption, formData.coupon_code, couponDiscount]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
