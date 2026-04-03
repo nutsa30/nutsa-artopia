@@ -1,7 +1,7 @@
 import { markOpeningSeen } from "../utils/openingGate";
 import styles from "./OpeningPage.module.css";
 import { useState } from "react";
-
+import { useEffect, useState } from "react";
 import deskDark from "../assets/newhome/desk-dark.png";
 import deskLight from "../assets/newhome/desk-light.png";
 import mobDark from "../assets/newhome/mob-dark.png";
@@ -13,7 +13,13 @@ export default function OpeningPage({ onFinish }) {
   const [hideButton, setHideButton] = useState(false);
   const [zoom, setZoom] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
 
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
   const handleOpen = () => {
     markOpeningSeen();
 

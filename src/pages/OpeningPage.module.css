@@ -155,3 +155,7 @@
 
   transition: transform 1s ease, opacity 0.2s ease;
 }
+body {
+  position: fixed;
+  width: 100%;
+}
