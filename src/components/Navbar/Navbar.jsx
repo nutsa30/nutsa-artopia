@@ -4,7 +4,8 @@ import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../CartContext/CartContext";
 import CartDropdown from "../CartContext/CartDropdown";
 import { Home, ShoppingBag, LetterText, MessagesSquare } from "lucide-react";
-
+import geFlag from "../../assets/georgiaflag.png";
+import enFlag from "../../assets/britishflag.png";
 /* ---------- Tabs ---------- */
 const tabs = [
   { id: "home", path: "/", icon: <Home size={18} /> },
@@ -68,6 +69,20 @@ CartIcon.displayName = "CartIcon";
 
 /* ---------- Navbar ---------- */
 const Navbar = () => {
+  const changeLang = (lang) => {
+  const tryChange = () => {
+    const select = document.querySelector(".goog-te-combo");
+
+    if (select) {
+      select.value = lang;
+      select.dispatchEvent(new Event("change"));
+    } else {
+      setTimeout(tryChange, 300);
+    }
+  };
+
+  tryChange();
+};
   const location = useLocation();
   const [showCartOpen, setShowCartOpen] = useState(false);
   const { cartItems } = useCart();
@@ -77,14 +92,27 @@ const Navbar = () => {
   const { cartRef } = useCartUiRefs();
 
   return (
-    <div className={styles.tabbar} role="navigation" aria-label={L.navAria}>
-      {/* Header */}
-      <div className={styles.header}>
-        <Link to="/" reloadDocument className={styles.brandLink} aria-label={L.home}>
-          <img className={styles.logo} src={LogoImg} alt={L.brand} />
-          <h2 className={styles.h2}>{L.brand}</h2>
-        </Link>
-      </div>
+<div className={styles.tabbar} role="navigation" aria-label={L.navAria}>
+  
+  {/* Header */}
+  <div className={styles.header}>
+    <Link to="/" reloadDocument className={styles.brandLink} aria-label={L.home}>
+      <img className={styles.logo} src={LogoImg} alt={L.brand} />
+      <h2 className={styles.h2}>{L.brand}</h2>
+    </Link>
+  </div>
+
+  {/* Language */}
+  <div className={styles.langSwitcher}>
+    <button onClick={() => changeLang("ka")}>
+      <img src={geFlag} alt="ქართული" />
+    </button>
+
+    <button onClick={() => changeLang("en")}>
+      <img src={enFlag} alt="English" />
+    </button>
+  </div>
+
 
       {/* Tabs */}
       <div className={styles.tabsWrapper}>

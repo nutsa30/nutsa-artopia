@@ -60,3 +60,47 @@ button, input, select, textarea {
 
 /* xl */
 @media (min-width: 1280px){ /* extra large screens */ }
+
+#google_translate_element {
+  display: none !important;
+}
+/* hide google top bar */
+body {
+  top: 0 !important;
+}
+
+/* hide the translate banner iframe */
+iframe.goog-te-banner-frame {
+  display: none !important;
+}
+
+/* sometimes google adds this */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+/* ==== FIX GOOGLE TRANSLATE BAR ==== */
+
+/* hide top bar */
+iframe.goog-te-banner-frame {
+  display: none !important;
+}
+
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+/* reset body shift */
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+/* remove google injected margin */
+body > .skiptranslate {
+  display: none !important;
+}
+
+/* optional: remove weird gap */
+html {
+  margin-top: 0 !important;
+}
