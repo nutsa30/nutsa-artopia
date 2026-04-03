@@ -33,7 +33,7 @@
 
 .scene {
   position: absolute;
-  top: 50%;
+  top: 60%;
   left: 50%;
   transform: translate(-50%, -50%);
   perspective: 600px;
@@ -99,23 +99,27 @@
 /* ===================== */
 
 @media (max-width: 768px) {
+  .scene {
+    top: 60%;
+  }
+
   .cube {
-    width: 160px;
-    height: 55px;
+    width: 145px;
+    height: 50px;
   }
 
   .side {
-    width: 160px;
-    height: 55px;
-    font-size: 14px;
+    width: 145px;
+    height: 50px;
+    font-size: 13px;
   }
 
   .front {
-    transform: translateZ(27px);
+    transform: translateZ(25px);
   }
 
   .top {
-    transform: rotateX(90deg) translateZ(27px);
+    transform: rotateX(90deg) translateZ(25px);
   }
 }
 
