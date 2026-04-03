@@ -39,33 +39,33 @@ export default function OpeningPage() {
   return (
     <div className={styles.wrapper}>
 
-      {/* 🔥 DARK */}
-      <img
-        src={deskDark}
-        className={`${styles.image} ${styles.desktop} ${
-          isLight ? styles.fadeOutSmooth : styles.fadeIn
-        }`}
-      />
-      <img
-        src={mobDark}
-        className={`${styles.image} ${styles.mobile} ${
-          isLight ? styles.fadeOutSmooth : styles.fadeIn
-        }`}
-      />
+{/* 🔥 DARK */}
+<img
+  src={deskDark}
+  className={`${styles.image} ${styles.desktop} ${
+    isLight ? styles.hidden : ""
+  }`}
+/>
+<img
+  src={mobDark}
+  className={`${styles.image} ${styles.mobile} ${
+    isLight ? styles.hidden : ""
+  }`}
+/>
 
-      {/* 🔥 LIGHT */}
-      <img
-        src={deskLight}
-        className={`${styles.image} ${styles.desktop} ${
-          isLight ? styles.fadeInSmooth : styles.hidden
-        } ${zoom ? styles.zoom : ""} ${fadeOut ? styles.fadeOut : ""}`}
-      />
-      <img
-        src={mobLight}
-        className={`${styles.image} ${styles.mobile} ${
-          isLight ? styles.fadeInSmooth : styles.hidden
-        } ${zoom ? styles.zoom : ""} ${fadeOut ? styles.fadeOut : ""}`}
-      />
+{/* 🔥 LIGHT */}
+<img
+  src={deskLight}
+  className={`${styles.image} ${styles.desktop} ${
+    isLight ? "" : styles.hidden
+  } ${zoom ? styles.zoom : ""} ${fadeOut ? styles.fadeOut : ""}`}
+/>
+<img
+  src={mobLight}
+  className={`${styles.image} ${styles.mobile} ${
+    isLight ? "" : styles.hidden
+  } ${zoom ? styles.zoom : ""} ${fadeOut ? styles.fadeOut : ""}`}
+/>
 
       {/* 🔘 BUTTON */}
       {!hideButton && (
