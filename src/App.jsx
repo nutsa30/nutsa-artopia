@@ -31,14 +31,17 @@ import CartToast from "./components/CartToast/CartToast";
 import { useCart } from "./components/CartContext/CartContext";
 import SingleProductPage from "./pages/SingleProductPage";
 import AppLoader from "./components/loaders/AppLoader";
-import { useLoading } from "./loaders/LoadingProvider";
+
+import OpeningPage from "./pages/OpeningPage";
+import OpeningGuard from "./components/OpeningGuard";
 
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
+
 const CartToastWrapper = () => {
   const { showToast } = useCart();
   return <CartToast show={showToast} message="დამატებულია კალათაში" />;
 };
-// Route change hook (no UI)
+
 const RouteLoader = () => {
   const location = useLocation();
   useEffect(() => {}, [location]);
@@ -49,7 +52,6 @@ const ChatWidgetMount = () => {
   return <ChatWidget siteLang="ka" />;
 };
 
-// ძველი /addProducts/:id → ახალი /admin/addProducts/:id
 const OldAddProductRedirect = () => {
   const { id } = useParams();
   return (
@@ -57,7 +59,6 @@ const OldAddProductRedirect = () => {
   );
 };
 
-// ✅ Wrapper that hides Navbar/Footer on /admin და აყენებს თეთრ background-ს
 function Chrome({ children, cartItems, showCart, lastAddedId }) {
   const { pathname } = useLocation();
   const isAdmin = pathname.startsWith("/admin");
@@ -99,76 +100,164 @@ function App() {
     setShowCart(true);
     setTimeout(() => setShowCart(false), 1200);
   };
+
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  const timer = setTimeout(() => {
-    setLoading(false);
-  }, 1500); // დროებით 1.5 წამი
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
-  return () => clearTimeout(timer);
-}, []);
-  // ჩატბოტის დამალვა admin-ზე
-  const ChatMountIfNotAdmin = () => {
-    const { pathname } = useLocation();
-    const isAdmin = pathname.startsWith("/admin");
-    if (isAdmin) return null;
-    return <ChatWidgetMount />;
-  };
+const ChatMountIfNotAdmin = () => {
+  const { pathname } = useLocation();
+
+  const isAdmin = pathname.startsWith("/admin");
+  const isOpening = pathname === "/opening";
+
+  if (isAdmin || isOpening) return null;
+
+  return <ChatWidgetMount />;
+};
 
   return (
-
     <>
-  {loading && <AppLoader />}
+      {loading && <AppLoader />}
+
       <LayoutGroup>
         <CartProvider>
-      <CartUiProvider>
-  <Router>
-    <CartToastWrapper />
+          <CartUiProvider>
+            <Router>
+              <CartToastWrapper />
               <RouteLoader />
 
-              <Chrome cartItems={cartItems} showCart={showCart} lastAddedId={lastAddedId}>
-                <Routes>
-                  {/* --- PUBLIC SITE ROUTES --- */}
-                  <Route path="/" element={<HomePage />} />
+<Routes>
+  {/* 🔥 OPENING PAGE — CHROME-ის გარეთ */}
+  <Route path="/opening" element={<OpeningPage />} />
 
-                  {/* ✅ პროდუქტების ლისტი */}
-                  <Route path="/products" element={<ProductsPage />} />
-<Route path="/products/:slug" element={<SingleProductPage />} />
+  {/* 🔥 დანარჩენი ყველაფერი CHROME-ის შიგნით */}
+  <Route
+    path="*"
+    element={
+      <Chrome
+        cartItems={cartItems}
+        showCart={showCart}
+        lastAddedId={lastAddedId}
+      >
+        <Routes>
+          {/* 🔥 PUBLIC ROUTES WITH GUARD */}
+          <Route
+            path="/"
+            element={
+              <OpeningGuard>
+                <HomePage />
+              </OpeningGuard>
+            }
+          />
 
-                  <Route path="/blogs" element={<BlogsPage />} />
-<Route path="/blog/:slug" element={<BlogDetailPage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/payment/result" element={<PaymentResult />} />
+          <Route
+            path="/products"
+            element={
+              <OpeningGuard>
+                <ProductsPage />
+              </OpeningGuard>
+            }
+          />
 
-                  <Route path="/contacts" element={<ContactsPage />} />
-                  {/* --- Redirects: old absolute admin links → /admin/... --- */}
-                  <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
-                  <Route path="/addProducts" element={<Navigate to="/admin/addProducts" replace />} />
-                  <Route path="/addProducts/:id" element={<OldAddProductRedirect />} />
-                  <Route path="/order_history" element={<Navigate to="/admin/order_history" replace />} />
-                  <Route path="/blog" element={<Navigate to="/admin/blog" replace />} />
-                  <Route path="/promo-codes" element={<Navigate to="/admin/promo-codes" replace />} />
-                  <Route path="/home-images" element={<Navigate to="/admin/home-images" replace />} />
-                  {/* --- ADMIN NESTED ROUTES --- */}
-                  <Route
-                    path="/admin/*"
-                    element={
-                      <React.Suspense fallback={<div style={{ padding: "2rem" }}>Loading admin…</div>}>
-                        <AdminApp />
-                      </React.Suspense>
-                    }
-                  />
-                </Routes>
-              </Chrome>
+          <Route
+            path="/products/:slug"
+            element={
+              <OpeningGuard>
+                <SingleProductPage />
+              </OpeningGuard>
+            }
+          />
+
+          <Route
+            path="/blogs"
+            element={
+              <OpeningGuard>
+                <BlogsPage />
+              </OpeningGuard>
+            }
+          />
+
+          <Route
+            path="/blog/:slug"
+            element={
+              <OpeningGuard>
+                <BlogDetailPage />
+              </OpeningGuard>
+            }
+          />
+
+          <Route
+            path="/login"
+            element={
+              <OpeningGuard>
+                <LoginPage />
+              </OpeningGuard>
+            }
+          />
+
+          <Route
+            path="/checkout"
+            element={
+              <OpeningGuard>
+                <Checkout />
+              </OpeningGuard>
+            }
+          />
+
+          <Route
+            path="/payment/result"
+            element={
+              <OpeningGuard>
+                <PaymentResult />
+              </OpeningGuard>
+            }
+          />
+
+          <Route
+            path="/contacts"
+            element={
+              <OpeningGuard>
+                <ContactsPage />
+              </OpeningGuard>
+            }
+          />
+
+          {/* --- REDIRECTS --- */}
+          <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
+          <Route path="/addProducts" element={<Navigate to="/admin/addProducts" replace />} />
+          <Route path="/addProducts/:id" element={<OldAddProductRedirect />} />
+          <Route path="/order_history" element={<Navigate to="/admin/order_history" replace />} />
+          <Route path="/blog" element={<Navigate to="/admin/blog" replace />} />
+          <Route path="/promo-codes" element={<Navigate to="/admin/promo-codes" replace />} />
+          <Route path="/home-images" element={<Navigate to="/admin/home-images" replace />} />
+
+          {/* 🔥 ADMIN (UNTOUCHED) */}
+          <Route
+            path="/admin/*"
+            element={
+              <React.Suspense fallback={<div style={{ padding: "2rem" }}>Loading admin…</div>}>
+                <AdminApp />
+              </React.Suspense>
+            }
+          />
+        </Routes>
+      </Chrome>
+    }
+  />
+</Routes>
 
               <ChatMountIfNotAdmin />
             </Router>
           </CartUiProvider>
         </CartProvider>
       </LayoutGroup>
-      </>
+    </>
   );
 }
 

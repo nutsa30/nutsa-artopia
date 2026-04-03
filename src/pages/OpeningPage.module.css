@@ -1,0 +1,139 @@
+.wrapper {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+
+  /* 🔥 შენი არტოპიას gradient */
+  background: linear-gradient(335deg, #1F3F74, #14366D, #142644);
+}
+
+/* 🔥 IMAGE */
+.image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  transition: transform 1s ease, opacity 0.1s linear;
+}
+
+.zoom {
+  transform: scale(6);
+}
+
+.fadeOut {
+  opacity: 0;
+}
+
+/* ===================== */
+/* 🔥 3D BUTTON */
+/* ===================== */
+
+.scene {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  perspective: 600px;
+  cursor: pointer;
+}
+
+.cube {
+  width: 220px;
+  height: 70px;
+  position: relative;
+
+  transform-style: preserve-3d;
+  transform-origin: 100% 50%;
+
+  transition: transform 0.85s cubic-bezier(.17,.67,.14,.93);
+}
+
+.scene:hover .cube {
+  transform: rotateX(-90deg);
+}
+
+/* 🔥 BUTTON SIDES */
+.side {
+  position: absolute;
+  width: 220px;
+  height: 70px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+  letter-spacing: 1px;
+  border-radius: 12px;
+
+  font-family: 'Roboto', sans-serif;
+}
+
+/* FRONT */
+.front {
+  background: linear-gradient(135deg, #0056FF, #4da3ff);
+  color: white;
+  box-shadow: 0 10px 30px rgba(0, 86, 255, 0.4);
+  transform: translateZ(35px);
+}
+
+/* TOP */
+.top {
+  background: #C7D6F9;
+  color: #0b2545;
+  transform: rotateX(90deg) translateZ(35px);
+}
+
+/* 🔥 FADE OUT */
+.buttonFade {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1s ease;
+}
+
+/* ===================== */
+/* 📱 MOBILE */
+/* ===================== */
+
+@media (max-width: 768px) {
+  .cube {
+    width: 160px;
+    height: 55px;
+  }
+
+  .side {
+    width: 160px;
+    height: 55px;
+    font-size: 14px;
+  }
+
+  .front {
+    transform: translateZ(27px);
+  }
+
+  .top {
+    transform: rotateX(90deg) translateZ(27px);
+  }
+}
+
+/* IMAGE SWITCH */
+.desktop {
+  display: block;
+}
+
+.mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop {
+    display: none;
+  }
+
+  .mobile {
+    display: block;
+  }
+}
