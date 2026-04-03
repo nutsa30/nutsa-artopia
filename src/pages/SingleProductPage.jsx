@@ -87,6 +87,7 @@ const [status, setStatus] = useState("loading");
 const [quantity, setQuantity] = useState(1);
 const [stockMessage, setStockMessage] = useState("");
 const [currentImageIndex, setCurrentImageIndex] = useState(0);
+const [isModalOpen, setIsModalOpen] = useState(false);
 const [relatedStartIndex, setRelatedStartIndex] = useState(0);
 const [relatedVisibleCount, setRelatedVisibleCount] = useState(4);
   useEffect(() => {
@@ -316,60 +317,66 @@ navigate(-1);
               )}
 
               {images.length > 1 && (
-                <button
-                  className={`${styles.navBtn} ${styles.navBtnLeft}`}
-                  onClick={() =>
-                    setCurrentImageIndex((idx) =>
-                      idx === 0 ? images.length - 1 : idx - 1
-                    )
-                  }
-                  aria-label={L.prev}
-                  type="button"
-                >
-                  ‹
-                </button>
+             <button
+  className={`${styles.arrowBtn} ${styles.left}`}
+  onClick={() =>
+    setCurrentImageIndex((idx) =>
+      idx === 0 ? images.length - 1 : idx - 1
+    )
+  }
+>
+  <svg viewBox="0 0 24 24">
+    <path d="M15 6l-6 6 6 6" />
+  </svg>
+</button>
               )}
 
-         <img
+<img
   src={images.length > 0 ? images[currentImageIndex] : NO_IMAGE}
   alt={`${title} - ${category} Artopia`}
   className={styles.productImage}
   loading="eager"
   decoding="async"
+  onClick={() => setIsModalOpen(true)}
+  style={{ cursor: "zoom-in" }}
 />
 
               {images.length > 1 && (
-                <button
-                  className={`${styles.navBtn} ${styles.navBtnRight}`}
-                  onClick={() =>
-                    setCurrentImageIndex((idx) =>
-                      idx === images.length - 1 ? 0 : idx + 1
-                    )
-                  }
-                  aria-label={L.next}
-                  type="button"
-                >
-                  ›
-                </button>
+      <button
+  className={`${styles.arrowBtn} ${styles.right}`}
+  onClick={() =>
+    setCurrentImageIndex((idx) =>
+      idx === images.length - 1 ? 0 : idx + 1
+    )
+  }
+>
+  <svg viewBox="0 0 24 24">
+    <path d="M9 6l6 6-6 6" />
+  </svg>
+</button>
               )}
 
-              {images.length > 1 && (
-                <div className={styles.dotsBar}>
-                  {images.map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className={styles.dotBtn}
-                      onClick={() => setCurrentImageIndex(i)}
-                      aria-label={`${i + 1} / ${images.length}`}
-                    >
-                      <span className={i === currentImageIndex ? styles.dotActive : styles.dot} />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+
+</div> {/* imageBox */}
+
+{images.length > 0 && (
+  <div className={styles.thumbnailBar}>
+    {images.map((img, i) => (
+      <button
+        key={i}
+        type="button"
+        className={`${styles.thumbnailBtn} ${
+          i === currentImageIndex ? styles.thumbnailActive : ""
+        }`}
+        onClick={() => setCurrentImageIndex(i)}
+      >
+        <img src={img} alt={`preview-${i}`} />
+      </button>
+    ))}
+  </div>
+)}
+
+</div> {/* galleryCard */}
 
           <div className={styles.infoCard}>
             <h1 className={styles.title}>{title}</h1>
@@ -467,7 +474,26 @@ navigate(-1);
             </div>
           </div>
         </section>
+{isModalOpen && (
+  <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
+    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
 
+      <button
+        className={styles.closeBtn}
+        onClick={() => setIsModalOpen(false)}
+      >
+        ✕
+      </button>
+
+      <img
+        src={images[currentImageIndex]}
+        alt="zoom"
+        className={styles.modalImage}
+      />
+
+    </div>
+  </div>
+)}
 {relatedProducts.length > 0 && (
   <section className={styles.relatedSection}>
     <div className={styles.relatedHeader}>
