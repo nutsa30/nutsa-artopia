@@ -262,7 +262,7 @@ const productSchema = {
   },
   offers: {
     "@type": "Offer",
-    price: product.price,
+    price: String(product.price),
     priceCurrency: "GEL",
     availability: inStock
       ? "https://schema.org/InStock"
