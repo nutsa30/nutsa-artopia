@@ -370,7 +370,10 @@ navigate(-1);
         }`}
         onClick={() => setCurrentImageIndex(i)}
       >
-        <img src={img} alt={`preview-${i}`} />
+<img
+  src={img}
+  alt={`${title} ${category} ფოტო ${i + 1} - Artopia`}
+/>
       </button>
     ))}
   </div>
@@ -487,7 +490,7 @@ navigate(-1);
 
       <img
         src={images[currentImageIndex]}
-        alt="zoom"
+alt={`${title} ${category} დეტალური ფოტო - Artopia`}
         className={styles.modalImage}
       />
 
