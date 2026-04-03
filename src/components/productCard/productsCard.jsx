@@ -118,8 +118,6 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
     <>
 <div
   className={`${styles.productCard} product-card`}
-  itemScope
-  itemType="https://schema.org/Product"
 >
           {product?.is_new && (
           <div className={styles.ribbon}>
