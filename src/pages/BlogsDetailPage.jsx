@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./BlogsDetailPage.module.css";
 import SEO from "../components/SEO";
+import AppLoader from "../components/loaders/AppLoader";
 
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
 const FALLBACK_IMAGE = "/noimage.jpeg";
@@ -231,9 +232,9 @@ document.addEventListener("mouseout", handleMouseOut);
     ],
   };
 
-  if (loading) {
-    return <div className={styles.loader}>იტვირთება...</div>;
-  }
+if (loading) {
+  return <AppLoader />;
+}
 
   if (err) {
     return (

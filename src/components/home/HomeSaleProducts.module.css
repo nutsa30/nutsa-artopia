@@ -150,3 +150,36 @@
     gap: 8px;
   }
 }
+
+@media (max-width: 480px) {
+  .seeAll {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 8px 14px;        /* ერთიანი ზომა */
+    font-size: 13px;          /* ერთიანი ტექსტი */
+    font-weight: 700;
+
+    height: 36px;             /* ერთიანი სიმაღლე */
+    line-height: 1;           /* ტექსტი არ “გაიწელოს” */
+
+    border-radius: 10px;      /* ცოტა უფრო clean */
+    white-space: nowrap;      /* ტექსტი არ გადატყდეს */
+
+    flex-shrink: 0;           /* არ დაიჭყლიტოს */
+  }
+
+  .text {
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .head {
+    align-items: center;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+}

@@ -6,6 +6,7 @@ import { playSound } from "../utils/playSound";
 import popSfx from "../assets/pop.mp3";
 import styles from "./SingleProductPage.module.css";
 import { useLocation } from "react-router-dom";
+import AppLoader from "../components/loaders/AppLoader";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const NO_IMAGE = "/noimage.jpeg";
@@ -219,9 +220,9 @@ const visibleRelatedProducts = relatedProducts.slice(
   relatedStartIndex,
   relatedStartIndex + relatedVisibleCount
 );
-  if (status === "loading") {
-    return <div className={styles.loader}>იტვირთება...</div>;
-  }
+if (status === "loading") {
+  return <AppLoader />;
+}
 
   if (status === "not_found" || !product) {
     return <div className={styles.loader}>პროდუქტი ვერ მოიძებნა.</div>;

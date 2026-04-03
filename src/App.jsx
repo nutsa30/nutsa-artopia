@@ -30,6 +30,9 @@ import PaymentResult from "./components/Checkout/PaymentResult";
 import CartToast from "./components/CartToast/CartToast";
 import { useCart } from "./components/CartContext/CartContext";
 import SingleProductPage from "./pages/SingleProductPage";
+import AppLoader from "./components/loaders/AppLoader";
+import { useLoading } from "./loaders/LoadingProvider";
+
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 const CartToastWrapper = () => {
   const { showToast } = useCart();
@@ -96,7 +99,15 @@ function App() {
     setShowCart(true);
     setTimeout(() => setShowCart(false), 1200);
   };
+  const [loading, setLoading] = useState(true);
 
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setLoading(false);
+  }, 1500); // დროებით 1.5 წამი
+
+  return () => clearTimeout(timer);
+}, []);
   // ჩატბოტის დამალვა admin-ზე
   const ChatMountIfNotAdmin = () => {
     const { pathname } = useLocation();
@@ -106,6 +117,9 @@ function App() {
   };
 
   return (
+
+    <>
+  {loading && <AppLoader />}
       <LayoutGroup>
         <CartProvider>
       <CartUiProvider>
@@ -154,6 +168,7 @@ function App() {
           </CartUiProvider>
         </CartProvider>
       </LayoutGroup>
+      </>
   );
 }
 

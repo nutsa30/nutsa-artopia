@@ -6,6 +6,8 @@ import { useCart } from "../components/CartContext/CartContext";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import EdgePager from "../components/pagination/EdgePager";
 import SEO from "../components/SEO";
+import AppLoader from "../components/loaders/AppLoader";
+
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const PRODUCTS_PER_PAGE = 20;
@@ -208,7 +210,6 @@ if (searchTerm.trim()) {
 }
 
 const url = `${API_BASE}/products/list?${params.toString()}`;
-  setIsLoading(true);
 
   fetch(url)
     .then((res) => {
@@ -239,10 +240,11 @@ setTotal(data.total);
         setCategories([]);
       }
     })
-    .finally(() => {
-      if (mounted) setIsLoading(false);
-    });
-
+   .finally(() => {
+  if (mounted) {
+    setIsLoading(false);
+  }
+});
   return () => {
     mounted = false;
   };
@@ -344,6 +346,9 @@ const collectionSchema = {
 };
   return (
     <>
+    {isLoading && <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+  <AppLoader />
+</div>}
  <SEO
   title={productsTitle}
   description={productsDescription}

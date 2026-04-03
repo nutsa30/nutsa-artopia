@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./BlogsPage.module.css";
 import SEO from "../components/SEO";
+import AppLoader from "../components/loaders/AppLoader";
 
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
 const FALLBACK_IMAGE = "/noimage.jpeg";
@@ -134,7 +135,7 @@ export default function BlogsPage() {
             </div>
           </header>
 
-          {loading && <div className={styles.loader}>იტვირთება...</div>}
+{loading && <AppLoader />}
           {!loading && error && <div className={styles.error}>{error}</div>}
 
           {!loading && !error && (
