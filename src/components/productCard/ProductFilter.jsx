@@ -23,7 +23,7 @@ export default function ProductFilter({
   onSearchChange,
 }) {
   const L = LABELS;
-
+const [catSearch, setCatSearch] = useState("");
   const catObjs = useMemo(() => {
     if (!Array.isArray(categories)) return [];
     return categories.map((c, idx) =>
@@ -32,11 +32,15 @@ export default function ProductFilter({
         : { ...c, _key: `o-${c.id ?? idx}` }
     );
   }, [categories]);
-
-  const catLabels = useMemo(
-    () => [L.all, ...catObjs.map((c) => catLabel(c)).filter(Boolean)],
-    [catObjs]
+const catLabels = useMemo(
+  () => [L.all, ...catObjs.map((c) => catLabel(c)).filter(Boolean)],
+  [catObjs]
+);
+const filteredLabels = useMemo(() => {
+  return catLabels.filter((label) =>
+    label.toLowerCase().includes(catSearch.toLowerCase())
   );
+}, [catLabels, catSearch]);
 
   const [open, setOpen] = useState(false);
 
@@ -67,15 +71,16 @@ export default function ProductFilter({
     };
   }, []);
 
-  const handlePickCategory = (label) => {
-    if (label === L.all) {
-      onCategoryChange("");
-    } else {
-      onCategoryChange(label);
-    }
+const handlePickCategory = (label) => {
+  if (label === L.all) {
+    onCategoryChange("");
+  } else {
+    onCategoryChange(label);
+  }
 
-    setOpen(false);
-  };
+  setCatSearch(""); // 🔥 reset
+  setOpen(false);
+};
 
   const triggerLabel = selectedCategory || L.all;
 
@@ -85,38 +90,44 @@ export default function ProductFilter({
         <div className={styles.categoryRow}>
           <label htmlFor="cat-trigger">{L.category}</label>
 
-          <button
-            id="cat-trigger"
-            ref={triggerRef}
-            type="button"
-            className={`${styles.searchInput} ${styles.catTrigger}`}
-            onClick={() => setOpen((o) => !o)}
-            title={triggerLabel}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-            }}
-            aria-haspopup="listbox"
-            aria-expanded={open ? "true" : "false"}
-          >
-            <span
-              style={{
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {triggerLabel}
-            </span>
-          </button>
+   {open ? (
+  <input
+    ref={triggerRef}
+    type="text"
+    value={catSearch}
+    onChange={(e) => setCatSearch(e.target.value)}
+    placeholder="ძიება..."
+    className={`${styles.searchInput} ${styles.catTrigger}`}
+    autoFocus
+  />
+) : (
+  <button
+    ref={triggerRef}
+    type="button"
+    className={`${styles.searchInput} ${styles.catTrigger}`}
+    onClick={() => setOpen(true)}
+    title={triggerLabel}
+  >
+    <span
+      style={{
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {triggerLabel}
+    </span>
+  </button>
+)}
         </div>
 
-        {open && (
-          <div className={styles.darkDropdown} ref={dropdownRef}>
-            <ul className={styles.darkList}>
-              {catLabels.map((label) => {
-                const isSelected = (selectedCategory || L.all) === label;
+{open && (
+  <div className={styles.darkDropdown} ref={dropdownRef}>
+
+
+    <ul className={styles.darkList}>
+{filteredLabels.map((label) => {
+                  const isSelected = (selectedCategory || L.all) === label;
 
                 return (
                   <li
