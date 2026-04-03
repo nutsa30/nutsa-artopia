@@ -21,18 +21,26 @@
 
 .backBtn {
   border: none;
-  background: #163247;
+  background: rgba(22, 50, 71, 0.85);
   color: #fff;
-  padding: 12px 18px;
-  border-radius: 12px;
+
+  padding: 10px 16px;
+  border-radius: 999px;
+
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+
+  transition: all 0.25s ease;
 }
 
 .backBtn:hover {
-  background: #1e4763;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  background: rgba(30, 71, 99, 0.95);
 }
 
 .hero {
@@ -481,225 +489,6 @@
   }
 }
 
-@media (max-width: 640px) {
-  .page {
-    padding: 80px 14px 40px;
-  }
-
-  .topBar {
-    margin-bottom: 14px;
-  }
-
-  .backBtn {
-    width: 100%;
-    text-align: center;
-    padding: 10px;
-    font-size: 14px;
-  }
-
-  .hero {
-    gap: 16px;
-  }
-
-  .galleryCard,
-  .infoCard {
-    border-radius: 16px;
-  }
-
-  .galleryCard {
-    padding: 12px;
-  }
-
-  .infoCard {
-    padding: 16px;
-  }
-
-  .imageBox {
-    min-height: 240px;
-    padding: 10px 6px 30px;
-  }
-
-  .productImage {
-    max-height: 38vh;
-  }
-
-  .title {
-    font-size: 22px;
-    line-height: 1.2;
-  }
-
-  .category {
-    font-size: 13px;
-  }
-
-  .description {
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  .price,
-  .newPrice {
-    font-size: 24px;
-  }
-
-  .oldPrice {
-    font-size: 16px;
-  }
-
-  .quantityControl {
-    justify-content: center;
-  }
-
-.qtyBtn {
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 12px;
-  background-color: #457b9d;
-  color: #f1faee;
-  cursor: pointer;
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  perspective: 1000px;
-  overflow: hidden;
-  transition: background-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
-}
-
-.qtyBtn:hover:not(:disabled) {
-  background-color: #1d3557;
-}
-
-.qtyBtn:active:not(:disabled) {
-  transform: scale(0.96);
-}
-
-.qtyBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.qtyFlip {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  display: block;
-  transform-style: preserve-3d;
-}
-
-.qtyFront,
-.qtyBack {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1;
-  color: #f1faee;
-  background: transparent;
-  transition: transform 0.4s ease;
-}
-
-.qtyFront {
-  transform: rotateY(0deg);
-}
-
-.qtyBack {
-  transform: rotateY(180deg);
-}
-
-.qtyBtn:hover:not(:disabled) .qtyFront {
-  transform: rotateY(180deg);
-}
-
-.qtyBtn:hover:not(:disabled) .qtyBack {
-  transform: rotateY(360deg);
-}
-
-  .actionButtons {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .addToCartBtn {
-    width: 100%;
-    min-height: 48px;
-    padding: 12px;
-    font-size: 14px;
-  }
-
-  .buyNowBtn {
-    width: 100%;
-    min-height: 46px;
-    font-size: 14px;
-  }
-
-  .navBtn {
-    width: 34px;
-    height: 34px;
-    font-size: 22px;
-  }
-
-  .dotsBar {
-    bottom: 4px;
-  }
-
-  .relatedSection {
-    margin-top: 20px;
-  }
-
-  .relatedHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .relatedTitle {
-    font-size: 20px;
-  }
-
-  .relatedArrow {
-    width: 34px;
-    height: 34px;
-    font-size: 20px;
-  }
-
-  .relatedTrack {
-    gap: 10px;
-  }
-
-  .relatedCard {
-    padding: 10px;
-  }
-
-  .relatedName {
-    font-size: 13px;
-  }
-
-  .relatedPrice {
-    font-size: 14px;
-  }
-
-  .saleTag {
-    top: -4px;
-    right: -4px;
-    width: 60px;
-    height: 36px;
-  }
-
-  .saleTag span {
-    width: 60px;
-    height: 36px;
-    font-size: 14px;
-  }
-}
-
 
 .relatedTitle {
   margin: 0;
@@ -933,5 +722,233 @@
   .cartIcon {
     width: 18px;
     height: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 128px 14px 40px;
+  }
+
+  .topBar {
+    position: fixed;
+    top: calc(120px + env(safe-area-inset-top));
+    left: 12px;
+    z-index: 1000;
+    margin-bottom: 0;
+  }
+
+  .backBtn {
+    width: auto;
+    text-align: center;
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  .hero {
+    gap: 16px;
+  }
+
+  .galleryCard,
+  .infoCard {
+    border-radius: 16px;
+  }
+
+  .galleryCard {
+    padding: 12px;
+  }
+
+  .infoCard {
+    padding: 16px;
+  }
+
+  .imageBox {
+    min-height: 240px;
+    padding: 10px 6px 30px;
+  }
+
+  .productImage {
+    max-height: 38vh;
+  }
+
+  .title {
+    font-size: 22px;
+    line-height: 1.2;
+  }
+
+  .category {
+    font-size: 13px;
+  }
+
+  .description {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .price,
+  .newPrice {
+    font-size: 24px;
+  }
+
+  .oldPrice {
+    font-size: 16px;
+  }
+
+  .quantityControl {
+    justify-content: center;
+  }
+
+  .qtyBtn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 12px;
+    background-color: #457b9d;
+    color: #f1faee;
+    cursor: pointer;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1000px;
+    overflow: hidden;
+    transition: background-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .qtyBtn:hover:not(:disabled) {
+    background-color: #1d3557;
+  }
+
+  .qtyBtn:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  .qtyBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .qtyFlip {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: block;
+    transform-style: preserve-3d;
+  }
+
+  .qtyFront,
+  .qtyBack {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+    color: #f1faee;
+    background: transparent;
+    transition: transform 0.4s ease;
+  }
+
+  .qtyFront {
+    transform: rotateY(0deg);
+  }
+
+  .qtyBack {
+    transform: rotateY(180deg);
+  }
+
+  .qtyBtn:hover:not(:disabled) .qtyFront {
+    transform: rotateY(180deg);
+  }
+
+  .qtyBtn:hover:not(:disabled) .qtyBack {
+    transform: rotateY(360deg);
+  }
+
+  .actionButtons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .addToCartBtn {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .buyNowBtn {
+    width: 100%;
+    min-height: 46px;
+    font-size: 14px;
+  }
+
+  .navBtn {
+    width: 34px;
+    height: 34px;
+    font-size: 22px;
+  }
+
+  .dotsBar {
+    bottom: 4px;
+  }
+
+  .relatedSection {
+    margin-top: 20px;
+  }
+
+  .relatedHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .relatedTitle {
+    font-size: 20px;
+  }
+
+  .relatedArrow {
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+  }
+
+  .relatedTrack {
+    gap: 10px;
+  }
+
+  .relatedCard {
+    padding: 10px;
+  }
+
+  .relatedName {
+    font-size: 13px;
+  }
+
+  .relatedPrice {
+    font-size: 14px;
+  }
+
+  .saleTag {
+    top: -4px;
+    right: -4px;
+    width: 60px;
+    height: 36px;
+  }
+
+  .saleTag span {
+    width: 60px;
+    height: 36px;
+    font-size: 14px;
   }
 }
