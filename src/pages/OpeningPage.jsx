@@ -1,6 +1,5 @@
 import { markOpeningSeen } from "../utils/openingGate";
 import styles from "./OpeningPage.module.css";
-import { useState } from "react";
 import { useEffect, useState } from "react";
 import deskDark from "../assets/newhome/desk-dark.png";
 import deskLight from "../assets/newhome/desk-light.png";
