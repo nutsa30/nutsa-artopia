@@ -56,7 +56,9 @@ export default function HomePage() {
       await v.play();
     } catch (_) {}
   };
+  
 const [isOpen, setIsOpen] = useState(false);
+const [showButton, setShowButton] = useState(true);
 const [startZoom, setStartZoom] = useState(false);
 const [hideBanner, setHideBanner] = useState(false);
 const [showContent, setShowContent] = useState(false);
@@ -140,8 +142,8 @@ const handleEnded = () => {
 <div
   className={`${styles.bannerStage} ${hideBanner ? styles.bannerStageHidden : ""}`}
 >
-{!isOpen && (
-  <div className={styles.scene}>
+{showButton && (
+    <div className={styles.scene}>
     <div className={styles.buttonWrap}>
       <div
         className={`${styles.cube} ${isOpen ? styles.cubeActive : ""}`}
@@ -149,6 +151,10 @@ const handleEnded = () => {
 
 onClick={() => {
   setIsOpen(true);
+
+  setTimeout(() => {
+    setShowButton(false);
+  }, 1000); // ⬅️ 1 წამი რჩება
 }}
     >
       <span className={`${styles.side} ${styles.top}`}>
