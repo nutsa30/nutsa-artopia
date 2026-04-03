@@ -242,7 +242,7 @@
 /* mobile */
 @media (max-width: 640px) {
   .page {
-    padding: 100px 14px 50px;
+    padding: 120px 14px 50px;
   }
 
   .title {

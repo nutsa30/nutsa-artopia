@@ -769,7 +769,7 @@
 
 @media (max-width: 640px) {
   .page {
-    padding: 128px 14px 40px;
+    padding: 170px 14px 40px;
   }
 
   .topBar {
@@ -1188,9 +1188,10 @@
 
 /* image */
 .modalImage {
-  width: auto;
-  max-width: none;
-  height: auto;
+  width: 100%;
+  max-width: 90vw;
+  max-height: 70vh;
+  object-fit: contain;
 
   touch-action: pinch-zoom; /* 🔥 mobile zoom */
   cursor: zoom-out;

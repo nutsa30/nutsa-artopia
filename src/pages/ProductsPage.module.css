@@ -222,7 +222,7 @@ body,
 /* ====== Mobile polish ====== */
 @media (max-width: 640px) {
   .pageWrapper {
-    padding-top: 90px;
+    padding-top: 120px;
     padding-bottom: 14px;
   }
 
