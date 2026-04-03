@@ -139,13 +139,6 @@ const handleEnded = () => {
 {/* დროებითი ბანერი */}
 <div
   className={`${styles.bannerStage} ${hideBanner ? styles.bannerStageHidden : ""}`}
-  style={{
-    width: "100%",
-    aspectRatio: "16 / 9",
-    marginBottom: "20px",
-marginTop: "clamp(70px, 12vw, 50px)",
-    position: "relative",
-  }}
 >
 {!isOpen && (
   <div className={styles.scene}>

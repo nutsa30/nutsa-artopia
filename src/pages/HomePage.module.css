@@ -407,10 +407,25 @@
   z-index: 1;
 }
 .bannerStage {
+  position: relative;
+  width: 100%;
+
+  aspect-ratio: 16 / 9;
+
+  margin-bottom: 20px;
+
+  /* ❌ წავშალეთ margin-top */
+  margin-top: 0;
+
+  /* ✅ სწორი spacing navbar-სთვის */
+  padding-top: clamp(70px, 10vw, 110px);
+
+  border-radius: 14px;
+  overflow: hidden;
+
   opacity: 1;
   visibility: visible;
   transition: opacity 0.35s ease;
-  overflow: hidden;
 }
 
 .bannerStageHidden {
@@ -479,37 +494,31 @@
 }
 @media (max-width: 640px) {
   .bannerImg {
-    object-fit: contain;
-    object-position: center top;
-    background: #123764;
+    object-fit: cover;
+    object-position: center 25%;
+  
   }
 
   .buttonWrap {
-    top: 50%;
+    top: 95%;
     left: 50%;
     transform: translate(-50%, -50%);
   }
 
   .cube {
-    width: 96px;
-    height: 38px;
+    width: clamp(80px, 22vw, 110px);
+    height: clamp(30px, 9vw, 44px);
   }
 
   .side {
-    font-size: 11px;
+    font-size: 10px;
     border-radius: 8px;
   }
 }
 
 @media (max-width: 480px) {
-  .bannerImg {
-    object-fit: contain;
-    object-position: center top;
-    background: #123764;
-  }
-
   .buttonWrap {
-    top: 48%;
+    top: 80%; /* ⬅️ აქედან აკონტროლებ */
     left: 50%;
     transform: translate(-50%, -50%);
   }
@@ -528,5 +537,36 @@
 @media (hover: none) {
   .cube:hover {
     transform: none;
+  }
+}
+@media (max-width: 640px) {
+  .bannerStage {
+    aspect-ratio: unset;
+    height: clamp(240px, 60vw, 440px);
+
+    margin-top: 0;
+
+    /* 🔥 აქ თამაშობ რამდენით ჩამოვა */
+    padding-top: 90px;
+  }
+}
+
+@media (max-width: 400px) {
+  .bannerStage {
+    height: 200px;
+    margin-top: 65px;
+  }
+
+  .cube {
+    width: 75px;
+    height: 28px;
+  }
+}
+@media (max-width: 640px) {
+  .bannerStage {
+    aspect-ratio: unset;
+    height: clamp(260px, 65vw, 460px);
+
+    padding-top: 100px; /* 🔥 აქ თამაშობ */
   }
 }
