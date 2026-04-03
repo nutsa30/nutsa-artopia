@@ -1,6 +1,5 @@
 import React from "react";
-import Lottie from "lottie-react";
-import animation from "../../assets/lottie/loader-bird.json";
+import loaderVideo from "../../assets/loader.webm";
 
 export default function AppLoader() {
   return (
@@ -8,11 +7,15 @@ export default function AppLoader() {
       <div style={styles.blurBg} />
 
       <div style={styles.loaderWrap}>
-        <Lottie
-          animationData={animation}
-          loop
-          style={styles.lottie}
-        />
+<video
+  autoPlay
+  loop
+  muted
+  playsInline
+  style={styles.video}
+>
+  <source src={loaderVideo} type="video/webm" />
+</video>
       </div>
     </div>
   );
@@ -32,22 +35,23 @@ const styles = {
     position: "absolute",
     inset: 0,
     backdropFilter: "blur(12px)",
-    background: "rgba(255,255,255,0.2)",
+    background: "rgba(15, 23, 42, 0.6)", // 🔥 შეცვლილი (თეთრი აღარ ჩანს)
   },
 
   loaderWrap: {
-    width: "40vw",          // responsive
-    maxWidth: "300px",      // desktop limit (შენი current დიზაინი)
-    minWidth: "140px",      // რომ ძალიან პატარა არ გახდეს
-    aspectRatio: "1 / 1",   // ყოველთვის კვადრატი
+    width: "40vw",
+    maxWidth: "300px",
+    minWidth: "140px",
+    aspectRatio: "1 / 1",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 2,
   },
 
-  lottie: {
+  video: {
     width: "100%",
     height: "100%",
+    objectFit: "contain", // 🔥 რომ არ გაჭრას
   },
 };
