@@ -3,7 +3,7 @@ import styles from "./Checkout.module.css";
 import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
+const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 const DEFAULT_PICKUP_ADDRESS =
   "ადგილზე გატანა - არტოპია, სიმონ ჩიკოვანის 45, თბილისი";
@@ -34,7 +34,7 @@ const LBL = {
   orderDetails: "შეკვეთის დეტალები",
   newBadge: "ახალი",
   subtotal: "შეკვეთის ჯამური ღირებულება",
-  discount30: "ფასდაკლება 30%",
+discount: "ფასდაკლება",
   deliveryFee: "მიტანის საფასური",
   total: "ჯამი",
   firstName: "სახელი",
@@ -160,13 +160,15 @@ useEffect(() => {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/promo-codes`);
-      const data = await res.json();
+   const res = await fetch(`${API_BASE}/promo-codes`);
+const json = await res.json();
 
-      const code = formData.coupon_code.toUpperCase().trim();
+// 🔥 FIX
+const data = json.items || [];
 
-      const found = data.find((c) => c.code === code && c.is_active);
+const code = formData.coupon_code.toUpperCase().trim();
 
+const found = data.find((c) => c.code === code && c.is_active);
       if (found) {
         const discount = +(subtotal * (found.percent / 100)).toFixed(2);
         setCouponDiscount(discount);
@@ -489,7 +491,7 @@ let extra_discount = couponDiscount;
 
               {preview.extra_discount > 0 && (
                 <div>
-                  {T.discount30}: <strong>-{fmt(preview.extra_discount)} ₾</strong>
+{T.discount}: <strong>-{fmt(preview.extra_discount)} ₾</strong>
                 </div>
               )}
 
