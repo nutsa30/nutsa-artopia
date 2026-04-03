@@ -104,3 +104,6 @@ body > .skiptranslate {
 html {
   margin-top: 0 !important;
 }
+.goog-te-gadget {
+  display: none !important;
+}
