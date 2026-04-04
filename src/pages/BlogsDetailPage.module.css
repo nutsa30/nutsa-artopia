@@ -291,3 +291,22 @@
     max-height: 220px;
   }
 }
+.sectionText * {
+  color: #e2e8f0 !important;
+}
+@media (max-width: 640px) {
+
+  .section {
+    display: flex;          /* grid → flex */
+    flex-direction: column; /* ვერტიკალურად */
+  }
+
+  .sectionText {
+    order: 1 !important;
+  }
+
+  .sectionImageWrap {
+    order: 2 !important;
+  }
+
+}
