@@ -262,11 +262,13 @@ const productSchema = {
   },
   offers: {
     "@type": "Offer",
+    url: `https://artopia.ge/products/${slug}`, // 🔥 ეს დავამატეთ
     price: String(product.price),
     priceCurrency: "GEL",
     availability: inStock
       ? "https://schema.org/InStock"
       : "https://schema.org/OutOfStock",
+    itemCondition: "https://schema.org/NewCondition", // 🔥 ესეც
   },
 };
   return (
