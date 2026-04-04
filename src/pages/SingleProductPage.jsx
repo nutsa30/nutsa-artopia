@@ -7,6 +7,7 @@ import popSfx from "../assets/pop.mp3";
 import styles from "./SingleProductPage.module.css";
 import { useLocation } from "react-router-dom";
 import AppLoader from "../components/loaders/AppLoader";
+import { Helmet } from "react-helmet-async";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const NO_IMAGE = "/noimage.jpeg";
@@ -280,10 +281,11 @@ const productSchema = {
         image={seoImage}
         type="product"
       />
-<script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
-/>
+<Helmet>
+  <script type="application/ld+json">
+    {JSON.stringify(productSchema)}
+  </script>
+</Helmet>
       <div className={styles.page}>
         <div className={styles.topBar}>
           <button
