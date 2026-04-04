@@ -111,9 +111,19 @@ const updateQuantity = (productId, amount) => {
 };
 
   // ჯამური ფასის გამოთვლა
-  const getTotalPrice = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
+const getTotalPrice = () => {
+  return cartItems.reduce((total, item) => {
+    const price = Number(item.price || 0);
+    const sale = Number(item.sale || 0);
+
+    const finalPrice =
+      sale > 0 && sale <= 100
+        ? price * (1 - sale / 100)
+        : price;
+
+    return total + finalPrice * item.quantity;
+  }, 0);
+};
 
   // კალათის გაწმენდა
   const clearCart = () => {

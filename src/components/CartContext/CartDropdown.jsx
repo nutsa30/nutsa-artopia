@@ -17,7 +17,16 @@ const LBL = {
   plus: "პლუსი",
   remove: "წაშლა",
 };
+const unitPrice = (it) => {
+  const price = Number(it?.price || 0);
+  const sale = Number(it?.sale || 0);
 
+  if (sale > 0 && sale <= 100) {
+    return +(price * (1 - sale / 100)).toFixed(2);
+  }
+
+  return +price.toFixed(2);
+};
 const normalizeQuantity = (value) => {
   const num = Number(value);
   return Number.isFinite(num) && num > 0 ? Math.floor(num) : 0;
@@ -152,9 +161,9 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
               <>
                 {cartItems.map((item) => {
                   const id = getItemId(item);
-                  const unit = Number(item.price) || 0;
-                  const line = unit * item.quantity;
-                  const maxQty = getMaxQty(item);
+            const unit = unitPrice(item);
+const line = unit * item.quantity;
+const maxQty = getMaxQty(item);
 
                   const plusDisabled =
                     maxQty === null || maxQty === 0 || item.quantity >= maxQty;

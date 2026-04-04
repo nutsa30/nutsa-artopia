@@ -46,6 +46,8 @@
   flex-wrap: nowrap;   /* 👈 ეს შეცვალე */
   overflow-x: auto;    /* 👈 ეს დაამატე */
   margin: 0 1rem;
+    -ms-overflow-style: none;  /* IE/Edge */
+  scrollbar-width: none; 
 }
 
 .tabItem {
@@ -222,6 +224,7 @@
 .navItem:active .cartSvg {
   transform: scale(0.9) rotate(-5deg);
 }
+
 /* ===================== Responsive ===================== */
 
 /* ≥1290px — ოდნავ კომპაქტური padding */
