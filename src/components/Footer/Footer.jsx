@@ -124,8 +124,12 @@ const Footer = () => {
           </div>
 
           <div className={styles.footerLinks}>
-            {/* შენ დატოვე დაკომენტებული სექციები უცვლელად */}
-          </div>
+  <div className={styles.policyLinks}>
+    <a href="/terms" className={styles.policyBtn}>წესები და პირობები</a>
+    <a href="/returns" className={styles.policyBtn}>დაბრუნების პოლიტიკა</a>
+    <a href="/privacy" className={styles.policyBtn}>კონფიდენციალურობა</a>
+  </div>
+</div>
         </div>
 
         <div className={styles.footerBottom}>

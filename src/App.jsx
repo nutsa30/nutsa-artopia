@@ -31,6 +31,9 @@ import CartToast from "./components/CartToast/CartToast";
 import { useCart } from "./components/CartContext/CartContext";
 import SingleProductPage from "./pages/SingleProductPage";
 import AppLoader from "./components/loaders/AppLoader";
+import TermsPage from "./pages/TermsPage";
+import ReturnsPage from "./pages/ReturnsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 
@@ -159,7 +162,9 @@ const ChatMountIfNotAdmin = () => {
     <Route path="/payment/result" element={<PaymentResult />} />
 
     <Route path="/contacts" element={<ContactsPage />} />
-
+<Route path="/terms" element={<TermsPage />} />
+<Route path="/returns" element={<ReturnsPage />} />
+<Route path="/privacy" element={<PrivacyPage />} />
     {/* REDIRECTS */}
     <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
     <Route path="/addProducts" element={<Navigate to="/admin/addProducts" replace />} />

@@ -281,3 +281,36 @@ footer a:hover {
     gap: 16px;
   }
 }
+/* ===================== POLICY BUTTONS ===================== */
+
+.policyLinks {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.policyBtn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: rgba(52, 152, 219, 0.15);
+  border: 1px solid rgba(52, 152, 219, 0.4);
+  color: #ffffff;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.policyBtn:hover {
+  background: rgba(52, 152, 219, 0.35);
+  border-color: #3498db;
+  transform: translateY(-1px);
+}
+
+/* mobile tweak */
+@media (max-width: 640px) {
+  .policyBtn {
+    width: 100%;
+    text-align: center;
+  }
+}

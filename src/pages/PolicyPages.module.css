@@ -1,0 +1,54 @@
+.page {
+  padding: 120px 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  color: #ffffff; /* 🔥 თეთრი ტექსტი */
+}
+
+.page h1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.page h2 {
+  font-size: 22px;
+  margin-top: 28px;
+  margin-bottom: 12px;
+}
+
+.page p {
+  font-size: 17px;
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.page ul {
+  padding-left: 20px;
+  margin-bottom: 14px;
+}
+
+.page li {
+  font-size: 17px;
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
+/* mobile */
+@media (max-width: 640px) {
+  .page {
+    padding: 100px 16px;
+  }
+
+  .page h1 {
+    font-size: 26px;
+  }
+
+  .page h2 {
+    font-size: 20px;
+  }
+
+  .page p,
+  .page li {
+    font-size: 15px;
+  }
+}
