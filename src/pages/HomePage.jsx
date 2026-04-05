@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import styles from "./HomePage.module.css";
-
 import HomeCarousel from "../components/home/HomeCarousel";
 import HomeSaleProducts from "../components/home/HomeSaleProducts";
 import HomeNewProducts from "../components/home/HomeNewProducts";
@@ -11,6 +11,7 @@ import { hasSeenOpening } from "../utils/openingGate";
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 export default function HomePage() {
+
   const [homeImages, setHomeImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -74,9 +75,38 @@ const handleOpeningDone = () => {
       <section className={styles.section}>
         <HomeBlogs />
       </section>
+      {/* ⭐ GOOGLE REVIEWS CTA */}
+      <section className={styles.section}>
+        <div className={styles.reviewCta}>
+          <div className={styles.reviewCtaContent}>
+            <h2 className={styles.reviewTitle}>
+              ნახეთ მომხმარებელთა რეალური შეფასებები
+            </h2>
+            <p className={styles.reviewText}>
+             ჩვენთვის მნიშვნელოვანია რას ფიქრობენ მომხმარებლები ჩვენზე — ნახე მათი შეფასებები და დაგვიტოვე შენიც.
+            </p>
 
-      {showOpening && <OpeningPage onFinish={handleOpeningDone} />}
+            <div className={styles.reviewActions}>
+            
 
+            <Link
+  to="/reviews"
+  className={styles.reviewPrimaryBtn}
+>
+  შეფასებების ნახვა
+</Link>
+            </div>
+          </div>
+
+          <div className={styles.reviewStatCard}>
+            <div className={styles.reviewStatStars}>★★★★★</div>
+            <div className={styles.reviewStatValue}>4.9 / 5</div>
+          </div>
+        </div>
+      </section>
+{showOpening && (
+  <OpeningPage onFinish={handleOpeningDone} />
+)}
     </div>
   );
 }

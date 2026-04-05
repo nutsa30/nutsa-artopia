@@ -34,7 +34,8 @@ import AppLoader from "./components/loaders/AppLoader";
 import TermsPage from "./pages/TermsPage";
 import ReturnsPage from "./pages/ReturnsPage";
 import PrivacyPage from "./pages/PrivacyPage";
-
+import ReviewsPage from "./pages/ReviewsPage";
+import ScrollToTop from "./components/ScrollToTop";
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 
 const CartToastWrapper = () => {
@@ -72,6 +73,8 @@ function Chrome({ children, cartItems, showCart, lastAddedId }) {
 
   return (
     <>
+          <ScrollToTop />   {/* 🔥 აქ ჩასვი */}
+
       {!isAdmin && (
         <Navbar cartItems={cartItems} showCart={showCart} lastAddedId={lastAddedId} />
       )}
@@ -131,6 +134,7 @@ const ChatMountIfNotAdmin = () => {
               <CartToastWrapper />
               <RouteLoader />
 
+
 <Routes>
   {/* 🔥 OPENING PAGE — CHROME-ის გარეთ */}
 
@@ -165,6 +169,7 @@ const ChatMountIfNotAdmin = () => {
 <Route path="/terms" element={<TermsPage />} />
 <Route path="/returns" element={<ReturnsPage />} />
 <Route path="/privacy" element={<PrivacyPage />} />
+<Route path="/reviews" element={<ReviewsPage />} />
     {/* REDIRECTS */}
     <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
     <Route path="/addProducts" element={<Navigate to="/admin/addProducts" replace />} />
