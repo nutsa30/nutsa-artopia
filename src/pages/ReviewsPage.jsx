@@ -186,11 +186,7 @@ export default function ReviewsPage() {
       <section id="reviews-list" className={styles.listSection}>
         <div className={styles.sectionHead}>
           <h2 className={styles.sectionTitle}>ბოლო შეფასებები</h2>
-          {!loading && !error && (
-            <span className={styles.badge}>
-              {sortedReviews.length} ნაჩვენები შეფასება
-            </span>
-          )}
+          
         </div>
 
         {loading && (
