@@ -471,6 +471,9 @@ const DATA = {
     right: 4%;
     bottom: 10px;
     border-radius: 14px;
+      z-index: 20;
+
+
   }
 }
   @media (max-width: 480px) {

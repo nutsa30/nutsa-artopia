@@ -76,17 +76,17 @@ export default function ReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    document.title = "მომხმარებელთა შეფასებები | Artopia";
+useEffect(() => {
+  document.title = "მომხმარებელთა შეფასებები | Artopia";
 
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute(
-        "content",
-        "ნახეთ Artopia-ს მომხმარებელთა რეალური შეფასებები Google-იდან და დატოვეთ თქვენი შეფასებაც."
-      );
-    }
-  }, []);
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) {
+    metaDescription.setAttribute(
+      "content",
+      "ნახეთ Artopia-ს მომხმარებელთა რეალური შეფასებები Google-იდან და დატოვეთ თქვენი შეფასებაც."
+    );
+  }
+}, []);
 
   useEffect(() => {
     let ignore = false;

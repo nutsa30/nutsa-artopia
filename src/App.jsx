@@ -73,7 +73,6 @@ function Chrome({ children, cartItems, showCart, lastAddedId }) {
 
   return (
     <>
-          <ScrollToTop />   {/* 🔥 აქ ჩასვი */}
 
       {!isAdmin && (
         <Navbar cartItems={cartItems} showCart={showCart} lastAddedId={lastAddedId} />
@@ -131,6 +130,7 @@ const ChatMountIfNotAdmin = () => {
         <CartProvider>
           <CartUiProvider>
             <Router>
+              <ScrollToTop />   
               <CartToastWrapper />
               <RouteLoader />
 
@@ -149,27 +149,27 @@ const ChatMountIfNotAdmin = () => {
 >
   <Routes>
 
-    <Route path="/" element={<HomePage />} />
+<Route path="/" element={<HomePage key="home" />} />
 
-    <Route path="/products" element={<ProductsPage />} />
+<Route path="/products" element={<ProductsPage />} />
 
-    <Route path="/products/:slug" element={<SingleProductPage />} />
+<Route path="/products/:slug" element={<SingleProductPage />} />
 
-    <Route path="/blogs" element={<BlogsPage />} />
+<Route path="/blogs" element={<BlogsPage />} />
 
-    <Route path="/blog/:slug" element={<BlogDetailPage />} />
+<Route path="/blog/:slug" element={<BlogDetailPage />} />
 
-    <Route path="/login" element={<LoginPage />} />
+<Route path="/login" element={<LoginPage />} />
 
-    <Route path="/checkout" element={<Checkout />} />
+<Route path="/checkout" element={<Checkout />} />
 
-    <Route path="/payment/result" element={<PaymentResult />} />
+<Route path="/payment/result" element={<PaymentResult />} />
 
-    <Route path="/contacts" element={<ContactsPage />} />
+<Route path="/contacts" element={<ContactsPage />} />
 <Route path="/terms" element={<TermsPage />} />
 <Route path="/returns" element={<ReturnsPage />} />
 <Route path="/privacy" element={<PrivacyPage />} />
-<Route path="/reviews" element={<ReviewsPage />} />
+<Route path="/reviews" element={<ReviewsPage key="reviews" />} />
     {/* REDIRECTS */}
     <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
     <Route path="/addProducts" element={<Navigate to="/admin/addProducts" replace />} />
