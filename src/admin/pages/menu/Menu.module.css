@@ -1,95 +1,425 @@
-
-
-.productList { margin-top: 30px; font-weight: 600; }
-
-.productItem { list-style: none; padding: 0; }
-
-.productListSimbol {
-  margin-bottom: 20px;
-  padding: 10px;
-  border: 1px solid #eee;
-  border-radius: 8px;
+.adminWrapper {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  padding-bottom: 40px;
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 
-.productListInner {
+/* Header - კომპაქტური, მაგრამ სუფთა */
+.header {
+  background: white;
+  padding: 12px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 6px;
+  transition: color 0.2s;
+}
+
+.backButton:hover {
+  color: #0f172a;
+}
+
+.titleSection {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.productListName { display: flex; flex-direction: column; }
-
-.pName { color: black; font-weight: bold; }
-
-.pDescription { color: gray; font-size: 13px; }
-
-.pCategory { color: #555; font-size: 13px; margin-top: 4px; }
-
-.price { font-weight: bold; color: #2563eb; }
-
-.stock { margin-top: 4px; }
-
-.productImage {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-top: 8px;
+.mainTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
 }
 
-.actions {
+.productCount {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  background: #f1f5f9;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+/* Container - ოპტიმიზირებული მარჟინით */
+.container {
+  max-width: 1300px;
+  margin: 20px auto; 
+  padding: 0 24px;
+}
+
+/* Filter Bar */
+.filterBar {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-
-
-.editBtn:hover{
-  background-color: #143783;
-}
-
-.searchInput {
-  width: auto;              /* ❌ 85% ამოიღე */
-  min-width: 180px;         /* 👈 მინიმალური ზომა */
-  flex: 1;                  /* 👈 ჭკვიანურად გაიწელება */
-  padding: 10px 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  outline: none;
-}
-
-
-.imageGroup {
-  display: flex;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
-.productImage {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 6px;
-  margin-right: 8px;
+.searchWrapper {
+  position: relative;
+  flex: 2;
+  min-width: 300px;
 }
 
-.refresh {
-  width: auto;
-  min-width: 140px;
-  flex-shrink: 0; /* 👈 არ დაპატარავდეს */
-  padding: 10px 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  background-color: white;
-  color: black;
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  background: white;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05);
+}
+
+.selectGroup {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  min-width: fit-content;
+}
+
+.selectGroup select {
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+  outline: none;
+  min-width: 140px;
+  transition: border-color 0.2s;
 }
 
-.refresh:hover{
-  background-color: #143783;
-  color: white;
+.selectGroup select:focus {
+  border-color: #0f172a;
+}
 
+.refreshBtn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.refreshBtn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+/* Product Table Card */
+.tableCard {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.productRow {
+  display: grid;
+  grid-template-columns: 1fr auto 140px;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.2s;
+}
+
+.productRow:last-child {
+  border-bottom: none;
+}
+
+.productRow:hover {
+  background: #fbfcfd;
+}
+
+.productInfo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.imgContainer {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+}
+
+.mainImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.noImg {
+  width: 100%;
+  height: 100%;
+  background: #f1f5f9;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.imgBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #0f172a;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 2px solid white;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pDesc {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 450px;
+}
+
+.meta {
+  display: flex;
+  gap: 14px;
+  margin-top: 2px;
+}
+
+.categoryTag, .stockIn, .stockOut {
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.categoryTag { color: #64748b; }
+.stockIn { color: #10b981; }
+.stockOut { color: #ef4444; }
+
+.newBadge {
+  background: #f0fdf4;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.hiddenBadge {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
+/* Price Section */
+.priceSection {
+  padding: 0 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 120px;
+}
+
+.currentPrice {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.oldPrice {
+  font-size: 13px;
+  color: #94a3b8;
+  text-decoration: line-through;
+  margin-bottom: -2px;
+}
+
+.saleTag {
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-top: 2px;
+}
+
+/* Actions - აქ აიკონები და ღილაკები უფრო დიდი და მკაფიოა */
+.actionSection {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.editButton, .deleteButton {
+  width: 42px; /* გაიზარდა 36-დან */
+  height: 42px; /* გაიზარდა 36-დან */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #475569;
+}
+
+.editButton:hover { 
+  background: #f1f5f9; 
+  color: #0f172a; 
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.deleteButton:hover { 
+  background: #fff1f2; 
+  color: #e11d48; 
+  border-color: #fecaca;
+  transform: translateY(-1px);
+}
+
+/* Footer & Pagination */
+.footer {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.loadingOverlay {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0f172a;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.spin { animation: rotate 1.5s linear infinite; }
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.emptyState { 
+  padding: 60px; 
+  text-align: center; 
+  color: #64748b;
+  font-size: 16px;
+}
+
+/* --- Mobile Adaptive --- */
+@media (max-width: 1024px) {
+  .pDesc { max-width: 250px; }
+}
+
+@media (max-width: 768px) {
+  .header { padding: 12px 16px; }
+  .container { margin: 12px auto; padding: 0 16px; }
+  .mainTitle { font-size: 20px; }
+  
+  .filterBar { flex-direction: column; gap: 12px; }
+  .searchWrapper, .selectGroup { width: 100%; }
+  
+  .productRow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .productInfo { align-items: flex-start; }
+  
+  .priceSection {
+    padding: 12px 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .actionSection {
+    width: 100%;
+    justify-content: stretch;
+    gap: 8px;
+  }
+
+  .editButton, .deleteButton {
+    flex: 1;
+    height: 48px;
+  }
 }

@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import styles from "./AdminNavbar.module.css";
 import artopiaLogo from "../assets/IMG_4970.JPG";
-import { apiJson } from "../api";
+import { apiJson, syncOptimo } from "../api";
 
 const AdminNavbar = () => {
   const [open, setOpen] = useState(false);
@@ -39,23 +39,27 @@ const AdminNavbar = () => {
     window.location.href = "/";
   };
 
-  const onSyncOptimo = async () => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      const response = await apiJson("/api/optimo/sync", "POST", {});
-      if (response.status === "success") {
-        alert("სინქრონიზაცია წარმატებით დასრულდა");
-      } else {
-        alert("შეცდომა: " + response.message);
-      }
-    } catch (err) {
-      alert("სერვერთან კავშირი ვერ დამყარდა");
-    } finally {
-      setLoading(false);
-      setOpen(false);
+// 2. ფუნქცია შეცვალე ასე:
+const onSyncOptimo = async () => {
+  if (loading) return;
+  setLoading(true);
+  try {
+    // აქ ვიყენებთ ახალ ფუნქციას, რომელიც გარანტირებულად POST-ს აგზავნის
+    const response = await syncOptimo(); 
+    
+    if (response.status === "success") {
+      alert("სინქრონიზაცია წარმატებით დასრულდა");
+    } else {
+      alert("შეცდომა: " + (response.message || "უცნობი შეცდომა"));
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("სერვერთან კავშირი ვერ დამყარდა ან წვდომა აკრძალულია");
+  } finally {
+    setLoading(false);
+    setOpen(false);
+  }
+};
 
   return (
     <nav className={styles.navbar}>
@@ -99,10 +103,7 @@ const AdminNavbar = () => {
                   <span>მთავარი გვერდის ფოტოები</span>
                 </Link>
 
-                <Link to="/addProducts" className={styles.navLink}>
-                  <PlusCircle size={18} />
-                  <span>პროდუქტის დამატება</span>
-                </Link>
+              
 
                 <Link to="/menu" className={styles.navLink}>
                   <LayoutGrid size={18} />

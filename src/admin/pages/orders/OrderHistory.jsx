@@ -3,13 +3,13 @@ import styles from "./OrderHistory.module.css";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
-const getJwt = () =>
-  localStorage.getItem("ADMIN_TOKEN") ||
-  localStorage.getItem("ACCESS_TOKEN") ||
-  localStorage.getItem("access_token") ||
-  localStorage.getItem("jwt") ||
-  localStorage.getItem("token") ||
-  "";
+// OrderHistory.jsx-ში შეცვალე ეს:
+const getJwt = () => {
+  // ადრე გეწერა: localStorage.getItem("token")
+  const token = localStorage.getItem("ADMIN_TOKEN"); // <--- დაწერე ზუსტად ეს სახელი
+  if (!token) return "";
+  return token;
+};
 
 const buildHeaders = () => {
   const jwt = getJwt();

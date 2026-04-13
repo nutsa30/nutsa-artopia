@@ -103,9 +103,7 @@ useEffect(() => {
       ? String(editingProduct.category_id)
       : (
           categories.find((c) => c.name === editingProduct.category_name)?.id
-            ? String(
-                categories.find((c) => c.name === editingProduct.category_name).id
-              )
+            ? String(categories.find((c) => c.name === editingProduct.category_name).id)
             : ""
         ),
     price: editingProduct.price ?? "",
@@ -118,16 +116,28 @@ useEffect(() => {
   const loaded = [];
   const prevs = [];
 
-  for (let i = 1; i <= MAX_IMAGES; i++) {
-    const key = `image_url${i}`;
-    const url = editingProduct[key] || null;
-
-    if (url) {
-      loaded[i - 1] = { file: url, isNew: false, fieldName: key };
-      prevs[i - 1] = url;
+  // 🔥 აქ არის მთავარი ცვლილება:
+  // ვამოწმებთ, Menu.jsx-დან მოწოდებულ images მასივს
+  if (Array.isArray(editingProduct.images) && editingProduct.images.length > 0) {
+    editingProduct.images.forEach((url, i) => {
+      if (i < MAX_IMAGES && url) {
+        loaded[i] = { file: url, isNew: false, fieldName: `image_url${i + 1}` };
+        prevs[i] = url;
+        originalUrlsRef.current[i] = url;
+      }
+    });
+  } 
+  // თუ მასივი არაა, ვამოწმებთ პირდაპირ ველებს (image_url1...)
+  else {
+    for (let i = 1; i <= MAX_IMAGES; i++) {
+      const key = `image_url${i}`;
+      const url = editingProduct[key] || null;
+      if (url) {
+        loaded[i - 1] = { file: url, isNew: false, fieldName: key };
+        prevs[i - 1] = url;
+      }
+      originalUrlsRef.current[i - 1] = url;
     }
-
-    originalUrlsRef.current[i - 1] = url;
   }
 
   setImages(loaded);
@@ -404,10 +414,10 @@ return (
 
 <textarea
   name="description"
-value={form.description}
+  value={form.description}
   onChange={handleChange}
   placeholder="აღწერა"
-  className={styles.input}
+  className={styles.textareaInput} // <-- აქ შეცვალე .input-ი .textareaInput-ით
 />
         </div>
 

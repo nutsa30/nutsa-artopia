@@ -177,3 +177,17 @@ export async function deleteProductImage(productId, imageFieldOrOptions) {
     return {};
   }
 }
+/* =========================================================
+   Sync Helper
+   ========================================================= */
+export const syncOptimo = () => {
+  const token = getAdminToken(); // ტოკენის ამოღება
+  return jfetch(`${BASE}/api/optimo/sync`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`, // სტანდარტული ფორმატი
+      "X-Admin-Token": token // შენი არსებული ფორმატი (უსაფრთხოებისთვის ორივე იყოს)
+    },
+    body: JSON.stringify({})
+  });
+};
