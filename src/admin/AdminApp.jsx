@@ -65,7 +65,7 @@ return (
           }
         />
 
-        {/* შეკვეთები */}
+        {/* შეკვეთებიi */}
         <Route
           path="order_history"
           element={
