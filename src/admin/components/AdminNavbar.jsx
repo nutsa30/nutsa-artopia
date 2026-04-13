@@ -10,6 +10,7 @@ import {
   Mail, 
   LogOut, 
   ChevronDown,
+  Menu,
   Image as ImageIcon
 } from 'lucide-react';
 import styles from "./AdminNavbar.module.css";
@@ -64,28 +65,24 @@ const AdminNavbar = () => {
             <img className={styles.brandLogo} src={artopiaLogo} alt="Artopia" />
           </Link>
           <div className={styles.divider}></div>
-          <h2 className={styles.panelTitle}>Admin Portal</h2>
+          <h2 className={styles.panelTitle}>ადმინ პანელი</h2>
         </div>
 
         <div className={styles.rightSide} ref={dropdownRef}>
+          {/* 👇 აქ შეიცვალა: ავატარის ნაცვლად ქართული ტექსტი */}
           <button 
             onClick={() => setOpen(!open)} 
-            className={`${styles.profileTrigger} ${open ? styles.active : ''}`}
+            className={`${styles.menuTrigger} ${open ? styles.active : ''}`}
           >
-            <div className={styles.avatarWrapper}>
-              <img
-                src="https://www.runningquotient.com/img/default_profile.png"
-                alt="Admin"
-                className={styles.avatarImg}
-              />
-            </div>
-            <ChevronDown size={18} className={`${styles.chevron} ${open ? styles.rotate : ''}`} />
+            <Menu size={20} className={styles.menuIcon} />
+            <span className={styles.menuText}>მენიუ</span>
+            <ChevronDown size={16} className={`${styles.chevron} ${open ? styles.rotate : ''}`} />
           </button>
 
           {open && (
             <div className={styles.dropdownMenu}>
               <div className={styles.dropdownHeader}>
-                <span>Management</span>
+                <span>მართვა</span>
               </div>
               
               <ul className={styles.menuLinks}>
@@ -94,49 +91,49 @@ const AdminNavbar = () => {
                   className={`${styles.syncItem} ${loading ? styles.syncing : ''}`}
                 >
                   <RefreshCw size={18} className={loading ? styles.spin : ''} />
-                  <span>{loading ? "Syncing..." : "Sync with Optimo"}</span>
+                  <span>{loading ? "სინქრონიზაცია..." : "Optimo-სთან სინქრონიზაცია"}</span>
                 </li>
 
                 <Link to="/home-images" className={styles.navLink}>
                   <ImageIcon size={18} />
-                  <span>Hero Images</span>
+                  <span>მთავარი გვერდის ფოტოები</span>
                 </Link>
 
                 <Link to="/addProducts" className={styles.navLink}>
                   <PlusCircle size={18} />
-                  <span>Add Product</span>
+                  <span>პროდუქტის დამატება</span>
                 </Link>
 
                 <Link to="/menu" className={styles.navLink}>
                   <LayoutGrid size={18} />
-                  <span>Catalogue</span>
+                  <span>კატალოგი</span>
                 </Link>
 
                 <Link to="/blog" className={styles.navLink}>
                   <FileText size={18} />
-                  <span>Articles & Blog</span>
+                  <span>ბლოგი & სტატიები</span>
                 </Link>
 
                 <Link to="/promo-codes" className={styles.navLink}>
                   <Ticket size={18} />
-                  <span>Promotions</span>
+                  <span>პრომო კოდები</span>
                 </Link>
 
                 <Link to="/order_history" className={styles.navLink}>
                   <Package size={18} />
-                  <span>Orders List</span>
+                  <span>შეკვეთების ისტორია</span>
                 </Link>
 
                 <Link to="/admin/contacts" className={styles.navLink}>
                   <Mail size={18} />
-                  <span>Inquiries</span>
+                  <span>საკონტაქციო ინფორმაცია</span>
                 </Link>
 
                 <div className={styles.menuDivider}></div>
 
                 <li onClick={onLogout} className={styles.logoutBtn}>
                   <LogOut size={18} />
-                  <span>Sign Out</span>
+                  <span>გამოსვლა</span>
                 </li>
               </ul>
             </div>
