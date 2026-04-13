@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import styles from "./promoCodes.module.css";
+import styles from "./PromoCodes.module.css";
 import { Plus, Trash2, Ticket, RefreshCw } from "lucide-react";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
