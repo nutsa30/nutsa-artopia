@@ -8,6 +8,7 @@ import styles from "./SingleProductPage.module.css";
 import { useLocation } from "react-router-dom";
 import AppLoader from "../components/loaders/AppLoader";
 import { Helmet } from "react-helmet-async";
+import AlsoBuyModal from "../components/AlsoBuy/AlsoBuyModal";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const NO_IMAGE = "/noimage.jpeg";
@@ -91,7 +92,9 @@ const [currentImageIndex, setCurrentImageIndex] = useState(0);
 const [isModalOpen, setIsModalOpen] = useState(false);
 const [relatedStartIndex, setRelatedStartIndex] = useState(0);
 const [relatedVisibleCount, setRelatedVisibleCount] = useState(4);
-  useEffect(() => {
+const [alsoBuyOpen, setAlsoBuyOpen] = useState(false);
+
+useEffect(() => {
     let ignore = false;
 
     const fetchProduct = async () => {
@@ -189,11 +192,12 @@ useEffect(() => {
     setQuantity((prev) => (prev > 1 ? prev - 1 : prev));
   };
 
-  const handleAddToCart = () => {
-    if (!product || !inStock) return;
-    addToCart(product, quantity);
-    playSound(popSfx, 0.4);
-  };
+const handleAddToCart = () => {
+  if (!product || !inStock) return;
+  addToCart(product, quantity);
+  playSound(popSfx, 0.4);
+  if (product?.also_buy?.length > 0) setAlsoBuyOpen(true);
+};
 
   const handleBuyNow = () => {
     if (!product || !inStock) return;
@@ -581,7 +585,13 @@ alt={`${title} ${category} დეტალური ფოტო - Artopia`}
     </div>
   </section>
 )}
-      </div>
+</div>
+
+      <AlsoBuyModal
+        alsoBuyIds={product?.also_buy || []}
+        isOpen={alsoBuyOpen}
+        onClose={() => setAlsoBuyOpen(false)}
+      />
     </>
   );
 }

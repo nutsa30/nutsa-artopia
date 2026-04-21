@@ -389,6 +389,9 @@ return (
         {/* ✅ PRODUCT INFO (READ ONLY) */}
         <div className={styles.infoCard}>
           <h2>{form.name || "—"}</h2>
+          <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0" }}>
+  ID: {editingProduct?.id || routeId || "—"}
+</p>
 
           <div className={styles.meta}>
             <div>
