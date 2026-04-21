@@ -333,10 +333,11 @@ const resetForm = () => {
     e.preventDefault();
     setError("");
 
-    const fd = new FormData();
+const fd = new FormData();
 fd.append("title", resolvedTitle);
 fd.append("description", form.description);
 fd.append("keywords", form.keywords.trim());
+fd.append("is_active", String(form.is_active));
 if (coverFile instanceof File) {
   const uploaded = await uploadToCloudinary(coverFile);
   if (uploaded) {
