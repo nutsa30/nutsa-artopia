@@ -140,32 +140,13 @@
 /* ===================== SECTION ===================== */
 
 .section {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 22px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: stretch;
 }
 
-.sectionLeft .sectionImageWrap {
-  order: 1;
-}
 
-.sectionLeft .sectionText {
-  order: 2;
-}
-
-.sectionRight .sectionImageWrap {
-  order: 2;
-}
-
-.sectionRight .sectionText {
-  order: 1;
-}
-
-.sectionTextOnly,
-.sectionImageOnly {
-  grid-template-columns: 1fr;
-}
 
 /* ===================== SECTION IMAGE ===================== */
 
@@ -216,13 +197,7 @@
 
 /* ===================== RESPONSIVE ===================== */
 
-/* tablet layout */
-@media (min-width: 860px) {
-  .section {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 32px;
-  }
-}
+
 
 /* tablet down */
 @media (max-width: 900px) {
@@ -293,20 +268,4 @@
 }
 .sectionText * {
   color: #e2e8f0 !important;
-}
-@media (max-width: 640px) {
-
-  .section {
-    display: flex;          /* grid → flex */
-    flex-direction: column; /* ვერტიკალურად */
-  }
-
-  .sectionText {
-    order: 1 !important;
-  }
-
-  .sectionImageWrap {
-    order: 2 !important;
-  }
-
 }

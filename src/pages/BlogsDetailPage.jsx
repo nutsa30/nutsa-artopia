@@ -312,41 +312,38 @@ if (loading) {
 
             {sections.length > 0 && (
               <section className={styles.content}>
-                {sections.map((section, index) => {
-                  const hasImage = normalizeText(section?.image_url);
-                  const hasText = normalizeText(section?.text);
 
-                  if (!hasImage && !hasText) return null;
+{sections.map((section, index) => {
+  const hasImage = normalizeText(section?.image_url);
+  const hasText = normalizeText(section?.text);
 
-                  return (
-                    <div
-                      key={`${section?.id || "section"}-${index}`}
-                      className={`${styles.section} ${
-                        index % 2 === 0
-                          ? styles.sectionLeft
-                          : styles.sectionRight
-                      }`}
-                    >
-                      {hasImage && (
-                        <div className={styles.sectionImageWrap}>
-                          <img
-                            src={section.image_url}
-                            alt={hasText?.slice(0, 100) || title}
-                            className={styles.sectionImage}
-                            loading="lazy"
-                          />
-                        </div>
-                      )}
+  if (!hasImage && !hasText) return null;
 
-{hasText && (
-  <div
-    className={styles.sectionText}
-    dangerouslySetInnerHTML={{ __html: section.text }}
-  />
-)}
-                    </div>
-                  );
-                })}
+  return (
+    <div
+      key={`${section?.id || "section"}-${index}`}
+      className={styles.section}
+    >
+      {hasText && (
+        <div
+          className={styles.sectionText}
+          dangerouslySetInnerHTML={{ __html: section.text }}
+        />
+      )}
+
+      {hasImage && (
+        <div className={styles.sectionImageWrap}>
+          <img
+            src={section.image_url}
+            alt={stripHtml(section.text || title).slice(0, 100) || title}
+            className={styles.sectionImage}
+            loading="lazy"
+          />
+        </div>
+      )}
+    </div>
+  );
+})}
               </section>
             )}
           </article>
