@@ -244,7 +244,8 @@ const Menu = () => {
 
                     <div className={styles.details}>
                       <div className={styles.nameRow}>
-                        <h3 className={styles.pName}>{p.name}</h3>
+<h3 className={styles.pName}>{p.name}</h3>
+<span className={styles.productId}>ID: {p.id}</span>
                         {p.is_new && <span className={styles.newBadge}>ახალი</span>}
                         {p.hide && <span className={styles.hiddenBadge}><EyeOff size={12} /></span>}
                       </div>

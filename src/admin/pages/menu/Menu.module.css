@@ -423,3 +423,8 @@
     height: 48px;
   }
 }
+.productId {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}

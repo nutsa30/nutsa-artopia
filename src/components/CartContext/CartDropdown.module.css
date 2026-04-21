@@ -17,13 +17,58 @@
 }
 
 .cartItem {
-  display: flex;
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr) 48px;
+  gap: 12px;
   background: #ffffffee;
   padding: 12px;
   border-radius: 12px;
   margin-bottom: 14px;
   align-items: center;
   position: relative;
+}
+.itemContent {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.itemName {
+  font-weight: bold;
+  color: #222;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+.itemPrice {
+  font-size: 13px;
+  color: #555;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.binButton {
+  width: 40px;
+  height: 40px;
+  background: rgb(255, 95, 95);
+  border-radius: 10px;
+  border: 2px solid rgb(255, 201, 201);
+  margin-left: 0;
+  justify-self: end;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .itemImage {
@@ -440,4 +485,36 @@
 .checkbox:disabled + .checkboxLabel {
   opacity: 0.4;
   cursor: not-allowed;
+}
+@media (max-width: 768px) {
+  .cartDropdown {
+    width: 100%;
+  }
+
+  .cartItem {
+    grid-template-columns: 52px minmax(0, 1fr) 42px;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .imageWrap,
+  .itemImage {
+    width: 52px;
+    height: 52px;
+  }
+
+  .qtyBtn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .checkboxFlip {
+    width: 32px;
+    height: 32px;
+  }
+
+  .binButton {
+    width: 36px;
+    height: 36px;
+  }
 }

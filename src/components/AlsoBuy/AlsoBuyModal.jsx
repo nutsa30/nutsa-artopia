@@ -82,11 +82,7 @@ export default function AlsoBuyModal({ alsoBuyIds = [], isOpen, onClose }) {
             <div className={styles.headerLeft}>
 </div>
 
-{/* 👇 ეს დაამატე */}
-<div className={styles.addedBadge}>
-  <span className={styles.checkIcon}>✓</span>
-  პროდუქტი დაემატა კალათაში
-</div>
+
             <span className={styles.headerIcon}>✦</span>
             <h2 className={styles.title}>ასევე შეიძლება მოგეწონოს</h2>
           </div>
