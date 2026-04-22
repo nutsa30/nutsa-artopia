@@ -342,7 +342,7 @@ textarea.input {
   .checkoutContainer {
     flex-direction: column;
     margin: 0 0 30px;
-    padding: 100px 12px 0;
+    padding: 125px 12px 0;
     gap: 16px;
     width: 100%;
     box-sizing: border-box;
