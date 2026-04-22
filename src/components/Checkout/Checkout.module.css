@@ -230,8 +230,19 @@
   transition: background-color 0.3s ease;
 }
 
-.submitBtn:hover {
+.submitBtn:hover:not(:disabled) {
   background-color: #112240;
+}
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #374151;
+}
+.submitHint {
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+  margin: 6px 0 0;
 }
 
 .errorMessage {

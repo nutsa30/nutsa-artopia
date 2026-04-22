@@ -383,3 +383,5 @@
 
 /* xl */
 @media (min-width: 1280px){ /* extra large screens */ }
+
+/* navbar z-index is controlled via #site-navbar id from Checkout */

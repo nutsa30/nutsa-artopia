@@ -92,8 +92,12 @@ const Navbar = () => {
   const { cartRef } = useCartUiRefs();
 
   return (
-<div className={styles.tabbar} role="navigation" aria-label={L.navAria}>
-  
+<div
+  id="site-navbar"
+  className={styles.tabbar}
+  role="navigation"
+  aria-label={L.navAria}
+>  
   {/* Header */}
   <div className={styles.header}>
     <Link to="/" reloadDocument className={styles.brandLink} aria-label={L.home}>

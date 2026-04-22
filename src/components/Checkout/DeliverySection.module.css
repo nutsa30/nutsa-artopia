@@ -1,0 +1,240 @@
+.wrap {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 16px;
+  margin-top: 4px;
+}
+
+/* ── Section headers ── */
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 10px;
+}
+.headIcon { font-size: 17px; }
+
+/* ── Map ── */
+.mapWrap {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #2a344d;
+  margin-bottom: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.map { width: 100%; height: 100%; }
+
+.mapOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #2a344d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.mapHint {
+  font-size: 11px;
+  color: #64748b;
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+/* ── Address input ── */
+.addrInput {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid #64748b;
+  background: #2a344d;
+  color: #f1faee;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 10px;
+}
+.addrInput:focus { border-color: #3b82f6; }
+.addrInput::placeholder { color: #64748b; font-size: 13px; }
+
+/* ── Extra fields row ── */
+.extraRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.extraCol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.extraLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.extraInput {
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid #64748b;
+  background: #2a344d;
+  color: #f1faee;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.extraInput:focus { border-color: #3b82f6; }
+.extraInput::placeholder { color: #64748b; font-size: 12px; }
+
+/* ── Spinner ── */
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Status messages ── */
+.hint {
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+  padding: 14px 0 6px;
+  margin: 0;
+}
+.loadRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #94a3b8;
+  font-size: 13px;
+  padding: 12px 4px;
+}
+.errText {
+  color: #f87171;
+  font-size: 13px;
+  padding: 8px 4px;
+  margin: 0;
+}
+
+/* ── Courier list ── */
+.courierList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.courierCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.courierCard:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.06);
+  transform: translateY(-1px);
+}
+.cardSelected {
+  border-color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.13) !important;
+}
+
+.logoBox {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.cInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cName {
+  color: #f8fafc;
+  font-size: 14px;
+  font-weight: 700;
+}
+.cSpeed {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.cRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.cPrice {
+  color: #f8fafc;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.cCheck {
+  color: #3b82f6;
+  font-size: 16px;
+  font-weight: 900;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.checkOn { opacity: 1; }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .mapWrap { height: 220px; }
+  .addrInput { font-size: 16px; }
+  .extraInput { font-size: 16px; }
+}
+@media (max-width: 480px) {
+  .mapWrap { height: 200px; }
+  .extraRow { gap: 6px; }
+  .courierCard { padding: 10px 11px; gap: 10px; }
+  .logoBox { width: 40px; height: 40px; }
+  .logo { width: 32px; height: 32px; }
+  .cName { font-size: 13px; }
+  .cPrice { font-size: 14px; }
+}

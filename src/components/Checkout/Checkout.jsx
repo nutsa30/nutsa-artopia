@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import styles from "./Checkout.module.css";
 import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
+import DeliverySection from "./DeliverySection";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
@@ -141,6 +142,17 @@ const Checkout = () => {
 
 
 
+  const [delivery, setDelivery] = useState({
+    streetName: "", city: "Tbilisi",
+    lat: 41.6941, lng: 44.8337,
+    hallway: "", floor: "", apartment: "",
+  });
+  const [selectedCourier, setSelectedCourier] = useState(null);
+
+  const handleDeliveryChange = useCallback((updates) => {
+    setDelivery((prev) => ({ ...prev, ...updates }));
+  }, []);
+
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [stockById, setStockById] = useState({});
@@ -183,30 +195,12 @@ const found = data.find((c) => c.code === code && c.is_active);
 
   applyCoupon();
 }, [formData.coupon_code, subtotal]);
-  const deliveryOptions = useMemo(() => {
-    if (isTbilisi(formData.city)) {
-      const deliveryLabel =
-        subtotal >= 50
-          ? "მომდევნო დღე (უფასო)"
-          : "მომდევნო დღე (6 ₾)";
-
-      return [
-        { value: "deliveryTomorrow", label: deliveryLabel },
-        { value: "storePickup", label: T.optPickup },
-      ];
-    }
-
-    if (formData.city) {
-      const regionalLabel =
-        subtotal >= 70
-          ? "რეგიონალური მიტანა (უფასო)"
-          : "რეგიონალური მიტანა (8 ₾)";
-
-      return [{ value: "regionalDelivery", label: regionalLabel }];
-    }
-
-    return [];
-  }, [formData.city, subtotal, T]);
+const deliveryOptions = useMemo(() => {
+  return [
+    { value: "storePickup", label: "ადგილზე აღება" },
+    { value: "courierDelivery", label: "კურიერული მომსახურება" },
+  ];
+}, []);
 
   useEffect(() => {
     let ignore = false;
@@ -241,41 +235,52 @@ const found = data.find((c) => c.code === code && c.is_active);
     };
   }, [cartItems]);
 
-  useEffect(() => {
-    if (formData.city && !isTbilisi(formData.city)) {
-      setFormData((prev) => ({ ...prev, deliveryOption: "regionalDelivery" }));
-    }
-  }, [formData.city]);
 
-const preview = useMemo(() => {
-  const inTbilisi = isTbilisi(formData.city);
-  let delivery_fee = 0;
-let extra_discount = couponDiscount;
-  // 🔥 ეს ჩაამატე
+  const preview = useMemo(() => {
+  const delivery_fee =
+    formData.deliveryOption === "courierDelivery" && selectedCourier
+      ? +(selectedCourier.amount ?? 0)
+      : 0;
+  const extra_discount = couponDiscount;
+  const total = Math.max(0, +(subtotal - extra_discount + delivery_fee).toFixed(2));
+  return { subtotal: +subtotal.toFixed(2), delivery_fee, extra_discount, total };
+}, [subtotal, formData.deliveryOption, couponDiscount, selectedCourier]);
 
-  if (inTbilisi) {
-    if (formData.deliveryOption === "storePickup") {
-      delivery_fee = 0;
-    } else {
-      delivery_fee = subtotal >= 50 ? 0 : 6;
-    }
-  } else if (formData.city) {
-    delivery_fee = subtotal >= 70 ? 0 : 8;
+useEffect(() => {
+  const style = document.createElement("style");
+  style.id = "checkout-navbar-override";
+  style.textContent = `#site-navbar { z-index: 1 !important; }`;
+  document.head.appendChild(style);
+  return () => document.getElementById("checkout-navbar-override")?.remove();
+}, []);
+
+const canSubmit = useMemo(() => {
+  if (cartItems.length === 0) return false;
+  if (!formData.first_name?.trim() || !formData.last_name?.trim()) return false;
+  if (!formData.email?.trim() || !formData.phone?.trim()) return false;
+  if (!formData.deliveryOption) return false;
+  if (formData.deliveryOption === "courierDelivery") {
+    if (!delivery.streetName?.trim()) return false;
+    if (!selectedCourier) return false;
   }
+  return true;
+}, [cartItems, formData, delivery, selectedCourier]);
 
-  const total = Math.max(
-    0,
-    +(subtotal - extra_discount + delivery_fee).toFixed(2)
-  );
+const submitHint = useMemo(() => {
+  if (cartItems.length === 0) return "კალათა ცარიელია";
+  if (!formData.deliveryOption) return "აირჩიეთ მიტანის ვარიანტი";
+  if (formData.deliveryOption === "courierDelivery") {
+    if (!delivery.streetName?.trim()) return "შეიყვანეთ მიტანის მისამართი";
+    if (!selectedCourier) return "აირჩიეთ კურიერი";
+  }
+  if (!formData.first_name?.trim() || !formData.last_name?.trim() ||
+      !formData.email?.trim() || !formData.phone?.trim()) {
+    return "შეავსეთ ყველა სავალდებულო ველი";
+  }
+  return "";
+}, [cartItems, formData, delivery, selectedCourier]);
 
-  return {
-    subtotal: +subtotal.toFixed(2),
-    delivery_fee,
-    extra_discount,
-    total,
-  };
-}, [subtotal, formData.city, formData.deliveryOption, formData.coupon_code, couponDiscount]);
-  const handleChange = (e) => {
+const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -290,6 +295,12 @@ let extra_discount = couponDiscount;
 
     setError("");
 
+    const addrComment = [
+      delivery.hallway   ? `სადარბაზო ${delivery.hallway}`  : "",
+      delivery.floor     ? `სართული ${delivery.floor}`      : "",
+      delivery.apartment ? `ბინა ${delivery.apartment}`      : "",
+    ].filter(Boolean).join(", ");
+
     const draft = {
       formData,
       items: cartItems.map((it) => ({
@@ -301,12 +312,23 @@ let extra_discount = couponDiscount;
         image: it.image_url1 || null,
       })),
       totals: {
-        subtotal: Number(preview.subtotal),
-        delivery_fee: Number(preview.delivery_fee),
+        subtotal:       Number(preview.subtotal),
+        delivery_fee:   Number(preview.delivery_fee),
         extra_discount: Number(preview.extra_discount),
-        total: Number(preview.total),
+        total:          Number(preview.total),
       },
       pickup_address: DEFAULT_PICKUP_ADDRESS,
+      delivery: formData.deliveryOption === "courierDelivery" ? {
+        streetName:     delivery.streetName,
+        city:           delivery.city,
+        latitude:       delivery.lat,
+        longitude:      delivery.lng,
+        hallway:        delivery.hallway,
+        floor:          delivery.floor,
+        apartment:      delivery.apartment,
+        addressComment: addrComment,
+        courier: selectedCourier,
+      } : null,
     };
 
     try {
@@ -495,12 +517,13 @@ let extra_discount = couponDiscount;
                 </div>
               )}
 
-              {formData.deliveryOption && formData.deliveryOption !== "storePickup" && (
+              {formData.deliveryOption === "courierDelivery" && (
                 <div>
-                  {T.deliveryFee}: <strong>
-                    {preview.delivery_fee === 0
-                      ? "უფასო"
-                      : `${fmt(preview.delivery_fee)} ₾`}
+                  {T.deliveryFee}:{" "}
+                  <strong>
+                    {selectedCourier
+                      ? `${fmt(selectedCourier.amount)} ₾ · ${selectedCourier.providerName}`
+                      : "კურიერი არ არის არჩეული"}
                   </strong>
                 </div>
               )}
@@ -550,25 +573,15 @@ let extra_discount = couponDiscount;
           required
         />
 
-        <select
-          name="city"
-          value={formData.city}
-          onChange={handleChange}
-          className={styles.input}
-          required
-        >
-          <option value="">{T.city}</option>
-          {CITIES_GE.map((city, idx) => (
-            <option key={idx} value={city}>
-              {city}
-            </option>
-          ))}
-        </select>
+  
 
         <select
           name="deliveryOption"
           value={formData.deliveryOption}
-          onChange={handleChange}
+          onChange={(e) => {
+            handleChange(e);
+            setSelectedCourier(null);
+          }}
           className={styles.input}
           required
         >
@@ -580,14 +593,12 @@ let extra_discount = couponDiscount;
           ))}
         </select>
 
-        {formData.deliveryOption !== "storePickup" && (
-          <input
-            name="address"
-            placeholder={T.address}
-            value={formData.address}
-            onChange={handleChange}
-            className={styles.input}
-            required
+        {formData.deliveryOption === "courierDelivery" && (
+          <DeliverySection
+            delivery={delivery}
+            onChange={handleDeliveryChange}
+            selectedCourier={selectedCourier}
+            onCourierSelect={setSelectedCourier}
           />
         )}
 
@@ -620,9 +631,17 @@ let extra_discount = couponDiscount;
           <option value="card">{T.payCard}</option>
         </select>
 
-        <button type="submit" className={styles.submitBtn}>
+        <button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={!canSubmit}
+          title={submitHint || undefined}
+        >
           {T.proceed}
         </button>
+        {submitHint && (
+          <p className={styles.submitHint}>{submitHint}</p>
+        )}
       </form>
 
       {error && <div className={styles.errorMessage}>{error}</div>}
