@@ -14,6 +14,8 @@
   color: white;
 
   position: relative; /* 👈 კრიტიკული */
+    overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .cartItem {
@@ -233,7 +235,7 @@
   z-index: 1001;
 
   /* ეს არის მთავარი FIX */
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 /* CLOSE */
@@ -527,5 +529,6 @@
   .cartDropdown {
     width: 100%;
     border-radius: 0;
+    
   }
 }

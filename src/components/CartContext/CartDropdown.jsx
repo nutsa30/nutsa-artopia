@@ -82,11 +82,10 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
     };
   }, [cartItems]);
 
- const handleCheckout = () => {
-  setShowCartOpen(false);
+const handleCheckout = () => {
   navigate('/checkout');
+  setShowCartOpen(false);
 };
-
   const getItemId = (item) => item?.id ?? item?._id ?? item?.name;
 
   const getMaxQty = (item) => {
@@ -286,12 +285,13 @@ const maxQty = getMaxQty(item);
                       {T.clearAll}
                     </button>
 
-                    <button
-                      className={styles.checkoutButton}
-                      onClick={handleCheckout}
-                    >
-                      {T.checkout}
-                    </button>
+                 <button
+  type="button"
+  className={styles.checkoutButton}
+  onClick={handleCheckout}
+>
+  {T.checkout}
+</button>
                   </div>
                 </div>
               </>

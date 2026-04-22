@@ -246,13 +246,6 @@ const deliveryOptions = useMemo(() => {
   return { subtotal: +subtotal.toFixed(2), delivery_fee, extra_discount, total };
 }, [subtotal, formData.deliveryOption, couponDiscount, selectedCourier]);
 
-useEffect(() => {
-  const style = document.createElement("style");
-  style.id = "checkout-navbar-override";
-  style.textContent = `#site-navbar { z-index: 1 !important; }`;
-  document.head.appendChild(style);
-  return () => document.getElementById("checkout-navbar-override")?.remove();
-}, []);
 
 const canSubmit = useMemo(() => {
   if (cartItems.length === 0) return false;

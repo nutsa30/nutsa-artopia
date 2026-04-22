@@ -331,7 +331,7 @@ textarea.input {
 @media (max-width: 900px) {
   .checkoutContainer {
     gap: 20px;
-    margin: 100px auto 40px;
+  margin: 100px 0 30px;
     padding: 16px;
   }
 }
@@ -341,8 +341,8 @@ textarea.input {
 
   .checkoutContainer {
     flex-direction: column;
-    margin: 160px 0 30px;
-    padding: 12px;
+    margin: 0 0 30px;
+    padding: 100px 12px 0;
     gap: 16px;
     width: 100%;
     box-sizing: border-box;
