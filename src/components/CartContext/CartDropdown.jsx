@@ -82,10 +82,10 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
     };
   }, [cartItems]);
 
-  const handleCheckout = () => {
-    setShowCartOpen(false);
-    navigate('/checkout');
-  };
+ const handleCheckout = () => {
+  setShowCartOpen(false);
+  navigate('/checkout');
+};
 
   const getItemId = (item) => item?.id ?? item?._id ?? item?.name;
 

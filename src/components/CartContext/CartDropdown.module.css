@@ -518,3 +518,14 @@
     height: 36px;
   }
 }
+@media (max-width: 768px) {
+  .cartPortal {
+    right: 0;
+    left: 0;
+  }
+
+  .cartDropdown {
+    width: 100%;
+    border-radius: 0;
+  }
+}
