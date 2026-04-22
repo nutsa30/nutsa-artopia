@@ -7,9 +7,10 @@ const DEFAULT_CENTER = { lat: 41.6941, lng: 44.8337 };
 const Spinner = () => <span className={s.spinner} />;
 
 const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect }) => {
-  const mapDivRef = useRef(null);
-  const mapRef    = useRef(null);
-  const markerRef = useRef(null);
+  const mapDivRef   = useRef(null);
+  const inputRef    = useRef(null);
+  const mapRef      = useRef(null);
+  const markerRef   = useRef(null);
   const geocoderRef = useRef(null);
 
   const [mapsReady, setMapsReady] = useState(false);
@@ -77,7 +78,7 @@ const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect 
     markerRef.current = marker;
 
     /* Places Autocomplete */
-    const inp = document.getElementById("qs-addr-inp");
+    const inp = inputRef.current;
     if (inp && window.google.maps.places) {
       const ac = new window.google.maps.places.Autocomplete(inp, {
         componentRestrictions: { country: "ge" },
@@ -89,6 +90,7 @@ const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect 
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
         map.panTo({ lat, lng });
+        map.setZoom(16);
         marker.setPosition({ lat, lng });
         onChange({ lat, lng, streetName: place.formatted_address });
       });
@@ -145,6 +147,23 @@ const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect 
         <span>მიტანის მისამართი</span>
       </div>
 
+      {/* ─── Search input (ABOVE map) ─── */}
+      <div className={s.searchWrap}>
+        <svg className={s.searchIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          ref={inputRef}
+          id="qs-addr-inp"
+          type="text"
+          className={s.addrInput}
+          placeholder="მოძებნეთ მისამართი…"
+          value={delivery.streetName}
+          onChange={(e) => onChange({ streetName: e.target.value })}
+          autoComplete="off"
+        />
+      </div>
+
       {/* ─── Map ─── */}
       <div className={s.mapWrap}>
         {!mapsReady && (
@@ -154,20 +173,8 @@ const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect 
           </div>
         )}
         <div ref={mapDivRef} className={s.map} />
+        <p className={s.mapHint}>პინი შეგიძლიათ ხელითაც გადაიტანოთ</p>
       </div>
-
-      <p className={s.mapHint}>გადაიტანეთ პინი ან ჩაწერეთ მისამართი</p>
-
-      {/* ─── Address autocomplete input ─── */}
-      <input
-        id="qs-addr-inp"
-        type="text"
-        className={s.addrInput}
-        placeholder="ქუჩა, სახლი…"
-        value={delivery.streetName}
-        onChange={(e) => onChange({ streetName: e.target.value })}
-        autoComplete="off"
-      />
 
       {/* ─── Hallway / Floor / Apartment ─── */}
       <div className={s.extraRow}>
