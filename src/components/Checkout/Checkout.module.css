@@ -1,7 +1,7 @@
 /* ── Layout ── */
 .checkoutContainer {
   max-width: 1180px;
-  margin: 110px auto 60px;
+  margin: calc(var(--navbar-h) + var(--navbar-gap)) auto 60px;
   padding: 24px 20px;
   color: #f1faee;
   display: flex;
@@ -331,7 +331,7 @@ textarea.input {
 @media (max-width: 900px) {
   .checkoutContainer {
     gap: 20px;
-  margin: 100px 0 30px;
+    margin: calc(var(--navbar-h) + var(--navbar-gap)) 0 30px;
     padding: 16px;
   }
 }
@@ -342,7 +342,7 @@ textarea.input {
   .checkoutContainer {
     flex-direction: column;
     margin: 0 0 30px;
-    padding: 125px 12px 0;
+    padding: calc(var(--navbar-h) + var(--navbar-gap)) 12px 0;
     gap: 16px;
     width: 100%;
     box-sizing: border-box;
@@ -380,7 +380,7 @@ textarea.input {
 }
 
 @media (max-width: 380px) {
-  .checkoutContainer { padding: 10px; }
+  .checkoutContainer { padding: calc(var(--navbar-h) + var(--navbar-gap)) 10px 10px; }
   .thumbWrap { width: 52px; height: 52px; flex-basis: 52px; }
   .itemName  { font-size: 12px; }
 }
