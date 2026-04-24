@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  RefreshCw, 
-  PlusCircle, 
-  LayoutGrid, 
-  FileText, 
-  Ticket, 
-  Package, 
-  Mail, 
-  LogOut, 
+import {
+  RefreshCw,
+  PlusCircle,
+  LayoutGrid,
+  FileText,
+  Ticket,
+  Package,
+  Mail,
+  LogOut,
   ChevronDown,
   Menu,
-  Image as ImageIcon
+  Image as ImageIcon,
+  BarChart2,
 } from 'lucide-react';
 import styles from "./AdminNavbar.module.css";
 import artopiaLogo from "../assets/IMG_4970.JPG";
@@ -118,6 +119,11 @@ const onSyncOptimo = async () => {
                 <Link to="/promo-codes" className={styles.navLink}>
                   <Ticket size={18} />
                   <span>პრომო კოდები</span>
+                </Link>
+
+                <Link to="/admin/analytics" className={styles.navLink}>
+                  <BarChart2 size={18} />
+                  <span>ანალიტიკა</span>
                 </Link>
 
                 <Link to="/order_history" className={styles.navLink}>

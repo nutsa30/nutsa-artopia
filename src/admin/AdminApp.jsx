@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectRoute";
 import PromoCodes from "./pages/promoCodes/PromoCodes";
 import OrderHistory from "./pages/orders/OrderHistory";
 import AddHomeImg from "./pages/home/AddHomeImg";
+import Analytics from "./pages/analytics/Analytics";
 
 import { AuthProvider } from "./context/AuthContext";
 
@@ -111,6 +112,16 @@ return (
           element={
             <ProtectedRoute>
               <AddHomeImg />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ანალიტიკა */}
+        <Route
+          path="analytics"
+          element={
+            <ProtectedRoute>
+              <Analytics />
             </ProtectedRoute>
           }
         />
