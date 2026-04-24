@@ -3,10 +3,8 @@ import styles from "./OrderHistory.module.css";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
-// OrderHistory.jsx-ში შეცვალე ეს:
 const getJwt = () => {
-  // ადრე გეწერა: localStorage.getItem("token")
-  const token = localStorage.getItem("ADMIN_TOKEN"); // <--- დაწერე ზუსტად ეს სახელი
+  const token = localStorage.getItem("ADMIN_TOKEN");
   if (!token) return "";
   return token;
 };
@@ -25,48 +23,21 @@ const toAbsolute = (u) => {
 
 const collectImageCandidates = (obj = {}) => {
   const out = [];
-
-  const directKeys = [
-    "image_url",
-    "image_url_snapshot",
-    "image",
-    "photo",
-    "thumbnail",
-    "thumb",
-    "cover",
-  ];
-
+  const directKeys = ["image_url", "image_url_snapshot", "image", "photo", "thumbnail", "thumb", "cover"];
   for (const key of directKeys) {
     if (obj?.[key]) out.push(obj[key]);
   }
-
   for (let i = 1; i <= 6; i += 1) {
     out.push(obj?.[`image_url${i}`]);
     out.push(obj?.[`image${i}`]);
     out.push(obj?.[`img${i}`]);
   }
-
   if (Array.isArray(obj?.images)) {
     for (const it of obj.images) {
       if (typeof it === "string") out.push(it);
       else if (it && typeof it.url === "string") out.push(it.url);
     }
   }
-
-  if (typeof obj?.images === "string") {
-    try {
-      const parsed = JSON.parse(obj.images);
-      if (Array.isArray(parsed)) {
-        for (const it of parsed) {
-          if (typeof it === "string") out.push(it);
-          else if (it && typeof it.url === "string") out.push(it.url);
-        }
-      }
-    } catch {
-      // ignore invalid JSON
-    }
-  }
-
   return out
     .filter((u) => typeof u === "string" && u.trim())
     .map((u) => toAbsolute(u.trim()));
@@ -74,14 +45,8 @@ const collectImageCandidates = (obj = {}) => {
 
 const pickItemImage = (it = {}) => {
   const product = it.product || it.product_data || {};
-
-  const candidates = [
-    ...collectImageCandidates(it),
-    ...collectImageCandidates(product),
-  ];
-
-  const unique = [...new Set(candidates)];
-  return unique[0] || "";
+  const candidates = [...collectImageCandidates(it), ...collectImageCandidates(product)];
+  return [...new Set(candidates)][0] || "";
 };
 
 const parseISOasUTC = (s) => {
@@ -92,17 +57,16 @@ const parseISOasUTC = (s) => {
 
 const fmtDT = (v) => {
   const d = parseISOasUTC(v);
-  return d ? d.toLocaleString("ka-GE", { timeZone: "Asia/Tbilisi" }) : "-";
+  return d ? d.toLocaleString("ka-GE", { timeZone: "Asia/Tbilisi" }) : "—";
 };
 
 const fmtMoney = (v) => {
   const n = Number(v);
-  return Number.isFinite(n) ? `${n} ₾` : "-";
+  return Number.isFinite(n) ? `${n.toFixed(2)} ₾` : "—";
 };
 
 const statusLabel = (status) => {
   const s = String(status || "").toLowerCase();
-
   if (s === "placed") return "განთავსებული";
   if (s === "paid") return "გადახდილი";
   if (s === "pending") return "მოლოდინში";
@@ -110,19 +74,33 @@ const statusLabel = (status) => {
   if (s === "shipped") return "გაგზავნილი";
   if (s === "delivered") return "მიტანილი";
   if (s === "cancelled") return "გაუქმებული";
-
-  return status || "-";
+  if (s === "failed") return "წარუმატებელი";
+  return status || "—";
 };
 
 const statusClass = (status) => {
   const s = String(status || "").toLowerCase();
-
   if (["paid", "delivered"].includes(s)) return styles.statusSuccess;
   if (["processing", "shipped"].includes(s)) return styles.statusInfo;
   if (["pending", "placed"].includes(s)) return styles.statusWarning;
-  if (["cancelled"].includes(s)) return styles.statusDanger;
-
+  if (["cancelled", "failed"].includes(s)) return styles.statusDanger;
   return styles.statusNeutral;
+};
+
+const deliveryMethodLabel = (method) => {
+  if (method === "courier") return "კურიერული მიტანა";
+  if (method === "pickup") return "ადგილზე გატანა";
+  if (method === "next_day") return "მომდევნო დღე";
+  if (method === "express") return "ექსპრეს";
+  if (method === "regional") return "რეგიონალური";
+  return method || "—";
+};
+
+const calcDeliveryDiscount = (subtotal) => {
+  if (subtotal >= 201) return 20;
+  if (subtotal >= 100) return 10;
+  if (subtotal >= 50) return 5;
+  return 0;
 };
 
 const OrderHistory = () => {
@@ -132,7 +110,6 @@ const OrderHistory = () => {
   const [details, setDetails] = useState({});
   const [loadingIds, setLoadingIds] = useState({});
   const [loading, setLoading] = useState(false);
-
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
@@ -147,29 +124,17 @@ const OrderHistory = () => {
   const fetchOrders = async (customQueryString = queryString) => {
     setLoading(true);
     setError("");
-
     try {
       const res = await fetch(`${API_BASE}/admin/orders?${customQueryString}`, {
         method: "GET",
         headers: buildHeaders(),
       });
-
       const text = await res.text();
       let data = null;
-
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error("სერვერის პასუხი არასწორია");
-      }
-
-      if (!res.ok) {
-        throw new Error(data?.message || "შეკვეთების წამოღება ვერ მოხერხდა");
-      }
-
+      try { data = JSON.parse(text); } catch { throw new Error("სერვერის პასუხი არასწორია"); }
+      if (!res.ok) throw new Error(data?.message || "შეკვეთების წამოღება ვერ მოხერხდა");
       setOrders(Array.isArray(data?.items) ? data.items : []);
     } catch (err) {
-      console.error(err);
       setOrders([]);
       setError(err.message || "შეკვეთების წამოღება ვერ მოხერხდა");
     } finally {
@@ -185,49 +150,27 @@ const OrderHistory = () => {
   const toggleDetails = async (id) => {
     const nextExpanded = !expanded[id];
     setExpanded((prev) => ({ ...prev, [id]: nextExpanded }));
-
     if (!nextExpanded || details[id]) return;
-
     try {
       setLoadingIds((prev) => ({ ...prev, [id]: true }));
-
       const res = await fetch(`${API_BASE}/admin/orders/${id}`, {
         method: "GET",
         headers: buildHeaders(),
       });
-
       const text = await res.text();
       let data = null;
-
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error("დეტალის JSON არასწორია");
-      }
-
-      if (!res.ok) {
-        throw new Error(data?.message || "დეტალის წამოღება ვერ მოხერხდა");
-      }
-
+      try { data = JSON.parse(text); } catch { throw new Error("დეტალის JSON არასწორია"); }
+      if (!res.ok) throw new Error(data?.message || "დეტალის წამოღება ვერ მოხერხდა");
       setDetails((prev) => ({ ...prev, [id]: data }));
     } catch (err) {
-      console.error(err);
       setError(err.message || "დეტალის წამოღება ვერ მოხერხდა");
     } finally {
       setLoadingIds((prev) => ({ ...prev, [id]: false }));
     }
   };
 
-  const onFilterSubmit = (e) => {
-    e.preventDefault();
-    fetchOrders();
-  };
-
-  const onReset = () => {
-    setFromDate("");
-    setToDate("");
-    fetchOrders("per_page=50");
-  };
+  const onFilterSubmit = (e) => { e.preventDefault(); fetchOrders(); };
+  const onReset = () => { setFromDate(""); setToDate(""); fetchOrders("per_page=50"); };
 
   return (
     <div className={styles.page}>
@@ -244,35 +187,19 @@ const OrderHistory = () => {
       <form onSubmit={onFilterSubmit} className={styles.filterCard}>
         <div className={styles.filterGrid}>
           <div className={styles.field}>
-            <label>დან</label>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-            />
+            <label>დათარიღება — დან</label>
+            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
           </div>
-
           <div className={styles.field}>
-            <label>მდე</label>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-            />
+            <label>დათარიღება — მდე</label>
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
           </div>
-
           <div className={styles.filterActions}>
-            <button className={styles.primaryBtn} type="submit">
-              ფილტრი
-            </button>
-
-            <button className={styles.secondaryBtn} type="button" onClick={onReset}>
-              Reset
-            </button>
+            <button className={styles.primaryBtn} type="submit">გაფილტვრა</button>
+            <button className={styles.secondaryBtn} type="button" onClick={onReset}>გასუფთავება</button>
           </div>
         </div>
-
-        {loading && <span className={styles.inlineInfo}>იტვირთება…</span>}
+        {loading && <span className={styles.inlineInfo}>შეკვეთები იტვირთება…</span>}
       </form>
 
       {error && <div className={styles.errorBox}>{error}</div>}
@@ -283,6 +210,8 @@ const OrderHistory = () => {
         <div className={styles.ordersList}>
           {orders.map((o) => {
             const dt = o.paid_at || o.created_at;
+            const isCourier = o.delivery_method === "courier";
+            const isPickup = o.delivery_method === "pickup";
 
             return (
               <div key={o.id} className={styles.orderCard}>
@@ -293,12 +222,20 @@ const OrderHistory = () => {
                       <span className={`${styles.statusBadge} ${statusClass(o.status)}`}>
                         {statusLabel(o.status)}
                       </span>
+                      {isCourier && (
+                        <span className={styles.deliveryBadge}>
+                          🚚 {o.quickshipper_provider_name || "კურიერი"}
+                        </span>
+                      )}
+                      {isPickup && (
+                        <span className={styles.pickupBadge}>🏪 ადგილზე გატანა</span>
+                      )}
                       <span className={styles.metaText}>{fmtDT(dt)}</span>
                     </div>
                   </div>
 
                   <div className={styles.orderAside}>
-                    <div className={styles.totalLabel}>ჯამური ღირებულება</div>
+                    <div className={styles.totalLabel}>სულ გადახდილია</div>
                     <div className={styles.totalValue}>{fmtMoney(o.total)}</div>
                   </div>
                 </div>
@@ -310,20 +247,17 @@ const OrderHistory = () => {
                       {o.customer?.first_name} {o.customer?.last_name}
                     </span>
                   </div>
-
                   <div className={styles.summaryCell}>
                     <span className={styles.summaryLabel}>სტატუსი</span>
                     <span className={styles.summaryValue}>{statusLabel(o.status)}</span>
                   </div>
-
+                  <div className={styles.summaryCell}>
+                    <span className={styles.summaryLabel}>მიტანა</span>
+                    <span className={styles.summaryValue}>{deliveryMethodLabel(o.delivery_method)}</span>
+                  </div>
                   <div className={styles.summaryCell}>
                     <span className={styles.summaryLabel}>თარიღი</span>
                     <span className={styles.summaryValue}>{fmtDT(dt)}</span>
-                  </div>
-
-                  <div className={styles.summaryCell}>
-                    <span className={styles.summaryLabel}>შეკვეთის ნომერი</span>
-                    <span className={styles.summaryValue}>#{o.order_number}</span>
                   </div>
                 </div>
 
@@ -333,61 +267,116 @@ const OrderHistory = () => {
                     className={styles.detailsBtn}
                     type="button"
                   >
-                    {expanded[o.id] ? "დაფარვა" : "დეტალები"}
+                    {expanded[o.id] ? "▲ დახურვა" : "▼ სრული დეტალები"}
                   </button>
                 </div>
 
                 {expanded[o.id] && (
                   <div className={styles.detailsWrap}>
-                    {loadingIds[o.id] && <div className={styles.loadingBox}>იტვირთება...</div>}
+                    {loadingIds[o.id] && <div className={styles.loadingBox}>მონაცემები იტვირთება…</div>}
 
                     {!loadingIds[o.id] && details[o.id] && (() => {
                       const d = details[o.id];
+                      const subtotal = d.subtotal || 0;
+                      const delivDisc = calcDeliveryDiscount(subtotal);
+                      const couponDisc = d.coupon?.discount || 0;
+                      const isCourierDetail = d.delivery_method === "courier";
+                      const isPickupDetail = d.delivery_method === "pickup";
 
                       return (
                         <div className={styles.detailsContent}>
+
+                          {/* ══ 2-col: კლიენტი + გადახდა ══ */}
                           <div className={styles.infoGrid}>
                             <div className={styles.infoCard}>
                               <h4>👤 კლიენტი</h4>
                               <div className={styles.infoRows}>
                                 <div><span>სახელი:</span> {d.customer?.first_name} {d.customer?.last_name}</div>
-                                <div><span>ელფოსტა:</span> {d.customer?.email || "-"}</div>
-                                <div><span>ტელეფონი:</span> {d.customer?.phone || "-"}</div>
-                                <div><span>ქალაქი:</span> {d.customer?.city || "-"}</div>
-                                <div><span>მისამართი:</span> {d.customer?.address || "-"}</div>
+                                <div><span>ელ-ფოსტა:</span> {d.customer?.email || "—"}</div>
+                                <div><span>ტელეფონი:</span> {d.customer?.phone || "—"}</div>
                               </div>
                             </div>
 
                             <div className={styles.infoCard}>
-                              <h4>🚚 შეკვეთა</h4>
+                              <h4>💳 გადახდა</h4>
                               <div className={styles.infoRows}>
                                 <div><span>სტატუსი:</span> {statusLabel(d.status)}</div>
-                                <div><span>შექმნილია:</span> {fmtDT(d.created_at)}</div>
-                                <div><span>გადახდილია:</span> {fmtDT(d.paid_at)}</div>
-                                <div><span>მიტანის ტიპი:</span> {d.delivery_method || "-"}</div>
-                                <div>
-                                  <span>კუპონი:</span>{" "}
-                                  {d.coupon?.code
-                                    ? `${d.coupon.code} (${d.coupon.percent}% → -${d.coupon.discount}₾)`
-                                    : "-"}
-                                </div>
-                                <div>
-                                  <span>გადახდა:</span>{" "}
-                                  {d.payment?.method || "-"}{" "}
-                                  {d.payment?.transaction_id
-                                    ? `(${d.payment.transaction_id})`
-                                    : ""}
-                                </div>
-                                <div><span>კომენტარი:</span> {d.comment || "-"}</div>
+                                <div><span>შეკვეთა შეიქმნა:</span> {fmtDT(d.created_at)}</div>
+                                <div><span>გადახდის დრო:</span> {fmtDT(d.paid_at)}</div>
+                                <div><span>გადახდის მეთოდი:</span> {d.payment?.method || "—"}</div>
+                                {d.payment?.transaction_id && (
+                                  <div><span>ტრანზაქციის ID:</span> <span className={styles.monoText}>{d.payment.transaction_id}</span></div>
+                                )}
+                                {d.coupon?.code && (
+                                  <div>
+                                    <span>პრომო-კოდი:</span>{" "}
+                                    <span className={styles.couponBadge}>
+                                      🎁 {d.coupon.code}
+                                      {d.coupon.percent ? ` (−${d.coupon.percent}%)` : ""}
+                                    </span>
+                                  </div>
+                                )}
+                                {d.comment && <div><span>კომენტარი:</span> {d.comment}</div>}
                               </div>
                             </div>
                           </div>
 
+                          {/* ══ მიტანის სექცია (full width) ══ */}
+                          <div className={`${styles.infoCard} ${isCourierDetail ? styles.courierCard : ""}`}>
+                            <h4>{isCourierDetail ? "🚚 კურიერული მიტანა" : isPickupDetail ? "🏪 ადგილზე გატანა" : "🚚 მიტანა"}</h4>
+                            <div className={styles.infoRows}>
+                              {isCourierDetail && (
+                                <>
+                                  {d.quickshipper_provider_name && (
+                                    <div>
+                                      <span>საკურიერო კომპანია:</span>{" "}
+                                      <strong>{d.quickshipper_provider_name}</strong>
+                                    </div>
+                                  )}
+                                  <div><span>მიტანის მისამართი:</span> {d.customer?.address || "—"}</div>
+                                  {d.delivery_address_comment && (
+                                    <div><span>სადარბ. / სართ. / ბინა:</span> {d.delivery_address_comment}</div>
+                                  )}
+                                  {d.quickshipper_order_no && (
+                                    <div><span>კურიერის შეკვ. №:</span> <span className={styles.monoText}>{d.quickshipper_order_no}</span></div>
+                                  )}
+                                  {d.quickshipper_tracking_url && (
+                                    <div>
+                                      <span>თვალყურის დევნება:</span>{" "}
+                                      <a
+                                        href={d.quickshipper_tracking_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className={styles.trackingLink}
+                                      >
+                                        📍 ამანათის ლოკაციის ნახვა →
+                                      </a>
+                                    </div>
+                                  )}
+                                  {!d.quickshipper_order_no && !d.quickshipper_tracking_url && (
+                                    <div className={styles.pendingNote}>კურიერის შეკვეთა ჯერ არ შექმნილა</div>
+                                  )}
+                                </>
+                              )}
+                              {isPickupDetail && (
+                                <>
+                                  <div><span>მისამართი:</span> სიმონ ჩიქოვანის 45, საბურთალო, თბილისი</div>
+                                  <div><span>სამუშაო საათები:</span> ყოველდღე 11:30–20:30</div>
+                                </>
+                              )}
+                              {!isCourierDetail && !isPickupDetail && (
+                                <div><span>ტიპი:</span> {deliveryMethodLabel(d.delivery_method)}</div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* ══ პროდუქტები ══ */}
                           <div className={styles.itemsSection}>
                             <div className={styles.sectionHeader}>
-                              <h4>🧾 საქონელი</h4>
+                              <h4>🧾 შეკვეთილი პროდუქცია</h4>
                             </div>
 
+                            {/* Desktop table */}
                             <div className={styles.itemsTableWrap}>
                               <table className={styles.itemsTable}>
                                 <thead>
@@ -395,40 +384,28 @@ const OrderHistory = () => {
                                     <th>ფოტო</th>
                                     <th>დასახელება</th>
                                     <th>რაოდენობა</th>
-                                    <th>ერთ.ფასი</th>
+                                    <th>ერთ. ფასი</th>
                                     <th>ფასდაკლება</th>
                                     <th>ჯამი</th>
                                   </tr>
                                 </thead>
-
                                 <tbody>
                                   {d.items?.map((it, idx) => {
                                     const img = pickItemImage(it);
-
                                     return (
                                       <tr key={idx}>
                                         <td>
                                           {img ? (
-                                            <img
-                                              src={img}
-                                              alt={it.name || "item"}
-                                              className={styles.itemThumb}
-                                            />
+                                            <img src={img} alt={it.name || "item"} className={styles.itemThumb} />
                                           ) : (
-                                            <div className={styles.noImage}>
-                                              No Image
-                                            </div>
+                                            <div className={styles.noImage}>ფოტო<br/>არ არის</div>
                                           )}
                                         </td>
-                                        <td className={styles.itemNameCell}>
-                                          {it.name || "-"}
-                                        </td>
-                                        <td>{it.quantity ?? "-"}</td>
+                                        <td className={styles.itemNameCell}>{it.name || "—"}</td>
+                                        <td>{it.quantity ?? "—"}</td>
                                         <td>{fmtMoney(it.unit_price)}</td>
-                                        <td>{it.sale ? `${it.sale}%` : "-"}</td>
-                                        <td className={styles.lineTotal}>
-                                          {fmtMoney(it.line_total)}
-                                        </td>
+                                        <td>{it.sale ? <span className={styles.saleBadge}>−{it.sale}%</span> : "—"}</td>
+                                        <td className={styles.lineTotal}>{fmtMoney(it.line_total)}</td>
                                       </tr>
                                     );
                                   })}
@@ -436,35 +413,24 @@ const OrderHistory = () => {
                               </table>
                             </div>
 
+                            {/* Mobile cards */}
                             <div className={styles.mobileItems}>
                               {d.items?.map((it, idx) => {
                                 const img = pickItemImage(it);
-
                                 return (
                                   <div key={idx} className={styles.mobileItemCard}>
                                     <div className={styles.mobileItemTop}>
                                       {img ? (
-                                        <img
-                                          src={img}
-                                          alt={it.name || "item"}
-                                          className={styles.mobileItemThumb}
-                                        />
+                                        <img src={img} alt={it.name || "item"} className={styles.mobileItemThumb} />
                                       ) : (
-                                        <div className={styles.noImageMobile}>
-                                          No Image
-                                        </div>
+                                        <div className={styles.noImageMobile}>ფოტო<br/>არ არის</div>
                                       )}
-
                                       <div className={styles.mobileItemInfo}>
-                                        <div className={styles.mobileItemName}>
-                                          {it.name || "-"}
-                                        </div>
-                                        <div>რაოდენობა: {it.quantity ?? "-"}</div>
-                                        <div>ერთ.ფასი: {fmtMoney(it.unit_price)}</div>
-                                        <div>ფასდაკლება: {it.sale ? `${it.sale}%` : "-"}</div>
-                                        <div className={styles.mobileLineTotal}>
-                                          ჯამი: {fmtMoney(it.line_total)}
-                                        </div>
+                                        <div className={styles.mobileItemName}>{it.name || "—"}</div>
+                                        <div>რაოდენობა: {it.quantity ?? "—"}</div>
+                                        <div>ერთ. ფასი: {fmtMoney(it.unit_price)}</div>
+                                        {it.sale ? <div>ფასდ: <span className={styles.saleBadge}>−{it.sale}%</span></div> : null}
+                                        <div className={styles.mobileLineTotal}>ჯამი: {fmtMoney(it.line_total)}</div>
                                       </div>
                                     </div>
                                   </div>
@@ -473,24 +439,45 @@ const OrderHistory = () => {
                             </div>
                           </div>
 
+                          {/* ══ ჯამები ══ */}
                           <div className={styles.totalsCard}>
                             <div className={styles.totalRow}>
-                              <span>შეკვეთის ჯამური ღირებულება</span>
-                              <b>{fmtMoney(d.subtotal)}</b>
+                              <span>პროდუქციის ღირებულება</span>
+                              <b>{fmtMoney(subtotal)}</b>
                             </div>
-                            <div className={styles.totalRow}>
-                              <span>მიტანა</span>
-                              <b>{fmtMoney(d.delivery_fee)}</b>
-                            </div>
-                            <div className={styles.totalRow}>
-                              <span>ფასდაკლება სულ</span>
-                              <b>{fmtMoney(d.discount_total)}</b>
-                            </div>
+                            {couponDisc > 0 && (
+                              <div className={`${styles.totalRow} ${styles.discountRow}`}>
+                                <span>🎁 პრომო-კოდი{d.coupon?.code ? ` (${d.coupon.code})` : ""}</span>
+                                <b>−{fmtMoney(couponDisc)}</b>
+                              </div>
+                            )}
+                            {isCourierDetail && delivDisc > 0 && (
+                              <div className={`${styles.totalRow} ${styles.discountRow}`}>
+                                <span>🚚 მიტანაზე ფასდაკლება</span>
+                                <b>−{delivDisc}₾</b>
+                              </div>
+                            )}
+                            {isCourierDetail ? (
+                              <div className={styles.totalRow}>
+                                <span>🚚 მიტანის საფასური</span>
+                                <b>
+                                  {(d.delivery_fee || 0) > 0
+                                    ? fmtMoney(d.delivery_fee)
+                                    : <span className={styles.freeLabel}>უფასო ✓</span>}
+                                </b>
+                              </div>
+                            ) : isPickupDetail ? (
+                              <div className={styles.totalRow}>
+                                <span>🏪 ადგილზე გატანა</span>
+                                <b><span className={styles.freeLabel}>უფასო ✓</span></b>
+                              </div>
+                            ) : null}
                             <div className={`${styles.totalRow} ${styles.grandTotal}`}>
-                              <span>სულ გადასახდელი</span>
+                              <span>სულ გადახდილია</span>
                               <b>{fmtMoney(d.total)}</b>
                             </div>
                           </div>
+
                         </div>
                       );
                     })()}
