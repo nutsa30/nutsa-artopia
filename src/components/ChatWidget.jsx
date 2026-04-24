@@ -73,13 +73,13 @@ const DATA = {
 
   answers: {
     tbilisi_delivery: {
-      ka: "თბილისში მიწოდების შემთხვევაში გვაქვს 2 სახის მიწოდების სერვისი:\n1) ადგილზე აღება;\n2) მიწოდება მომდევნო სამუშაო დღეს — 6ლ (მიწოდება უფასოა 50ლ-დან);",
-      en: "We offer 2 options in Tbilisi:\n1) Pickup at Artopia;\n2) Next-day delivery — 6 GEL (free if order is more than 50 GEL).",
+      ka: "მიწოდება ხორციელდება QuickShipper-ის კურიერული სერვისით. ტარიფი ჩანს შეკვეთის გვერდზე კონკრეტული მისამართისთვის.\n\nმიტანაზე ფასდაკლებები:\n• 50–99₾ შეკვეთა → 5₾ ფასდაკლება\n• 100–200₾ შეკვეთა → 10₾ ფასდაკლება\n• 201₾+ შეკვეთა → 20₾ ფასდაკლება\n\nასევე შეგიძლიათ ადგილზე აღება — მაღაზიიდან, უფასოდ.",
+      en: "Delivery is provided by QuickShipper courier service. The fee is shown at checkout based on your specific address.\n\nDelivery discounts:\n• Order 50–99₾ → 5₾ off\n• Order 100–200₾ → 10₾ off\n• Order 201₾+ → 20₾ off\n\nYou can also pick up in store for free.",
     },
 
     regions_delivery: {
-      ka: "რეგიონებში საკურიერო მომსახურების საფასურია 8ლ. 70 ლარიდან კი უფასოა. მიწოდების ვადა არის 3–4 სამუშაო დღე.",
-      en: "Delivery fee in the regions is 8 GEL, but it's free if the order is more than 70 GEL. Delivery time is 3–4 business days.",
+      ka: "რეგიონებშიც მიწოდება QuickShipper-ის კურიერული სერვისით ხდება. ტარიფი ჩანს შეკვეთის გვერდზე.\n\nმიტანაზე ფასდაკლებები:\n• 50–99₾ შეკვეთა → 5₾ ფასდაკლება\n• 100–200₾ შეკვეთა → 10₾ ფასდაკლება\n• 201₾+ შეკვეთა → 20₾ ფასდაკლება",
+      en: "Delivery to regions is also via QuickShipper courier. The fee is shown at checkout.\n\nDelivery discounts:\n• Order 50–99₾ → 5₾ off\n• Order 100–200₾ → 10₾ off\n• Order 201₾+ → 20₾ off",
     },
 
     pickup: {

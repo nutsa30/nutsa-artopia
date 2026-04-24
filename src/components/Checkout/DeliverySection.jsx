@@ -7,7 +7,20 @@ const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY;
 
 const Spinner = () => <span className={s.spinner} />;
 
-const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect }) => {
+const DELIVERY_TIERS = [
+  { min: 201, discount: 20 },
+  { min: 100, discount: 10 },
+  { min: 50,  discount: 5  },
+];
+
+function calcDeliveryDiscount(subtotal, baseFee) {
+  for (const t of DELIVERY_TIERS) {
+    if (subtotal >= t.min) return Math.min(t.discount, baseFee);
+  }
+  return 0;
+}
+
+const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect, subtotal = 0 }) => {
   const mapDivRef   = useRef(null);
   const mapRef      = useRef(null);
   const markerRef   = useRef(null);
@@ -281,13 +294,17 @@ const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect 
           {couriers.map((c) => {
             const price = c.prices?.[0];
             const isSelected = selectedCourier?.providerId === c.providerId;
+            const baseFee = c.minPrice ?? 0;
+            const disc = calcDeliveryDiscount(subtotal, baseFee);
+            const netFee = Math.max(0, baseFee - disc);
+            const cur = price?.currency ?? "₾";
             return (
               <div key={c.providerId}
                 className={`${s.courierCard} ${isSelected ? s.cardSelected : ""}`}
                 role="button" tabIndex={0} aria-pressed={isSelected}
                 onClick={() => onCourierSelect({
                   providerId: c.providerId, priceId: price?.id ?? null,
-                  amount: c.minPrice ?? 0, currency: price?.currency ?? "₾",
+                  amount: baseFee, currency: cur,
                   speedName: price?.deliverySpeedName ?? "",
                   providerName: c.providerName, logoUrl: c.providerLogoUrl,
                 })}
@@ -301,7 +318,15 @@ const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect 
                   {price?.deliverySpeedName && <span className={s.cSpeed}>{price.deliverySpeedName}</span>}
                 </div>
                 <div className={s.cRight}>
-                  <span className={s.cPrice}>{c.minPrice} {price?.currency ?? "₾"}</span>
+                  {disc > 0 ? (
+                    <div className={s.priceBlock}>
+                      <span className={s.oldFeeStrike}>{baseFee} {cur}</span>
+                      <span className={s.cPrice}>{netFee.toFixed(2)} {cur}</span>
+                      <span className={s.discBadge}>−{disc}₾</span>
+                    </div>
+                  ) : (
+                    <span className={s.cPrice}>{baseFee} {cur}</span>
+                  )}
                   <span className={`${s.cCheck} ${isSelected ? s.checkOn : ""}`}>✓</span>
                 </div>
               </div>

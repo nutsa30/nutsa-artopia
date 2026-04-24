@@ -16,6 +16,52 @@ const isTbilisi = (str) => {
 
 const fmt = (n) => Number(n ?? 0).toFixed(2);
 
+// მიტანაზე ფასდაკლება კალათის ჯამის მიხედვით
+const DELIVERY_TIERS = [
+  { min: 201, discount: 20 },
+  { min: 100, discount: 10 },
+  { min: 50,  discount: 5  },
+];
+
+function calcDeliveryDiscount(subtotal, baseFee) {
+  for (const t of DELIVERY_TIERS) {
+    if (subtotal >= t.min) return Math.min(t.discount, baseFee);
+  }
+  return 0;
+}
+
+function DeliveryDiscountBanner({ subtotal }) {
+  if (subtotal >= 201) {
+    return (
+      <div style={{ background: "#dcfce7", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#15803d", fontWeight: 600, margin: "10px 0" }}>
+        🎉 მიტანაზე 20₾ ფასდაკლება გეკუთვნის!
+      </div>
+    );
+  }
+  if (subtotal >= 100) {
+    const needed = (201 - subtotal).toFixed(2);
+    return (
+      <div style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#166534", margin: "10px 0" }}>
+        ✓ <strong>10₾ ფასდაკლება მიტანაზე!</strong> კიდევ <strong>{needed}₾</strong> და 20₾ ფასდაკლება
+      </div>
+    );
+  }
+  if (subtotal >= 50) {
+    const needed = (100 - subtotal).toFixed(2);
+    return (
+      <div style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#166534", margin: "10px 0" }}>
+        ✓ <strong>5₾ ფასდაკლება მიტანაზე!</strong> კიდევ <strong>{needed}₾</strong> და 10₾ ფასდაკლება
+      </div>
+    );
+  }
+  const needed = (50 - subtotal).toFixed(2);
+  return (
+    <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#1d4ed8", margin: "10px 0" }}>
+      🚚 კიდევ <strong>{needed}₾</strong> და მიტანაზე <strong>5₾ ფასდაკლება</strong> მიიღებ!
+    </div>
+  );
+}
+
 const unitPrice = (it) => {
   const price = Number(it?.price || 0);
   const sale = Number(it?.sale || 0);
@@ -237,13 +283,17 @@ const deliveryOptions = useMemo(() => {
 
 
   const preview = useMemo(() => {
-  const delivery_fee =
+  const baseFee =
     formData.deliveryOption === "courierDelivery" && selectedCourier
       ? +(selectedCourier.amount ?? 0)
       : 0;
+  const delivDisc = formData.deliveryOption === "courierDelivery"
+    ? calcDeliveryDiscount(subtotal, baseFee)
+    : 0;
+  const delivery_fee = Math.max(0, +(baseFee - delivDisc).toFixed(2));
   const extra_discount = couponDiscount;
   const total = Math.max(0, +(subtotal - extra_discount + delivery_fee).toFixed(2));
-  return { subtotal: +subtotal.toFixed(2), delivery_fee, extra_discount, total };
+  return { subtotal: +subtotal.toFixed(2), base_delivery_fee: baseFee, delivery_fee, delivery_discount: delivDisc, extra_discount, total };
 }, [subtotal, formData.deliveryOption, couponDiscount, selectedCourier]);
 
 
@@ -499,6 +549,8 @@ const handleChange = (e) => {
               );
             })}
 
+            <DeliveryDiscountBanner subtotal={subtotal} />
+
             <div className={styles.totalPrice}>
               <div>
                 {T.subtotal}: <strong>{fmt(preview.subtotal)} ₾</strong>
@@ -511,14 +563,26 @@ const handleChange = (e) => {
               )}
 
               {formData.deliveryOption === "courierDelivery" && (
-                <div>
-                  {T.deliveryFee}:{" "}
-                  <strong>
-                    {selectedCourier
-                      ? `${fmt(selectedCourier.amount)} ₾ · ${selectedCourier.providerName}`
-                      : "კურიერი არ არის არჩეული"}
-                  </strong>
-                </div>
+                <>
+                  {preview.delivery_discount > 0 && (
+                    <div style={{ color: "#16a34a", fontWeight: 600 }}>
+                      🚚 მიტანაზე ფასდაკლება: <strong>−{fmt(preview.delivery_discount)}₾</strong>
+                    </div>
+                  )}
+                  <div>
+                    {T.deliveryFee}:{" "}
+                    <strong>
+                      {selectedCourier
+                        ? `${fmt(preview.delivery_fee)} ₾ · ${selectedCourier.providerName}`
+                        : "კურიერი არ არის არჩეული"}
+                    </strong>
+                    {preview.delivery_discount > 0 && selectedCourier && (
+                      <span style={{ textDecoration: "line-through", color: "#94a3b8", marginLeft: 6, fontWeight: 400 }}>
+                        {fmt(preview.base_delivery_fee)}₾
+                      </span>
+                    )}
+                  </div>
+                </>
               )}
 
               <hr />
@@ -592,6 +656,7 @@ const handleChange = (e) => {
             onChange={handleDeliveryChange}
             selectedCourier={selectedCourier}
             onCourierSelect={setSelectedCourier}
+            subtotal={subtotal}
           />
         )}
 

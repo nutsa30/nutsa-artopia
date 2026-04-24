@@ -69,6 +69,7 @@ const normalizeProduct = (p) => {
     hide: !!p?.hide,
     slug: p?.slug || "",
     images: imgs,
+    weight: p?.weight != null ? Number(p.weight) : null,
   };
 };
 
@@ -246,6 +247,9 @@ const Menu = () => {
                       <div className={styles.nameRow}>
 <h3 className={styles.pName}>{p.name}</h3>
 <span className={styles.productId}>ID: {p.id}</span>
+<span className={styles.weightBadge}>
+  {p.weight != null ? `${p.weight} კგ` : "წონა —"}
+</span>
                         {p.is_new && <span className={styles.newBadge}>ახალი</span>}
                         {p.hide && <span className={styles.hiddenBadge}><EyeOff size={12} /></span>}
                       </div>

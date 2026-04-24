@@ -69,6 +69,7 @@ const [form, setForm] = useState({
   price: "",
   quantity: "",
   sale: "",
+  weight: "",
   is_new: false,
   hide: false,
 });
@@ -109,6 +110,7 @@ useEffect(() => {
     price: editingProduct.price ?? "",
     quantity: editingProduct.quantity ?? "",
     sale: editingProduct.sale ?? "",
+    weight: editingProduct.weight != null ? String(editingProduct.weight) : "",
     is_new: !!editingProduct.is_new,
     hide: !!editingProduct.hide,
   }));
@@ -167,6 +169,7 @@ useEffect(() => {
         price: det.price ?? "",
         quantity: det.quantity ?? "",
         sale: det.sale ?? "",
+        weight: det.weight != null ? String(det.weight) : "",
         is_new: !!det.is_new,
         hide: !!det.hide,
       }));
@@ -304,6 +307,8 @@ fd.append("slug", form.slug ?? "");
     fd.append("is_new", form.is_new ? "true" : "false");
     fd.append("hide", form.hide ? "true" : "false");
     if (form.sale !== "") fd.append("sale", String(parseInt(form.sale, 10)));
+    if (form.weight !== "") fd.append("weight", String(parseFloat(form.weight)));
+    else fd.append("weight", "");
 
     fd.append("category_id", String(form.category_id || ""));
 
@@ -363,6 +368,7 @@ setForm({
   price: "",
   quantity: "",
   sale: "",
+  weight: "",
   is_new: false,
   hide: false,
 });
@@ -436,6 +442,18 @@ return (
           type="number"
           min={0}
           max={100}
+        />
+
+        {/* ✅ WEIGHT */}
+        <input
+          name="weight"
+          value={form.weight}
+          onChange={handleChange}
+          placeholder="წონა კილოგრამებში (მაგ. 0.5)"
+          className={styles.input}
+          type="number"
+          min={0}
+          step="0.001"
         />
 
         {/* ✅ CHECKBOXES */}
