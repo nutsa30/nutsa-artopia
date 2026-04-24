@@ -13,6 +13,8 @@ const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect 
   const markerRef   = useRef(null);
   const geocoderRef = useRef(null);
 
+  const userTyping = useRef(false);
+
   const [mapsReady, setMapsReady]         = useState(false);
   const [inputVal, setInputVal]           = useState(delivery.streetName || "");
   const [suggestions, setSuggestions]     = useState([]);
@@ -78,6 +80,8 @@ const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect 
     if (!mapsReady || !inputVal.trim()) { setSuggestions([]); return; }
 
     const t = setTimeout(async () => {
+      if (!userTyping.current) return;
+      userTyping.current = false;
       setLoadingSugg(true);
       try {
         const { AutocompleteSuggestion } = await window.google.maps.importLibrary("places");
@@ -189,6 +193,7 @@ const DeliverySection = ({ delivery, onChange, selectedCourier, onCourierSelect 
           value={inputVal}
           autoComplete="off"
           onChange={(e) => {
+            userTyping.current = true;
             setInputVal(e.target.value);
             if (!e.target.value) onChange({ streetName: "" });
           }}

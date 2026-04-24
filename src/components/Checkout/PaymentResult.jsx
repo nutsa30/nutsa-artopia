@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import styles from "./Checkout.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useCart } from "../CartContext/CartContext";
 
 const LBL = {
   titleSuccess: "გადახდა წარმატებულია",
@@ -14,15 +15,18 @@ const PaymentResult = () => {
   const T = LBL;
   const navigate = useNavigate();
   const { search } = useLocation();
+  const { clearCart } = useCart();
 
   const params = new URLSearchParams(search);
   const status = params.get("status"); // "success" | "fail"
   const state = params.get("state") || "";
   const isSuccess = status === "success";
 
-  // ✅ success-ზე ქოლბექის დარეკვა
+  // ✅ success-ზე ქოლბექის დარეკვა + კალათის გასუფთავება
   useEffect(() => {
     if (!isSuccess) return;
+
+    clearCart();
 
     try {
       const orderId = sessionStorage.getItem("last_bog_order_id");

@@ -49,6 +49,10 @@
   outline: none;
   font-family: inherit;
   transition: border-color 0.2s;
+  min-height: 48px;
+  touch-action: manipulation;
+  cursor: text;
+  -webkit-tap-highlight-color: rgba(59, 130, 246, 0.08);
 }
 .addrInput:focus { border-color: #3b82f6; }
 .addrInput::placeholder { color: #64748b; }
@@ -179,7 +183,7 @@
 }
 .extraInput {
   width: 100%;
-  padding: 10px 11px;
+  padding: 12px 11px;
   border-radius: 10px;
   border: 1.5px solid #475569;
   background: #2a344d;
@@ -188,6 +192,10 @@
   box-sizing: border-box;
   outline: none;
   transition: border-color 0.2s;
+  min-height: 44px;
+  touch-action: manipulation;
+  cursor: text;
+  -webkit-tap-highlight-color: rgba(59, 130, 246, 0.08);
 }
 .extraInput:focus { border-color: #3b82f6; }
 .extraInput::placeholder { color: #64748b; font-size: 12px; }
