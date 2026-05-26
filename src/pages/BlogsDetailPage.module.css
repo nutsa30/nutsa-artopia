@@ -112,21 +112,24 @@
   align-items: center;
 }
 
-/* ===================== COVER IMAGE (მთავარი ფიქსი) ===================== */
+/* ===================== COVER IMAGE ===================== */
 
 .coverWrap {
-  overflow: hidden;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .coverImage {
   display: block;
   width: 100%;
-  height: auto;              /* 🔥 მთავარი ცვლილება */
-  max-height: 520px;         /* desktop limit */
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
+  border-radius: 22px;
 }
 
 /* ===================== CONTENT ===================== */
@@ -151,17 +154,20 @@
 /* ===================== SECTION IMAGE ===================== */
 
 .sectionImageWrap {
-  overflow: hidden;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .sectionImage {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 420px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 18px;
 }
 
@@ -208,10 +214,6 @@
   .description {
     font-size: 17px;
   }
-
-  .coverImage {
-    max-height: 420px;
-  }
 }
 
 /* mobile */
@@ -234,16 +236,8 @@
     border-radius: 18px;
   }
 
-  .coverImage {
-    max-height: 260px;
-  }
-
   .content {
     gap: 36px;
-  }
-
-  .sectionImage {
-    max-height: 260px;
   }
 
   .sectionText p {
@@ -256,14 +250,6 @@
 @media (max-width: 420px) {
   .title {
     font-size: 24px;
-  }
-
-  .coverImage {
-    max-height: 220px;
-  }
-
-  .sectionImage {
-    max-height: 220px;
   }
 }
 .sectionText * {
