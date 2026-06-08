@@ -423,8 +423,8 @@
   height: 26px;
   border: none;
   border-radius: 6px;
-  background: transparent;
-  color: #cbd5e1;
+  background: #fff1f2;
+  color: #fca5a5;
   cursor: pointer;
   transition: all 0.15s;
 }
