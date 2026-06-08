@@ -30,9 +30,9 @@ function AdminShell() {
     pathname === "/admin/" ||
     pathname === "/admin/login";
 
-  const role = localStorage.getItem("ADMIN_ROLE");
+  const role = localStorage.getItem("ADMIN_ROLE") || sessionStorage.getItem("ADMIN_ROLE");
   const isSupport = role === "support";
-  const hasToken = !!localStorage.getItem("ADMIN_TOKEN");
+  const hasToken = !!(localStorage.getItem("ADMIN_TOKEN") || sessionStorage.getItem("ADMIN_TOKEN"));
 
   return (
     <div className="admin-app">

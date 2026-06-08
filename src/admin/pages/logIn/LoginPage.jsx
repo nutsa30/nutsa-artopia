@@ -10,6 +10,7 @@ const ADMIN_SECRET = "ARTOPIA_SUPERADMIN_2024";
 const LoginPage = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: "", password: "" });
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,8 +48,9 @@ const LoginPage = () => {
       const role = data?.role;
       if (!token) throw new Error("სერვერმა ტოკენი არ დააბრუნა");
 
-      localStorage.setItem("ADMIN_TOKEN", token);
-      if (role) localStorage.setItem("ADMIN_ROLE", role);
+      const storage = remember ? localStorage : sessionStorage;
+      storage.setItem("ADMIN_TOKEN", token);
+      if (role) storage.setItem("ADMIN_ROLE", role);
 
       if (role === "support") {
         navigate("/admin/support-panel");
@@ -104,6 +106,16 @@ const LoginPage = () => {
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
+
+          <label className={styles.rememberRow}>
+            <input
+              type="checkbox"
+              className={styles.rememberCheck}
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+            />
+            დამახსოვრება
+          </label>
 
           {error && <div className={styles.errorMessage}>{error}</div>}
 

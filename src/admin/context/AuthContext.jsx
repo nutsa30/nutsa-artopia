@@ -2,14 +2,22 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
 
+const getStored = (key) =>
+  localStorage.getItem(key) || sessionStorage.getItem(key) || "";
+
+const clearStored = (key) => {
+  localStorage.removeItem(key);
+  sessionStorage.removeItem(key);
+};
+
 export const AuthProvider = ({ children }) => {
   const [adminToken, setAdminToken] = useState(null);
   const [adminRole, setAdminRole] = useState(null);
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
-    const t = localStorage.getItem("ADMIN_TOKEN") || "";
-    const r = localStorage.getItem("ADMIN_ROLE") || "";
+    const t = getStored("ADMIN_TOKEN");
+    const r = getStored("ADMIN_ROLE");
     setAdminToken(t || null);
     setAdminRole(r || null);
     setAuthReady(true);
@@ -20,15 +28,16 @@ export const AuthProvider = ({ children }) => {
       adminToken,
       adminRole,
       authReady,
-      login: (t, role) => {
-        localStorage.setItem("ADMIN_TOKEN", t);
-        if (role) localStorage.setItem("ADMIN_ROLE", role);
+      login: (t, role, remember = true) => {
+        const storage = remember ? localStorage : sessionStorage;
+        storage.setItem("ADMIN_TOKEN", t);
+        if (role) storage.setItem("ADMIN_ROLE", role);
         setAdminToken(t);
         setAdminRole(role || null);
       },
       logout: () => {
-        localStorage.removeItem("ADMIN_TOKEN");
-        localStorage.removeItem("ADMIN_ROLE");
+        clearStored("ADMIN_TOKEN");
+        clearStored("ADMIN_ROLE");
         setAdminToken(null);
         setAdminRole(null);
       },

@@ -137,8 +137,10 @@ export default function SupportPanel() {
 
   /* ── logout ── */
   const handleLogout = () => {
-    localStorage.removeItem("ADMIN_TOKEN");
-    localStorage.removeItem("ADMIN_ROLE");
+    ["ADMIN_TOKEN", "ADMIN_ROLE"].forEach((k) => {
+      localStorage.removeItem(k);
+      sessionStorage.removeItem(k);
+    });
     window.location.href = "/admin/login";
   };
 

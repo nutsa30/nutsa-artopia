@@ -40,6 +40,10 @@ const AdminNavbar = () => {
     try {
       await apiJson("/admin/logout", "POST", {});
     } catch {}
+    ["ADMIN_TOKEN", "ADMIN_ROLE"].forEach((k) => {
+      localStorage.removeItem(k);
+      sessionStorage.removeItem(k);
+    });
     window.location.href = "/";
   };
 
