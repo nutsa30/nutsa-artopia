@@ -277,6 +277,26 @@ export const markRestockBrought = (ids) =>
     body: JSON.stringify({ ids }),
   }).then(r => r.json().catch(() => ({})));
 
+export const exportRestockBySupplier = async (supplier) => {
+  const token = (getAdminToken() || "").trim();
+  const url = `${BASE}/admin/restock/export?supplier=${encodeURIComponent(supplier)}`;
+  const res = await fetch(url, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "X-Admin-Token": token,
+    },
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  const blob = await res.blob();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `mosatanebi_${supplier}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+};
+
 /* =========================================================
    Excel upload
    ========================================================= */

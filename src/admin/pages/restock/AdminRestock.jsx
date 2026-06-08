@@ -1,31 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { ClipboardList, Check, Loader2 } from "lucide-react";
+import { ClipboardList, Check, Loader2, Download } from "lucide-react";
 import styles from "./AdminRestock.module.css";
-import { getAdminRestock, markRestockBrought } from "../../api";
+import { getAdminRestock, markRestockBrought, exportRestockBySupplier } from "../../api";
 
 function formatDate(iso) {
   if (!iso) return "";
   return new Date(iso).toLocaleDateString("ka-GE");
 }
 
-function PriceCell({ price, discountedPrice, costPrice }) {
-  const salePrice = discountedPrice ?? price;
-  const hasDiscount = discountedPrice != null && discountedPrice < price;
-  return (
-    <div className={styles.priceCell}>
-      <div className={styles.priceRow}>
-        {hasDiscount && (
-          <span className={styles.priceOriginal}>₾{Number(price).toFixed(2)}</span>
-        )}
-        <span className={styles.priceSale}>₾{Number(salePrice).toFixed(2)}</span>
-      </div>
-      {costPrice != null && (
-        <div className={styles.priceCost}>
-          თვითღ. ₾{Number(costPrice).toFixed(2)}
-        </div>
-      )}
-    </div>
-  );
+function CostPrice({ value }) {
+  if (value == null) return <span className={styles.noData}>—</span>;
+  return <span className={styles.costPrice}>₾{Number(value).toFixed(2)}</span>;
 }
 
 function QuantityBadge({ qty }) {
@@ -42,6 +27,7 @@ export default function AdminRestock() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(new Set());
   const [marking, setMarking] = useState(false);
+  const [exporting, setExporting] = useState(new Set());
   const [toast, setToast] = useState(null);
 
   const showToast = (msg) => {
@@ -104,6 +90,22 @@ export default function AdminRestock() {
     }
   };
 
+  const handleExport = async (supplier) => {
+    if (exporting.has(supplier)) return;
+    setExporting((prev) => new Set(prev).add(supplier));
+    try {
+      await exportRestockBySupplier(supplier);
+    } catch {
+      showToast("ექსპორტი ვერ მოხდა — სცადეთ ხელახლა");
+    } finally {
+      setExporting((prev) => {
+        const next = new Set(prev);
+        next.delete(supplier);
+        return next;
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.loadingPage}>
@@ -147,6 +149,7 @@ export default function AdminRestock() {
       {groups.map((group) => {
         const allSel = isGroupAllSelected(group.items);
         const partSel = isGroupPartialSelected(group.items);
+        const isExp = exporting.has(group.supplier);
         return (
           <section key={group.supplier} className={styles.group}>
             {/* group header */}
@@ -163,7 +166,20 @@ export default function AdminRestock() {
                   {group.supplier || "უცნობი მომწოდებელი"}
                 </span>
               </label>
-              <span className={styles.groupCount}>{group.items.length} პოზიცია</span>
+              <div className={styles.groupActions}>
+                <span className={styles.groupCount}>{group.items.length} პოზიცია</span>
+                <button
+                  className={styles.exportBtn}
+                  disabled={isExp}
+                  onClick={() => handleExport(group.supplier)}
+                  title="Excel-ში ჩამოტვირთვა"
+                >
+                  {isExp
+                    ? <Loader2 size={15} className={styles.spinnerIcon} />
+                    : <Download size={15} />}
+                  <span className={styles.exportBtnLabel}>Excel</span>
+                </button>
+              </div>
             </div>
 
             {/* ── desktop table ── */}
@@ -177,7 +193,7 @@ export default function AdminRestock() {
                     <th className={styles.thBarcode}>ბარკოდი</th>
                     <th className={styles.thCategory}>კატეგორია</th>
                     <th className={styles.thQty}>მარაგი</th>
-                    <th className={styles.thPrice}>ფასი / თვითღ.</th>
+                    <th className={styles.thCost}>თვითღირებ.</th>
                     <th className={styles.thDate}>თარიღი</th>
                   </tr>
                 </thead>
@@ -210,12 +226,8 @@ export default function AdminRestock() {
                       <td className={styles.tdQty}>
                         <QuantityBadge qty={item.product_quantity} />
                       </td>
-                      <td className={styles.tdPrice}>
-                        <PriceCell
-                          price={item.product_price}
-                          discountedPrice={item.product_discounted_price}
-                          costPrice={item.product_cost_price}
-                        />
+                      <td className={styles.tdCost}>
+                        <CostPrice value={item.product_cost_price} />
                       </td>
                       <td className={styles.tdDate}>{formatDate(item.created_at)}</td>
                     </tr>
@@ -264,11 +276,10 @@ export default function AdminRestock() {
                       </span>
                     </div>
                     <div className={styles.mobileCardBottom}>
-                      <PriceCell
-                        price={item.product_price}
-                        discountedPrice={item.product_discounted_price}
-                        costPrice={item.product_cost_price}
-                      />
+                      <div className={styles.mobileCostWrap}>
+                        <span className={styles.mobileCostLabel}>თვითღ.</span>
+                        <CostPrice value={item.product_cost_price} />
+                      </div>
                       <span className={styles.mobileDate}>{formatDate(item.created_at)}</span>
                     </div>
                   </div>

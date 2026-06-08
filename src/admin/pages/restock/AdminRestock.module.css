@@ -153,10 +153,42 @@
   color: #1e293b;
 }
 
+.groupActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .groupCount {
   font-size: 0.8rem;
   color: #94a3b8;
   white-space: nowrap;
+}
+
+.exportBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.exportBtn:hover:not(:disabled) {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.exportBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* ── checkbox ── */
@@ -201,7 +233,7 @@
 .thBarcode{ width: 130px; }
 .thCategory{ width: 110px; }
 .thQty    { width: 80px; text-align: center; }
-.thPrice  { width: 140px; }
+.thCost   { width: 120px; }
 .thDate   { width: 110px; }
 
 .table tbody tr {
@@ -254,34 +286,16 @@
   white-space: nowrap;
 }
 
-/* ── price cell ── */
-.priceCell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+.tdCost { white-space: nowrap; }
 
-.priceRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.priceOriginal {
-  font-size: 0.78rem;
-  color: #94a3b8;
-  text-decoration: line-through;
-}
-
-.priceSale {
-  font-size: 0.9rem;
+.costPrice {
+  font-size: 0.88rem;
   font-weight: 600;
   color: #1e293b;
 }
 
-.priceCost {
-  font-size: 0.75rem;
-  color: #64748b;
+.noData {
+  color: #cbd5e1;
 }
 
 /* ── quantity badge ── */
@@ -417,6 +431,19 @@
     color: #94a3b8;
   }
 
+  .mobileCostWrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .mobileCostLabel {
+    font-size: 0.75rem;
+    color: #94a3b8;
+  }
+
   .groupHeader { padding: 12px 12px; }
   .groupCount  { display: none; }
+
+  .exportBtnLabel { display: none; }
 }

@@ -274,7 +274,7 @@ export default function SupportPanel() {
                 <li key={item.id} className={styles.restockItem}>
                   <img
                     className={styles.restockThumb}
-                    src={item.product_image || PLACEHOLDER}
+                    src={item.product_image1 || PLACEHOLDER}
                     alt={item.product_name}
                     onError={(e) => { e.target.src = PLACEHOLDER; }}
                   />
@@ -290,7 +290,7 @@ export default function SupportPanel() {
                     onClick={() => handleRemove(item.id)}
                     title="სიიდან ამოღება"
                   >
-                    <X size={14} />
+                    <X size={16} />
                   </button>
                 </li>
               ))}
