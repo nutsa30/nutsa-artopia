@@ -227,6 +227,47 @@ export const getSupportProducts = ({ search, category, page, limit } = {}) => {
 
 export const getSupportCategories = () => jfetch(`${BASE}/products/categories`);
 
+export const getNoPhotoProducts = ({ search, category } = {}) => {
+  const qs = new URLSearchParams();
+  if (search) qs.set("search", search);
+  if (category && category !== "ყველა") qs.set("category", category);
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  return fetch(`${BASE}/support/products/no-photo${suffix}`, {
+    headers: bearerHeaders(),
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.message || `${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  });
+};
+
+export const uploadProductPhoto = (productId, file) => {
+  const fd = new FormData();
+  fd.append("photo", file);
+  return fetch(`${BASE}/support/products/${productId}/upload-photo`, {
+    method: "POST",
+    headers: bearerHeaders(),
+    body: fd,
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.message || `${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  });
+};
+
+export const getPhotoStatus = (productId) =>
+  fetch(`${BASE}/support/products/${productId}/photo-status`, {
+    headers: bearerHeaders(),
+  }).then(r => r.json().catch(() => ({ status: "none" })));
+
 /* =========================================================
    Support — restock list
    ========================================================= */
