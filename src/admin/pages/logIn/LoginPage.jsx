@@ -44,11 +44,17 @@ const LoginPage = () => {
       }
 
       const token = data?.token;
+      const role = data?.role;
       if (!token) throw new Error("სერვერმა ტოკენი არ დააბრუნა");
 
-      // ინახება ერთიანი სახელით სისტემის ყველა გვერდისთვის
       localStorage.setItem("ADMIN_TOKEN", token);
-      navigate("/menu");
+      if (role) localStorage.setItem("ADMIN_ROLE", role);
+
+      if (role === "support") {
+        navigate("/admin/support-panel");
+      } else {
+        navigate("/menu");
+      }
     } catch (err) {
       setError(err.message || "შეყვანილი მონაცემები არასწორია");
     } finally {

@@ -131,7 +131,7 @@
   margin: 0;
 }
 
-.navLink, .syncItem, .logoutBtn {
+.navLink, .syncItem, .uploadItem, .logoutBtn {
   display: flex;
   align-items: center;
   gap: 14px;

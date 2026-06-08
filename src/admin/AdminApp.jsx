@@ -8,10 +8,13 @@ import AddProducts from "./pages/addProduct/AddProducts";
 import Contacts from "./pages/contacts/Contacts";
 import LoginPage from "./pages/logIn/LoginPage";
 import ProtectedRoute from "./components/ProtectRoute";
+import SupportRoute from "./components/SupportRoute";
 import PromoCodes from "./pages/promoCodes/PromoCodes";
 import OrderHistory from "./pages/orders/OrderHistory";
 import AddHomeImg from "./pages/home/AddHomeImg";
 import Analytics from "./pages/analytics/Analytics";
+import SupportPanel from "./pages/supportPanel/SupportPanel";
+import AdminRestock from "./pages/restock/AdminRestock";
 
 import { AuthProvider } from "./context/AuthContext";
 
@@ -27,16 +30,28 @@ function AdminShell() {
     pathname === "/admin/" ||
     pathname === "/admin/login";
 
-const hasToken = !!localStorage.getItem("ADMIN_TOKEN");
+  const role = localStorage.getItem("ADMIN_ROLE");
+  const isSupport = role === "support";
+  const hasToken = !!localStorage.getItem("ADMIN_TOKEN");
 
-return (
+  return (
     <div className="admin-app">
-      {!isLoginPage && hasToken && <AdminNavbar />}
+      {!isLoginPage && !isSupport && hasToken && <AdminNavbar />}
 
       <Routes>
         {/* ავტორიზაცია */}
         <Route index element={<LoginPage />} />
         <Route path="login" element={<LoginPage />} />
+
+        {/* Support panel */}
+        <Route
+          path="support-panel"
+          element={
+            <SupportRoute>
+              <SupportPanel />
+            </SupportRoute>
+          }
+        />
 
         {/* პროდუქტები */}
         <Route
@@ -66,7 +81,7 @@ return (
           }
         />
 
-        {/* შეკვეთებიi */}
+        {/* შეკვეთები */}
         <Route
           path="order_history"
           element={
@@ -122,6 +137,16 @@ return (
           element={
             <ProtectedRoute>
               <Analytics />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* მოსატანები */}
+        <Route
+          path="restock-list"
+          element={
+            <ProtectedRoute>
+              <AdminRestock />
             </ProtectedRoute>
           }
         />

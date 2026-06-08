@@ -13,6 +13,7 @@ import {
   Image as ImageIcon,
   BarChart2,
   Upload,
+  ClipboardList,
 } from 'lucide-react';
 import styles from "./AdminNavbar.module.css";
 import artopiaLogo from "../assets/IMG_4970.JPG";
@@ -178,6 +179,11 @@ const onSyncOptimo = async () => {
                 <Link to="/admin/analytics" className={styles.navLink}>
                   <BarChart2 size={18} />
                   <span>ანალიტიკა</span>
+                </Link>
+
+                <Link to="/admin/restock-list" className={styles.navLink}>
+                  <ClipboardList size={18} />
+                  <span>მოსატანები</span>
                 </Link>
 
                 <Link to="/order_history" className={styles.navLink}>
