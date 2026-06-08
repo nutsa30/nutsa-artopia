@@ -168,6 +168,23 @@
   cursor: not-allowed;
 }
 
+.uploadItem {
+  color: #16a34a;
+  background: #f0fdf4;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.uploadItem:hover {
+  background: #dcfce7;
+  padding-left: 24px;
+}
+
+.uploading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .spin {
   animation: rotate 1.5s linear infinite;
 }

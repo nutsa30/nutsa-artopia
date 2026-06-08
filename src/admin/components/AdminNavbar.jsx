@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   RefreshCw,
-  PlusCircle,
   LayoutGrid,
   FileText,
   Ticket,
@@ -13,15 +12,18 @@ import {
   Menu,
   Image as ImageIcon,
   BarChart2,
+  Upload,
 } from 'lucide-react';
 import styles from "./AdminNavbar.module.css";
 import artopiaLogo from "../assets/IMG_4970.JPG";
-import { apiJson, syncOptimo } from "../api";
+import { apiJson, syncOptimo, uploadStockExcel } from "../api";
 
 const AdminNavbar = () => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
   const dropdownRef = useRef();
+  const fileInputRef = useRef();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -62,6 +64,43 @@ const onSyncOptimo = async () => {
   }
 };
 
+  const onUploadClick = () => {
+    if (uploadLoading) return;
+    fileInputRef.current.click();
+  };
+
+  const onFileSelected = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    fileInputRef.current.value = "";
+
+    setUploadLoading(true);
+    try {
+      const data = await uploadStockExcel(file);
+      alert(
+        `Excel ატვირთვა დასრულდა!\n\n` +
+        `თვითღირებულება განახლდა: ${data.updated_cost_price} პროდუქტი\n` +
+        `მომწოდებელი განახლდა: ${data.updated_supplier} პროდუქტი\n` +
+        `დამთხვევა ვერ მოიძებნა: ${data.no_barcode_match}`
+      );
+    } catch (err) {
+      if (err.status === 422 && err.data) {
+        alert(
+          `შეცდომა: ${err.data.message}\n` +
+          `არ არის: ${(err.data.missing || []).join(", ")}\n` +
+          `ნაპოვნია: ${(err.data.found || []).join(", ")}`
+        );
+      } else if (err.status === 401) {
+        alert("ავტორიზაცია ვერ მოხდა. გთხოვთ ხელახლა შეხვიდეთ.");
+      } else {
+        alert("შეცდომა: " + (err.message || "უცნობი შეცდომა"));
+      }
+    } finally {
+      setUploadLoading(false);
+      setOpen(false);
+    }
+  };
+
   return (
     <nav className={styles.navbar}>
       <div className={styles.container}>
@@ -91,13 +130,28 @@ const onSyncOptimo = async () => {
               </div>
               
               <ul className={styles.menuLinks}>
-                <li 
-                  onClick={onSyncOptimo} 
+                <li
+                  onClick={onSyncOptimo}
                   className={`${styles.syncItem} ${loading ? styles.syncing : ''}`}
                 >
                   <RefreshCw size={18} className={loading ? styles.spin : ''} />
                   <span>{loading ? "სინქრონიზაცია..." : "Optimo-სთან სინქრონიზაცია"}</span>
                 </li>
+
+                <li
+                  onClick={onUploadClick}
+                  className={`${styles.uploadItem} ${uploadLoading ? styles.uploading : ''}`}
+                >
+                  <Upload size={18} className={uploadLoading ? styles.spin : ''} />
+                  <span>{uploadLoading ? "იტვირთება..." : "Excel-ის ატვირთვა"}</span>
+                </li>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  style={{ display: "none" }}
+                  onChange={onFileSelected}
+                />
 
                 <Link to="/home-images" className={styles.navLink}>
                   <ImageIcon size={18} />

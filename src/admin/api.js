@@ -181,13 +181,37 @@ export async function deleteProductImage(productId, imageFieldOrOptions) {
    Sync Helper
    ========================================================= */
 export const syncOptimo = () => {
-  const token = getAdminToken(); // ტოკენის ამოღება
+  const token = getAdminToken();
   return jfetch(`${BASE}/api/optimo/sync`, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${token}`, // სტანდარტული ფორმატი
-      "X-Admin-Token": token // შენი არსებული ფორმატი (უსაფრთხოებისთვის ორივე იყოს)
+      "Authorization": `Bearer ${token}`,
+      "X-Admin-Token": token,
     },
-    body: JSON.stringify({})
+    body: JSON.stringify({}),
+  });
+};
+
+export const uploadStockExcel = (file) => {
+  const token = getAdminToken();
+  const fd = new FormData();
+  fd.append("file", file);
+  return fetch(`${BASE}/admin/upload-stock-excel`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "X-Admin-Token": token,
+    },
+    body: fd,
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.message || `${res.status}`);
+      err.data = data;
+      err.status = res.status;
+      throw err;
+    }
+    return data;
   });
 };
