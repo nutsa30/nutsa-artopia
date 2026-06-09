@@ -496,4 +496,15 @@
     position: static;
     max-height: 320px;
   }
+  .header { padding: 0 16px; }
+  .tabs { padding: 8px 16px 0; }
+}
+
+@media (max-width: 480px) {
+  .header { height: 56px; }
+  .headerTitle { font-size: 0.82rem; }
+  .logoutBtn { padding: 6px 10px; font-size: 0.78rem; gap: 4px; }
+  .tab { padding: 8px 10px; font-size: 0.82rem; gap: 5px; }
+  .noPhotoWrap { padding: 16px; }
+  .body { padding: 12px; }
 }

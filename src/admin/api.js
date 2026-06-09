@@ -268,6 +268,39 @@ export const getPhotoStatus = (productId) =>
     headers: bearerHeaders(),
   }).then(r => r.json().catch(() => ({ status: "none" })));
 
+export const uploadTempPhoto = (productId, file) => {
+  const fd = new FormData();
+  fd.append("photo", file);
+  return fetch(`${BASE}/support/products/${productId}/upload-temp`, {
+    method: "POST",
+    headers: bearerHeaders(),
+    body: fd,
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.message || `${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  });
+};
+
+export const finalizeProductPhotos = (productId, urls) =>
+  fetch(`${BASE}/support/products/${productId}/finalize`, {
+    method: "POST",
+    headers: bearerHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ urls }),
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.message || `${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  });
+
 /* =========================================================
    Support — restock list
    ========================================================= */

@@ -107,15 +107,18 @@ const LoginPage = () => {
             </button>
           </div>
 
-          <label className={styles.rememberRow}>
+          <div className={styles.rememberRow}>
             <input
               type="checkbox"
+              id="rememberMe"
               className={styles.rememberCheck}
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
             />
-            დამახსოვრება
-          </label>
+            <label htmlFor="rememberMe" className={styles.rememberLabel}>
+              დამახსოვრება
+            </label>
+          </div>
 
           {error && <div className={styles.errorMessage}>{error}</div>}
 

@@ -9,7 +9,8 @@
 
 .container {
   box-sizing: border-box;
-  width: 400px;
+  max-width: 400px;
+  width: calc(100% - 32px);
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   display: flex;
@@ -18,6 +19,10 @@
   padding: 40px;
   border-radius: 24px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 400px) {
+  .container { padding: 28px 20px; }
 }
 
 .header {
@@ -154,10 +159,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #4b5563;
-  user-select: none;
 }
 
 .rememberCheck {
@@ -166,6 +167,13 @@
   cursor: pointer;
   accent-color: #111827;
   flex-shrink: 0;
+}
+
+.rememberLabel {
+  font-size: 14px;
+  color: #4b5563;
+  cursor: pointer;
+  user-select: none;
 }
 
 .footer {
