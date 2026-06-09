@@ -500,6 +500,44 @@
   .tabs { padding: 8px 16px 0; }
 }
 
+/* ── mobile: horizontal card layout ── */
+@media (max-width: 640px) {
+  .toolbar { flex-direction: column; }
+  .categorySelect { min-width: unset; width: 100%; }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .card {
+    flex-direction: row;
+    border-radius: 12px;
+  }
+  .card:hover { transform: none; }
+
+  .cardImg {
+    width: 90px;
+    aspect-ratio: unset;
+    flex-shrink: 0;
+    border-radius: 0;
+  }
+
+  .cardBody {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+  }
+
+  .cardName { font-size: 0.83rem; }
+
+  .addBtn {
+    margin-top: 8px;
+    padding: 7px 10px;
+    font-size: 0.78rem;
+  }
+}
+
 @media (max-width: 480px) {
   .header { height: 56px; }
   .headerTitle { font-size: 0.82rem; }
