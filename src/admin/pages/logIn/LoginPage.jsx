@@ -53,7 +53,7 @@ const LoginPage = () => {
       if (role) storage.setItem("ADMIN_ROLE", role);
 
       if (role === "support") {
-        navigate("/admin/support-panel");
+        navigate("/admin/support-panel/products");
       } else {
         navigate("/menu");
       }

@@ -44,14 +44,17 @@ function AdminShell() {
         <Route path="login" element={<LoginPage />} />
 
         {/* Support panel */}
-        <Route
-          path="support-panel"
-          element={
-            <SupportRoute>
-              <SupportPanel />
-            </SupportRoute>
-          }
-        />
+        <Route path="support-panel">
+          <Route index element={<Navigate to="products" replace />} />
+          <Route
+            path=":tab"
+            element={
+              <SupportRoute>
+                <SupportPanel />
+              </SupportRoute>
+            }
+          />
+        </Route>
 
         {/* პროდუქტები */}
         <Route

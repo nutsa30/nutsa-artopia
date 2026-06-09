@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Search, X, LogOut, Plus, Check, ChevronLeft, ChevronRight, ShoppingBag, ImageOff } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
 import styles from "./SupportPanel.module.css";
 import NoPhotoProducts from "./NoPhotoProducts";
 import {
@@ -19,7 +20,11 @@ function formatDate(iso) {
 }
 
 export default function SupportPanel() {
-  const [tab, setTab] = useState("products");
+  const { tab: routeTab } = useParams();
+  const navigate = useNavigate();
+  const tab = routeTab === "no-photo" ? "nophoto" : "products";
+  const setTab = (newTab) =>
+    navigate(`/admin/support-panel/${newTab === "nophoto" ? "no-photo" : "products"}`, { replace: false });
   const [products, setProducts] = useState([]);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);

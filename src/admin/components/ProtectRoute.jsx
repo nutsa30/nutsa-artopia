@@ -33,6 +33,6 @@ export default function ProtectRoute({ children }) {
 
   if (!checked) return null;
   if (status === "no-token") return <Navigate to="/admin/login" replace />;
-  if (status === "support") return <Navigate to="/admin/support-panel" replace />;
+  if (status === "support") return <Navigate to="/admin/support-panel/products" replace />;
   return children;
 }
