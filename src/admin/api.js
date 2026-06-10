@@ -19,7 +19,7 @@ const getAdminToken = () => {
 const authHeaders = (extra = {}) => {
   const token = (getAdminToken() || "").trim();
   return token
-    ? { "Authorization": `Bearer ${token}`, "X-Admin-Token": token, ...extra }
+    ? { "Authorization": `Bearer ${token}`, ...extra }
     : { ...extra };
 };
 
@@ -110,7 +110,7 @@ export const getProducts = ({ limit, offset } = {}) => {
   if (offset != null) qs.set("offset", String(offset));
 
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
-  return jfetch(`${BASE}/products${suffix}`);
+  return jfetch(`${BASE}/products/admin${suffix}`);
 };
 
 export const getProduct = (id) => jfetch(`${BASE}/products/${id}`);
@@ -183,13 +183,8 @@ export async function deleteProductImage(productId, imageFieldOrOptions) {
    Sync Helper
    ========================================================= */
 export const syncOptimo = () => {
-  const token = getAdminToken();
   return jfetch(`${BASE}/api/optimo/sync`, {
     method: "POST",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "X-Admin-Token": token,
-    },
     body: JSON.stringify({}),
   });
 };
@@ -357,10 +352,7 @@ export const exportRestockBySupplier = async (supplier) => {
   const token = (getAdminToken() || "").trim();
   const url = `${BASE}/admin/restock/export?supplier=${encodeURIComponent(supplier)}`;
   const res = await fetch(url, {
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "X-Admin-Token": token,
-    },
+    headers: { "Authorization": `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`${res.status}`);
   const blob = await res.blob();
@@ -383,10 +375,7 @@ export const uploadStockExcel = (file) => {
   return fetch(`${BASE}/admin/upload-stock-excel`, {
     method: "POST",
     credentials: "include",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "X-Admin-Token": token,
-    },
+    headers: { "Authorization": `Bearer ${token}` },
     body: fd,
   }).then(async (res) => {
     const data = await res.json().catch(() => ({}));
