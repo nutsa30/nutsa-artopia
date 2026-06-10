@@ -198,7 +198,7 @@ export const syncOptimo = () => {
 const bearerHeaders = (extra = {}) => {
   const token = (getAdminToken() || "").trim();
   return token
-    ? { "Authorization": `Bearer ${token}`, "X-Admin-Token": token, ...extra }
+    ? { "Authorization": `Bearer ${token}`, ...extra }
     : { ...extra };
 };
 
