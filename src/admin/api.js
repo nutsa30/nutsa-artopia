@@ -18,7 +18,9 @@ const getAdminToken = () => {
 
 const authHeaders = (extra = {}) => {
   const token = (getAdminToken() || "").trim();
-  return token ? { "X-Admin-Token": token, ...extra } : { ...extra };
+  return token
+    ? { "Authorization": `Bearer ${token}`, "X-Admin-Token": token, ...extra }
+    : { ...extra };
 };
 
 /* =========================================================
