@@ -26,7 +26,7 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/auth/admin-login`, {
+      const res = await fetch(`${API_BASE}/admin-auth/admin-login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,7 +55,7 @@ const LoginPage = () => {
       if (role === "support") {
         navigate("/admin/support-panel/products");
       } else {
-        navigate("/menu");
+        navigate("/admin/menu");
       }
     } catch (err) {
       setError(err.message || "შეყვანილი მონაცემები არასწორია");
