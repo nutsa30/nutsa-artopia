@@ -9,6 +9,19 @@ import {
   getPhotoStatus,
 } from "../../api";
 
+/* ვადაგასული/არასწორი ტოკენი → ვასუფთავებთ და ვაბრუნებთ login-ზე. */
+function handleAuthError(err) {
+  if (err?.status === 401) {
+    ["ADMIN_TOKEN", "ADMIN_ROLE"].forEach((k) => {
+      localStorage.removeItem(k);
+      sessionStorage.removeItem(k);
+    });
+    window.location.href = "/admin/login";
+    return true;
+  }
+  return false;
+}
+
 function QuantityBadge({ qty }) {
   const n = Number(qty ?? 0);
   const cls = n === 0 ? styles.qtyOut : n < 5 ? styles.qtyLow : styles.qtyOk;
@@ -59,7 +72,7 @@ export default function NoPhotoProducts() {
         setProcessingIds(initProcessing);
         initProcessing.forEach((id) => schedulePoll(id));
       })
-      .catch(() => {})
+      .catch(handleAuthError)
       .finally(() => setLoading(false));
   }, []); // eslint-disable-line
 

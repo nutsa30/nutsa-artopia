@@ -19,6 +19,20 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString("ka-GE");
 }
 
+/* ვადაგასული ან არასწორი ტოკენი → ვასუფთავებთ და ვაბრუნებთ login-ზე.
+   ამის გარეშე 401-ის დროს გვერდი ჩუმად ცარიელი რჩებოდა. */
+function handleAuthError(err) {
+  if (err?.status === 401) {
+    ["ADMIN_TOKEN", "ADMIN_ROLE"].forEach((k) => {
+      localStorage.removeItem(k);
+      sessionStorage.removeItem(k);
+    });
+    window.location.href = "/admin/login";
+    return true;
+  }
+  return false;
+}
+
 export default function SupportPanel() {
   const { tab: routeTab } = useParams();
   const navigate = useNavigate();
@@ -63,7 +77,7 @@ export default function SupportPanel() {
         setRestock(items);
         setRestockIds(new Set(items.map((r) => r.product_id)));
       })
-      .catch(() => {});
+      .catch(handleAuthError);
   }, []);
 
   useEffect(() => {
@@ -79,7 +93,7 @@ export default function SupportPanel() {
         setTotal(data?.total ?? 0);
         setPages(data?.pages ?? 1);
       })
-      .catch(() => {})
+      .catch(handleAuthError)
       .finally(() => setLoadingProducts(false));
   }, []);
 

@@ -105,7 +105,11 @@
   border-radius: 18px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+  /* მენიუ ეკრანს რომ სცდება (განსაკუთრებით მობილურზე), გავხადოთ სქროლვადი */
+  max-height: calc(100vh - 110px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -217,5 +221,10 @@
   }
   .panelTitle, .divider {
     display: none;
+  }
+  /* მობილურზე მენიუ მთელ სიგანეს იკავებს და სქროლავს ეკრანის ფარგლებში */
+  .dropdownMenu {
+    width: min(320px, calc(100vw - 40px));
+    max-height: calc(100vh - 100px);
   }
 }
