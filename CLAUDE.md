@@ -46,6 +46,16 @@ Cart quantities are capped against live stock fetched from the backend at checko
 
 `src/admin/context/AuthContext.jsx` provides `useAuth()`. Token is stored as `ADMIN_TOKEN` in localStorage. `login(token)` sets it; `logout()` removes it. `authReady` flag prevents flash-of-unauthenticated-content.
 
+On login (`pages/logIn/LoginPage.jsx`), the backend returns `{ token, role }`. Both are stored under `ADMIN_TOKEN` and `ADMIN_ROLE` (localStorage if "remember" is checked, otherwise sessionStorage). Route guards branch on `ADMIN_ROLE`:
+- `components/ProtectRoute.jsx` — admin-only routes; a `support` role is redirected to `/admin/support-panel/products`.
+- `components/SupportRoute.jsx` — support panel; a non-`support` role is redirected to `/admin/menu`, and a missing token to `/admin/login`.
+
+**Token expiry / 401 handling (IMPORTANT)**: backend admin/support tokens last 7 days. When a token is expired or invalid, support endpoints return `401`. The support pages (`pages/supportPanel/SupportPanel.jsx` and `NoPhotoProducts.jsx`) call a local `handleAuthError(err)` that, on `err.status === 401`, clears `ADMIN_TOKEN`/`ADMIN_ROLE` and redirects to `/admin/login`. **Do not revert these `.catch(handleAuthError)` calls back to silent `.catch(() => {})`** — that previously made an expired token render a blank panel with no products and no re-login prompt.
+
+### Support panel
+
+The support panel (`pages/supportPanel/`) is reached at `/admin/support-panel/:tab` (`products` | `no-photo`). Its API calls live in `src/admin/api.js` under the "Support" sections and use `bearerHeaders()` (Authorization: Bearer), **not** the `X-Admin-Token` `jfetch` path.
+
 ### Checkout & payments
 
 `src/components/Checkout/Checkout.jsx` handles the full checkout flow:
@@ -57,6 +67,10 @@ Cart quantities are capped against live stock fetched from the backend at checko
 ### SEO
 
 `src/components/SEO.jsx` wraps `react-helmet-async`'s `<Helmet>`. Use it in every page with `title`, `description`, and `url` props. The component auto-appends `| Artopia` to titles and sets Georgian locale (`ka_GE`) by default.
+
+### Admin navbar (mobile)
+
+`src/admin/components/AdminNavbar.jsx` renders a single dropdown menu (`AdminNavbar.module.css` → `.dropdownMenu`). The dropdown has `max-height: calc(100vh - 110px)` + `overflow-y: auto` so it **scrolls** when the link list is taller than the viewport (it previously had `overflow: hidden` with no height cap, making the bottom items unreachable on mobile). On `max-width: 768px` it also narrows to `min(320px, calc(100vw - 40px))`. Keep these constraints if you add more menu items.
 
 ### UI language
 

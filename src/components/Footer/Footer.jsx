@@ -134,6 +134,20 @@ const Footer = () => {
 
         <div className={styles.footerBottom}>
           <p>{L.copyright}</p>
+          <a
+            href="https://www.kemsilab.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="KemsiLab"
+            className={styles.kemsiLabLink}
+          >
+            <span className={styles.madeBy}>Made by</span>
+            <img
+              src="/kemsilab-fordark.png"
+              alt="KemsiLab"
+              className={styles.kemsilabLogo}
+            />
+          </a>
         </div>
       </footer>
     </div>
