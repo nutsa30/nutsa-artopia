@@ -50,6 +50,24 @@
   cursor: pointer;
   position: relative;
   padding-right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* კატეგორიის აიკონები (lucide — emoji არა) */
+.catIcon,
+.triggerIcon {
+  flex: 0 0 auto;
+  color: #5aa6f0;
+  stroke-width: 2;
+}
+.darkActive .catIcon { color: #ffffff; }
+.triggerIcon { color: #8fc0ff; }
+
+@media (max-width: 768px) {
+  .catIcon,
+  .triggerIcon { width: 17px; height: 17px; }
 }
 .catTrigger::after {
   content: "";

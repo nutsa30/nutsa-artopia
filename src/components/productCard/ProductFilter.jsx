@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { LayoutGrid } from "lucide-react";
+import CategoryIcon from "../../utils/categoryIcons";
 import styles from "./ProductFilter.module.css";
 
 const LABELS = {
@@ -108,6 +110,11 @@ const handlePickCategory = (label) => {
     onClick={() => setOpen(true)}
     title={triggerLabel}
   >
+    {selectedCategory ? (
+      <CategoryIcon name={selectedCategory} size={18} className={styles.triggerIcon} />
+    ) : (
+      <LayoutGrid size={18} className={styles.triggerIcon} aria-hidden="true" />
+    )}
     <span
       style={{
         overflow: "hidden",
@@ -140,6 +147,11 @@ const handlePickCategory = (label) => {
                     aria-selected={isSelected ? "true" : "false"}
                     title={label}
                   >
+                    {label === L.all ? (
+                      <LayoutGrid size={18} className={styles.catIcon} aria-hidden="true" />
+                    ) : (
+                      <CategoryIcon name={label} size={18} className={styles.catIcon} />
+                    )}
                     <span className={styles.catText}>{label}</span>
                   </li>
                 );
