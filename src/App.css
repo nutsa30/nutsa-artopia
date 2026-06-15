@@ -159,46 +159,6 @@ main:first-of-type {
 
 
 
-/* =========================================================
-   ARTOPIA premium deep background (overrides the blends above)
-   Electric-blue aurora glow over a rich deep-navy gradient.
-   ========================================================= */
-body:not(.admin-bg) {
-  background:
-    radial-gradient(1200px 620px at 10% -8%, rgba(36, 60, 255, 0.30), transparent 60%),
-    radial-gradient(1000px 720px at 102% 2%, rgba(79, 102, 255, 0.20), transparent 55%),
-    radial-gradient(1000px 700px at 50% 118%, rgba(20, 54, 109, 0.50), transparent 60%),
-    linear-gradient(160deg, #0a1840 0%, #0a1c4f 46%, #07112e 100%) !important;
-  background-attachment: fixed !important;
-  background-repeat: no-repeat !important;
-  min-height: 100vh;
-  position: relative;
-}
-
-/* Subtle floating aurora blob — single cheap GPU layer, behind content */
-body:not(.admin-bg)::before {
-  content: "";
-  position: fixed;
-  inset: -20vh -10vw auto -10vw;
-  height: 70vh;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(closest-side, rgba(36, 60, 255, 0.22), transparent 70%);
-  filter: blur(40px);
-  animation: artopiaAurora 16s ease-in-out infinite;
-  will-change: transform, opacity;
-}
-
-@keyframes artopiaAurora {
-  0%, 100% { transform: translate3d(-4%, 0, 0) scale(1); opacity: 0.85; }
-  50%      { transform: translate3d(6%, 6%, 0) scale(1.18); opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body:not(.admin-bg)::before { animation: none; }
-}
-
 /* თეთრი ფონი მხოლოდ ადმინზე */
 body.admin-bg {
   background: #fff !important;

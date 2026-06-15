@@ -41,8 +41,8 @@
   width: 100%;
   padding: 13px 68px 13px 40px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(7, 14, 34, 0.5);
+  border: 1.5px solid #475569;
+  background: #2a344d;
   color: #f1faee;
   font-size: 14px;
   box-sizing: border-box;
@@ -52,9 +52,9 @@
   min-height: 48px;
   touch-action: manipulation;
   cursor: text;
-  -webkit-tap-highlight-color: rgba(36, 60, 255, 0.08);
+  -webkit-tap-highlight-color: rgba(59, 130, 246, 0.08);
 }
-.addrInput:focus { border-color: #4F66FF; }
+.addrInput:focus { border-color: #3b82f6; }
 .addrInput::placeholder { color: #64748b; }
 
 .inputSpinner {
@@ -91,7 +91,7 @@
   left: 0;
   right: 0;
   background: #1e293b;
-  border: 1.5px solid #4F66FF;
+  border: 1.5px solid #3b82f6;
   border-radius: 12px;
   list-style: none;
   margin: 0;
@@ -112,7 +112,7 @@
   color: #cbd5e1;
   transition: background 0.15s;
 }
-.suggItem:hover { background: rgba(36, 60, 255, 0.18); }
+.suggItem:hover { background: rgba(59, 130, 246, 0.18); }
 .suggIcon { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; }
 .suggMain { color: #f8fafc; font-weight: 600; }
 .suggSec { color: #94a3b8; font-weight: 400; }
@@ -185,8 +185,8 @@
   width: 100%;
   padding: 12px 11px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(7, 14, 34, 0.5);
+  border: 1.5px solid #475569;
+  background: #2a344d;
   color: #f1faee;
   font-size: 14px;
   box-sizing: border-box;
@@ -195,9 +195,9 @@
   min-height: 44px;
   touch-action: manipulation;
   cursor: text;
-  -webkit-tap-highlight-color: rgba(36, 60, 255, 0.08);
+  -webkit-tap-highlight-color: rgba(59, 130, 246, 0.08);
 }
-.extraInput:focus { border-color: #4F66FF; }
+.extraInput:focus { border-color: #3b82f6; }
 .extraInput::placeholder { color: #64748b; font-size: 12px; }
 
 /* ── Spinner ── */
@@ -206,7 +206,7 @@
   width: 18px;
   height: 18px;
   border: 2px solid rgba(255, 255, 255, 0.12);
-  border-top-color: #4F66FF;
+  border-top-color: #3b82f6;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   flex-shrink: 0;
@@ -258,15 +258,15 @@
   -webkit-tap-highlight-color: transparent;
 }
 .courierCard:hover {
-  border-color: rgba(36, 60, 255, 0.5);
-  background: rgba(36, 60, 255, 0.07);
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.07);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(36, 60, 255, 0.15);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
 }
 .cardSelected {
-  border-color: #4F66FF !important;
-  background: rgba(36, 60, 255, 0.14) !important;
-  box-shadow: 0 0 0 3px rgba(36, 60, 255, 0.2);
+  border-color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.14) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .logoBox {
@@ -317,7 +317,7 @@
   white-space: nowrap;
 }
 .cCheck {
-  color: #4F66FF;
+  color: #3b82f6;
   font-size: 18px;
   font-weight: 900;
   opacity: 0;

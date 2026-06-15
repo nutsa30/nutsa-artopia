@@ -12,19 +12,16 @@
 
 footer {
   width: 100%;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
-    rgba(7, 14, 34, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 -10px 40px rgba(4, 11, 34, 0.45);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(25px);
   color: white;
 
   text-align: center;
   font-size: 14px;
 
-  border-top: 2px solid rgba(79, 102, 255, 0.45);
+  border-top: 2px solid #34495e;
   position: relative;
   z-index:19;
 
@@ -196,7 +193,7 @@ footer a {
 }
 
 footer a:hover {
-  color: #4F66FF;
+  color: #3498db;
 }
 
 /* ===================== BOTTOM ===================== */
@@ -252,7 +249,7 @@ footer a:hover {
 }
 
 .contactLink:hover {
-  color: #4F66FF;
+  color: #4a90e2;
   text-decoration: underline;
 }
 
@@ -323,9 +320,9 @@ footer a:hover {
 
 .policyBtn {
   padding: 10px 16px;
-  border-radius: 12px;
-  background: rgba(36, 60, 255, 0.14);
-  border: 1px solid rgba(79, 102, 255, 0.4);
+  border-radius: 10px;
+  background: rgba(52, 152, 219, 0.15);
+  border: 1px solid rgba(52, 152, 219, 0.4);
   color: #ffffff;
   font-size: 13px;
   transition: all 0.2s ease;
@@ -333,10 +330,9 @@ footer a:hover {
 }
 
 .policyBtn:hover {
-  background: rgba(36, 60, 255, 0.3);
-  border-color: #4F66FF;
+  background: rgba(52, 152, 219, 0.35);
+  border-color: #3498db;
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(36, 60, 255, 0.35);
 }
 
 /* mobile tweak */

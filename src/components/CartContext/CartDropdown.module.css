@@ -8,12 +8,8 @@
 .cartDropdown {
   width: 600px;
   height: 100vh;
-  background:
-    radial-gradient(900px 500px at 100% 0%, rgba(36, 60, 255, 0.18), transparent 60%),
-    linear-gradient(180deg, #0a1638, #07112e);
-  border-left: 1px solid rgba(79, 102, 255, 0.25);
-  box-shadow: -20px 0 60px rgba(4, 11, 34, 0.55);
-  border-radius: 12px 0 0 12px;
+  background: #0a1a2f;
+  border-radius: 12px;
   padding: 60px 16px 16px; /* 👈 ზედა gap */
   color: white;
 
@@ -125,12 +121,12 @@
 
 /* PLUS */
 .plus {
-  background: linear-gradient(135deg, #4F66FF, #243CFF);
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
 }
 
 .plus:hover {
-  box-shadow: 0 4px 12px rgba(36, 60, 255, 0.55);
+  box-shadow: 0 4px 10px rgba(59,130,246,0.5);
 }
 
 /* QUANTITY */
@@ -209,19 +205,18 @@
 }
 
 .checkoutButton {
-  background: linear-gradient(135deg, #243CFF, #4F66FF);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: white;
   border-radius: 10px;
   padding: 10px;
   border: none;
   cursor: pointer;
   transition: all 0.25s ease;
-  box-shadow: 0 8px 20px rgba(36, 60, 255, 0.35);
 }
 
 .checkoutButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(36, 60, 255, 0.5);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.4);
 }
 
 .checkoutButton:active {
@@ -470,7 +465,7 @@
 /* PLUS STYLE */
 .checkboxWrapper:last-of-type .checkboxFront,
 .checkboxWrapper:last-of-type .checkboxBack {
-  background: linear-gradient(135deg, #4F66FF, #243CFF);
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
 }
 
