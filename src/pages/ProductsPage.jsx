@@ -3,7 +3,7 @@ import ProductCard from "../components/productCard/productsCard";
 import ProductFilter from "../components/productCard/ProductFilter";
 import styles from "./ProductsPage.module.css";
 import { useCart } from "../components/CartContext/CartContext";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams, useParams } from "react-router-dom";
 import EdgePager from "../components/pagination/EdgePager";
 import SEO from "../components/SEO";
 import AppLoader from "../components/loaders/AppLoader";
@@ -107,6 +107,11 @@ const ProductsPage = () => {
   const { addToCart } = useCart();
   const topRef = useRef(null);
 
+  // Clean category URL: /products/category/<name>. React Router decodes the
+  // param, so categoryFromPath is the exact Georgian category name (or null).
+  const { slug: categorySlug } = useParams();
+  const categoryFromPath = categorySlug || null;
+
 
 
   const [products, setProducts] = useState([]);
@@ -116,7 +121,7 @@ const ProductsPage = () => {
     Number(searchParams.get("page")) || 1
   );
   const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || "ყველა"
+    categoryFromPath || searchParams.get("category") || "ყველა"
   );
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -132,7 +137,7 @@ const productsDescription =
 
 const productsUrl =
   selectedCategory && selectedCategory !== "ყველა"
-    ? `https://artopia.ge/products?category=${encodeURIComponent(selectedCategory)}`
+    ? `https://artopia.ge/products/category/${encodeURIComponent(selectedCategory)}`
     : "https://artopia.ge/products";
   // idle | loading | success | not_found
 
@@ -281,9 +286,9 @@ useEffect(() => {
 }, []);
 
   useEffect(() => {
-    const catFromUrl = searchParams.get("category") || "ყველა";
-    setSelectedCategory(catFromUrl);
-  }, [searchParams]);
+    const cat = categoryFromPath || searchParams.get("category") || "ყველა";
+    setSelectedCategory(cat);
+  }, [categoryFromPath, searchParams]);
 
 
   const handlePageClick = ({ selected }) => {
@@ -304,17 +309,12 @@ useEffect(() => {
     setSelectedCategory(newCategory);
     setCurrentPage(1);
 
-    const params = new URLSearchParams(location.search);
-
+    // Clean, indexable category URL (no query string → not robots-blocked).
     if (newCategory && newCategory !== "ყველა") {
-      params.set("category", newCategory);
+      navigate(`/products/category/${encodeURIComponent(newCategory)}`);
     } else {
-      params.delete("category");
+      navigate("/products");
     }
-
-    params.set("page", 1);
-
-    setSearchParams(params);
   };
 const handleProductClick = (product) => {
   const slug = product?.slug;

@@ -153,6 +153,8 @@ const ChatMountIfNotAdmin = () => {
 
 <Route path="/products" element={<ProductsPage />} />
 
+<Route path="/products/category/:slug" element={<ProductsPage />} />
+
 <Route path="/products/:slug" element={<SingleProductPage />} />
 
 <Route path="/blogs" element={<BlogsPage />} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import SEO from "../components/SEO";
 import { useCart } from "../components/CartContext/CartContext";
 import { playSound } from "../utils/playSound";
@@ -10,6 +10,7 @@ import AppLoader from "../components/loaders/AppLoader";
 import { Helmet } from "react-helmet-async";
 import AlsoBuyModal from "../components/AlsoBuy/AlsoBuyModal";
 import { trackViewItem } from "../utils/analytics";
+import CategoryIcon from "../utils/categoryIcons";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const NO_IMAGE = "/noimage.jpeg";
@@ -427,7 +428,24 @@ navigate(-1);
             <h1 className={styles.title}>{title}</h1>
 
             <p className={styles.category}>
-              {L.category}: {category || L.unknown}
+              {L.category}:{" "}
+              {category ? (
+                <Link
+                  to={`/products/category/${encodeURIComponent(category)}`}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    color: "inherit",
+                    textDecoration: "none",
+                  }}
+                >
+                  <CategoryIcon name={category} size={16} />
+                  {category}
+                </Link>
+              ) : (
+                L.unknown
+              )}
             </p>
 
             {description ? (
