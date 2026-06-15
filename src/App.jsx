@@ -30,7 +30,6 @@ import PaymentResult from "./components/Checkout/PaymentResult";
 import CartToast from "./components/CartToast/CartToast";
 import { useCart } from "./components/CartContext/CartContext";
 import SingleProductPage from "./pages/SingleProductPage";
-import AppLoader from "./components/loaders/AppLoader";
 import TermsPage from "./pages/TermsPage";
 import ReturnsPage from "./pages/ReturnsPage";
 import PrivacyPage from "./pages/PrivacyPage";
@@ -103,15 +102,6 @@ function App() {
     setTimeout(() => setShowCart(false), 1200);
   };
 
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
 const ChatMountIfNotAdmin = () => {
   const { pathname } = useLocation();
 
@@ -124,8 +114,6 @@ const ChatMountIfNotAdmin = () => {
 
   return (
     <>
-      {loading && <AppLoader />}
-
       <LayoutGroup>
         <CartProvider>
           <CartUiProvider>

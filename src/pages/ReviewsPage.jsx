@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./ReviewsPage.module.css";
+import SEO from "../components/SEO";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
@@ -138,6 +139,11 @@ useEffect(() => {
 
   return (
     <main className={styles.page}>
+      <SEO
+        title="მომხმარებელთა შეფასებები — სამხატვრო მაღაზია"
+        description="ნახე Artopia-ს რეალური მომხმარებლების შეფასებები Google-ზე. სამხატვრო მაღაზია თბილისში — ხარისხიანი მასალები და მომსახურება."
+        url="https://artopia.ge/reviews"
+      />
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
         <div className={styles.heroInner}>
