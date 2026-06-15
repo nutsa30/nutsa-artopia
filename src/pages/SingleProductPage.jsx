@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import SEO from "../components/SEO";
 import { useCart } from "../components/CartContext/CartContext";
@@ -9,6 +9,7 @@ import { useLocation } from "react-router-dom";
 import AppLoader from "../components/loaders/AppLoader";
 import { Helmet } from "react-helmet-async";
 import AlsoBuyModal from "../components/AlsoBuy/AlsoBuyModal";
+import { trackViewItem } from "../utils/analytics";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const NO_IMAGE = "/noimage.jpeg";
@@ -93,6 +94,15 @@ const [isModalOpen, setIsModalOpen] = useState(false);
 const [relatedStartIndex, setRelatedStartIndex] = useState(0);
 const [relatedVisibleCount, setRelatedVisibleCount] = useState(4);
 const [alsoBuyOpen, setAlsoBuyOpen] = useState(false);
+const viewedProductIdRef = useRef(null);
+
+// GA4 view_item — ერთხელ თითო პროდუქტზე (არა ყოველ render-ზე)
+useEffect(() => {
+  if (status === "success" && product?.id && viewedProductIdRef.current !== product.id) {
+    viewedProductIdRef.current = product.id;
+    trackViewItem(product);
+  }
+}, [status, product]);
 
 useEffect(() => {
     let ignore = false;

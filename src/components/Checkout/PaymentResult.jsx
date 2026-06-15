@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import styles from "./Checkout.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../CartContext/CartContext";
+import { trackPurchase } from "../../utils/analytics";
 
 const LBL = {
   titleSuccess: "გადახდა წარმატებულია",
@@ -25,6 +26,25 @@ const PaymentResult = () => {
   // ✅ success-ზე ქოლბექის დარეკვა + კალათის გასუფთავება
   useEffect(() => {
     if (!isSuccess) return;
+
+    // GA4 purchase — მხოლოდ დადასტურებულ წარმატებაზე, ერთხელ.
+    // refresh-ზე გაორმაგების დაცვა: localStorage flag transaction_id-ით.
+    try {
+      const raw = sessionStorage.getItem("pending_purchase");
+      if (raw) {
+        const order = JSON.parse(raw);
+        const txId = order?.transaction_id || "";
+        const dedupKey = txId ? `ga_purchase_done_${txId}` : null;
+
+        if (!dedupKey || !localStorage.getItem(dedupKey)) {
+          trackPurchase(order);
+          if (dedupKey) localStorage.setItem(dedupKey, "1");
+        }
+        sessionStorage.removeItem("pending_purchase");
+      }
+    } catch (_) {
+      // ignore
+    }
 
     clearCart();
 

@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext,useEffect } from 'react';
+import { trackAddToCart } from '../../utils/analytics';
 
 // 1. კონტექსტის შექმნა
 const CartContext = createContext();
@@ -36,6 +37,12 @@ useEffect(() => {
 
   // კალათაში დამატება
 const addToCart = (product, qty = 1) => {
+  // GA4: დაემატება თუ არა რეალურად (მარაგის ლიმიტს არ სცდება)
+  const stockMax = product?.quantity ?? 0;
+  const existingInCart = cartItems.find((item) => item.id === product.id);
+  const currentQty = existingInCart ? existingInCart.quantity : 0;
+  const willAdd = currentQty + qty <= stockMax;
+
   const triggerToast = () => {
     setShowToast(false);
     setTimeout(() => {
@@ -88,6 +95,11 @@ const addToCart = (product, qty = 1) => {
       },
     ];
   });
+
+  // GA4 add_to_cart — ერთხელ, რეალური დამატებისას (არა მარაგის ლიმიტზე)
+  if (willAdd) {
+    trackAddToCart(product, qty);
+  }
 };
 
   // პროდუქტის წაშლა კალათიდან

@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import styles from "./Checkout.module.css";
 import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
 import DeliverySection from "./DeliverySection";
+import { trackBeginCheckout, getGaClientId, CURRENCY } from "../../utils/analytics";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
@@ -203,6 +204,7 @@ const Checkout = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [stockById, setStockById] = useState({});
   const [stockMessageById, setStockMessageById] = useState({});
+  const beginCheckoutFiredRef = useRef(false);
 
   const subtotal = cartItems.reduce(
     (s, it) => s + unitPrice(it) * (it.quantity || 0),
@@ -296,6 +298,14 @@ const deliveryOptions = useMemo(() => {
   return { subtotal: +subtotal.toFixed(2), base_delivery_fee: baseFee, delivery_fee, delivery_discount: delivDisc, extra_discount, total };
 }, [subtotal, formData.deliveryOption, couponDiscount, selectedCourier]);
 
+// GA4 begin_checkout — ერთხელ, როცა checkout იხსნება და კალათა შევსებულია
+useEffect(() => {
+  if (!beginCheckoutFiredRef.current && cartItems.length > 0) {
+    beginCheckoutFiredRef.current = true;
+    trackBeginCheckout(cartItems, preview.subtotal);
+  }
+}, [cartItems, preview.subtotal]);
+
 
 const canSubmit = useMemo(() => {
   if (cartItems.length === 0) return false;
@@ -346,6 +356,8 @@ const handleChange = (e) => {
 
     const draft = {
       formData,
+      // GA4 client_id — backend-ის Measurement Protocol purchase-ისთვის (იგივე user/session)
+      ga_client_id: getGaClientId(),
       items: cartItems.map((it) => ({
         id: it.id,
         name: it.name,
@@ -387,15 +399,39 @@ const handleChange = (e) => {
         throw new Error(`HTTP ${res.status} – redirect_url not provided`);
       }
 
-      try {
-        const u = new URL(data.redirect_url);
-        const orderId = u.searchParams.get("order_id");
-        if (orderId) sessionStorage.setItem("last_bog_order_id", orderId);
-      } catch {}
+      // BOG order_id — ჯერ backend-ის პასუხიდან (იგივეს იყენებს webhook-იც),
+      // შემდეგ redirect_url-დან. transaction_id-ის თანმიმდევრულობისთვის.
+      let orderId = data.order_id || "";
+      if (!orderId) {
+        try {
+          const u = new URL(data.redirect_url);
+          orderId = u.searchParams.get("order_id") || "";
+        } catch {}
+      }
+      if (orderId) sessionStorage.setItem("last_bog_order_id", orderId);
 
       if (data.state) {
         sessionStorage.setItem("last_bog_state", data.state);
       }
+
+      // GA4 purchase-ის snapshot — გადახდის წარმატებით დასრულების შემდეგ
+      // PaymentResult-ში გამოვა. transaction_id = backend order_id (fallback: state).
+      try {
+        const pendingPurchase = {
+          transaction_id: orderId || data.state || "",
+          currency: CURRENCY,
+          value: Number(preview.total),
+          shipping: Number(preview.delivery_fee),
+          items: cartItems.map((it) => ({
+            id: it.id,
+            name: it.name,
+            price: it.price,
+            sale: it.sale || 0,
+            quantity: it.quantity,
+          })),
+        };
+        sessionStorage.setItem("pending_purchase", JSON.stringify(pendingPurchase));
+      } catch {}
 
       window.location.href = data.redirect_url;
     } catch (err) {
