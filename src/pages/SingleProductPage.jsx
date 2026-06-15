@@ -271,20 +271,41 @@ const productSchema = {
   name: title,
   image: images,
   description: description,
+  sku: String(product.id ?? slug),
+  ...(category ? { category } : {}),
   brand: {
     "@type": "Brand",
     name: "Artopia",
   },
   offers: {
     "@type": "Offer",
-    url: `https://artopia.ge/products/${slug}`, // 🔥 ეს დავამატეთ
-    price: String(product.price),
+    url: `https://artopia.ge/products/${slug}`,
+    price: String(hasSale ? discounted : product.price),
     priceCurrency: "GEL",
     availability: inStock
       ? "https://schema.org/InStock"
       : "https://schema.org/OutOfStock",
-    itemCondition: "https://schema.org/NewCondition", // 🔥 ესეც
+    itemCondition: "https://schema.org/NewCondition",
+    seller: { "@type": "Organization", name: "Artopia" },
   },
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "მთავარი", item: "https://artopia.ge/" },
+    { "@type": "ListItem", position: 2, name: "პროდუქტები", item: "https://artopia.ge/products" },
+    ...(category
+      ? [{ "@type": "ListItem", position: 3, name: category }]
+      : []),
+    {
+      "@type": "ListItem",
+      position: category ? 4 : 3,
+      name: title,
+      item: `https://artopia.ge/products/${slug}`,
+    },
+  ],
 };
   return (
     <>
@@ -298,6 +319,9 @@ const productSchema = {
 <Helmet>
   <script type="application/ld+json">
     {JSON.stringify(productSchema)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(breadcrumbSchema)}
   </script>
 </Helmet>
       <div className={styles.page}>

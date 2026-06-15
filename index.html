@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0d2a3c" />
 
+    <!-- Speed up first product images & API (Core Web Vitals / LCP) -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="preconnect" href="https://artopia-backend-2024-54872c79acdd.herokuapp.com" />
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-PRBF4MJ1LT"></script>
     <script>
@@ -17,17 +22,21 @@
     </script>
 
     <!-- ძირითადი SEO -->
-    <title>Artopia – სამხატვრო და საკანცელარიო მაღაზია ონლაინ</title>
+    <title>Artopia — სამხატვრო მაღაზია | სამხატვრო და საკანცელარიო ნივთები ონლაინ</title>
     <meta
       name="description"
-      content="Artopia არის სამხატვრო და საკანცელარიო მაღაზია, სადაც შეგიძლიათ შეიძინოთ სამხატვრო მასალა, საკანცელარიო ნივთები, საბავშვო განმავითარებელი სათამაშოები, სასკოლო და საოფისე პროდუქცია ონლაინ."
+      content="Artopia — სამხატვრო მაღაზია თბილისში. შეიძინე სამხატვრო მასალა — აკვარელი, აკრილის და ზეთის საღებავი, ფუნჯები, ტილო, მოლბერტი, პასტელი — ასევე საკანცელარიო, სასკოლო და საოფისე ნივთები ონლაინ. მიტანა მთელ საქართველოში."
     />
     <meta
       name="keywords"
-      content="artopia, არტოპია, სამხატვრო მაღაზია, საკანცელარიო მაღაზია, სამხატვრო მასალა, საკანცელარიო ნივთები, სასკოლო ნივთები, საოფისე ნივთები, საბავშვო განმავითარებელი, სკოლის მაკომპლექტებელი"
+      content="სამხატვრო მაღაზია, სამხატვრო მაღაზია თბილისი, artopia, არტოპია, სამხატვრო მასალები, საკანცელარიო მაღაზია, აკვარელი, აკრილის საღებავი, ზეთის საღებავი, ფუნჯები, ტილო, მოლბერტი, პასტელი, სასკოლო ნივთები, საოფისე ნივთები"
     />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="Artopia" />
+
+    <!-- Local / geo -->
+    <meta name="geo.region" content="GE-TB" />
+    <meta name="geo.placename" content="Tbilisi" />
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://artopia.ge/" />
@@ -40,7 +49,7 @@
     <link rel="apple-touch-icon" href="/favicon-144x144.png" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Artopia – სამხატვრო და საკანცელარიო მაღაზია ონლაინ" />
+    <meta property="og:title" content="Artopia — სამხატვრო მაღაზია | სამხატვრო და საკანცელარიო ნივთები ონლაინ" />
     <meta
       property="og:description"
       content="შეიძინე სამხატვრო, საკანცელარიო, საბავშვო განმავითარებელი, სასკოლო და საოფისე ნივთები ერთ ადგილას – Artopia ონლაინ მაღაზიაში."
@@ -53,12 +62,91 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Artopia – სამხატვრო და საკანცელარიო მაღაზია ონლაინ" />
+    <meta name="twitter:title" content="Artopia — სამხატვრო მაღაზია | სამხატვრო და საკანცელარიო ნივთები ონლაინ" />
     <meta
       name="twitter:description"
       content="სამხატვრო, საკანცელარიო, საბავშვო, სასკოლო და საოფისე პროდუქცია – ყველაფერი ერთ ონლაინ მაღაზიაში."
     />
     <meta name="twitter:image" content="https://artopia.ge/social-preview.png" />
+
+    <!-- Structured data (static so LLM crawlers & no-JS bots always see it) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://artopia.ge/#organization",
+          "name": "Artopia",
+          "alternateName": "არტოპია",
+          "url": "https://artopia.ge/",
+          "logo": "https://artopia.ge/favicon-144x144.png",
+          "image": "https://artopia.ge/social-preview.png",
+          "email": "info@artopia.ge",
+          "telephone": "+995593204098",
+          "sameAs": [
+            "https://www.instagram.com/artopia_tbilisi/",
+            "https://www.facebook.com/profile.php?id=100093336648910",
+            "https://www.tiktok.com/@artopia_tbilisi",
+            "https://youtube.com/@artopia_georgia"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://artopia.ge/#website",
+          "url": "https://artopia.ge/",
+          "name": "Artopia",
+          "inLanguage": "ka-GE",
+          "publisher": { "@id": "https://artopia.ge/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://artopia.ge/products?search={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Store",
+          "@id": "https://artopia.ge/#store",
+          "name": "Artopia — სამხატვრო მაღაზია",
+          "description": "Artopia არის სამხატვრო მაღაზია თბილისში — სამხატვრო მასალა (აკვარელი, აკრილის და ზეთის საღებავი, გუაში, ფუნჯები, ტილო, მოლბერტი, პასტელი, სამხატვრო ნახშირი), ასევე საკანცელარიო, სასკოლო და საოფისე ნივთები. მიტანა მთელ საქართველოში.",
+          "url": "https://artopia.ge/",
+          "image": "https://artopia.ge/social-preview.png",
+          "logo": "https://artopia.ge/favicon-144x144.png",
+          "telephone": "+995593204098",
+          "email": "info@artopia.ge",
+          "priceRange": "₾₾",
+          "currenciesAccepted": "GEL",
+          "paymentAccepted": "Cash, Credit Card",
+          "parentOrganization": { "@id": "https://artopia.ge/#organization" },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "სიმონ ჩიქოვანის ქუჩა N45",
+            "addressLocality": "თბილისი",
+            "addressRegion": "თბილისი",
+            "addressCountry": "GE"
+          },
+          "openingHoursSpecification": [
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+              "opens": "11:30",
+              "closes": "20:30"
+            }
+          ],
+          "sameAs": [
+            "https://www.instagram.com/artopia_tbilisi/",
+            "https://www.facebook.com/profile.php?id=100093336648910",
+            "https://www.tiktok.com/@artopia_tbilisi",
+            "https://youtube.com/@artopia_georgia"
+          ],
+          "keywords": "სამხატვრო მაღაზია, სამხატვრო მასალები, საკანცელარიო მაღაზია, აკვარელი, აკრილის საღებავი, ზეთის საღებავი, ფუნჯები, ტილო, მოლბერტი"
+        }
+      ]
+    }
+    </script>
   </head>
 
   <body>
