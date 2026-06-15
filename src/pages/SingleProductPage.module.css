@@ -52,11 +52,16 @@
 
 .galleryCard,
 .infoCard {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03)),
+    rgba(10, 22, 58, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 24px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow:
+    0 26px 60px rgba(4, 11, 34, 0.5),
+    0 0 0 1px rgba(79, 102, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .galleryCard {
@@ -163,12 +168,12 @@
 }
 
 .addToCartBtn {
-  --cart-blue-top: #1976d2;
-  --cart-blue-bottom: #1565c0;
-  --cart-blue-top-hover: #1e88e5;
-  --cart-blue-bottom-hover: #1976d2;
-  --cart-blue-top-active: #1565c0;
-  --cart-blue-bottom-active: #0d47a1;
+  --cart-blue-top: #2f4cff;
+  --cart-blue-bottom: #1f37e6;
+  --cart-blue-top-hover: #4F66FF;
+  --cart-blue-bottom-hover: #243CFF;
+  --cart-blue-top-active: #1A2ECC;
+  --cart-blue-bottom-active: #15269e;
   --cart-blue-text: #ffffff;
 
   position: relative;
@@ -358,7 +363,7 @@
   width: 48px;
   height: 48px;
 
-  border: 2px solid #3654ff;
+  border: 2px solid #243CFF;
   border-radius: 12px;
 
   background-color: transparent;
@@ -375,7 +380,7 @@
 }
 
 .arrowBtn:hover {
-  background-color: #3654ff;
+  background-color: #243CFF;
 }
 
 .arrowBtn svg {
@@ -429,8 +434,9 @@
 }
 
 .dotActive {
-  background: #16608a;
-  transform: scale(1.1);
+  background: linear-gradient(90deg, #4F66FF, #243CFF);
+  box-shadow: 0 0 10px rgba(36, 60, 255, 0.7);
+  transform: scale(1.15);
 }
 
 .ribbon {
@@ -1000,7 +1006,7 @@
   width: 48px;
   height: 48px;
 
-  border: 2px solid #3654ff;
+  border: 2px solid #243CFF;
   border-radius: 12px;
 
   background-color: transparent;
@@ -1030,7 +1036,7 @@
 }
 
 .arrowBtn:hover {
-  background-color: #3654ff;
+  background-color: #243CFF;
 }
 
 .arrowBtn:hover svg {
@@ -1142,7 +1148,7 @@
 
 /* აქტიური (ლურჯი კანტი) */
 .thumbnailActive {
-  border: 2px solid #3654ff;
+  border: 2px solid #243CFF;
   transform: scale(1.05);
 }
 

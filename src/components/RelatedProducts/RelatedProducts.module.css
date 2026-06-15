@@ -31,7 +31,7 @@
   height: 36px;
   border: none;
   border-radius: 10px;
-  background: #457b9d;
+  background: linear-gradient(135deg, #243CFF, #4F66FF);
   color: #f1faee;
   font-size: 22px;
   line-height: 1;
@@ -39,10 +39,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .arrow:hover:not(:disabled) {
-  background: #1d3557;
+  box-shadow: 0 6px 16px rgba(36, 60, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 .arrow:disabled {

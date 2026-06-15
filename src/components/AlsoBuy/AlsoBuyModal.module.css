@@ -70,7 +70,7 @@
 }
 
 .headerIcon {
-  color: #3654ff;
+  color: #243CFF;
   font-size: 18px;
   line-height: 1;
 }
@@ -135,7 +135,7 @@
 .card:hover {
   transform: translateY(-3px);
   background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(54, 84, 255, 0.35);
+  border-color: rgba(36, 60, 255, 0.35);
 }
 
 .card:active {
@@ -240,7 +240,7 @@
   width: 36px;
   height: 36px;
   border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #3654ff;
+  border-top-color: #243CFF;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

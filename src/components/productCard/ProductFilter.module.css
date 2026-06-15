@@ -28,16 +28,24 @@
 
 /* search input + კატეგორიის trigger ერთნაირად გამოიყუროს */
 .searchInput {
-  padding: 10px 18px;
-  border-radius: 12px;
-  background-color: #1f2e44;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(15, 25, 50, 0.55);
+  backdrop-filter: blur(12px);
   color: #f9fafb;
   font-size: 18px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.searchInput:focus {
+  border-color: rgba(79, 102, 255, 0.6);
+  box-shadow: 0 0 0 3px rgba(36, 60, 255, 0.22);
 }
 .searchInput::placeholder {
-  color: #9ca3af;
+  color: rgba(207, 220, 245, 0.5);
 }
 
 .searchField {
@@ -66,7 +74,7 @@
 }
 .catTrigger:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(58, 160, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(36, 60, 255, 0.4);
 }
 
 /* არჩეული ქვეკატეგორი(ებ)ის ბეჯები */
@@ -85,8 +93,8 @@
   padding: 6px 12px;
   font-size: 13px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: #13293b;
+  border: 1px solid rgba(79, 102, 255, 0.4);
+  background: rgba(36, 60, 255, 0.16);
 }
 .subSummaryClear {
   background: transparent;
@@ -123,27 +131,30 @@
   padding: 6px;
   max-height: 320px;        /* scrollable */
   overflow-y: auto;
-  background: #122536;
+  background: rgba(12, 22, 48, 0.92);
+  backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   width: 100%;              /* 👉 trigger-ის სიგანის გამეორება */
   min-width: 260px;
-  border-radius: 12px;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 24px 50px rgba(4, 11, 34, 0.6), 0 0 0 1px rgba(79, 102, 255, 0.12);
 }
 
 .darkItem {
-  padding: 9px 10px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 15px;
+  transition: background 0.18s ease;
 }
 .darkItem:hover {
-  background: #1a3248;
+  background: rgba(79, 102, 255, 0.18);
 }
 .darkActive {
-  background: #21415c;
+  background: rgba(36, 60, 255, 0.3);
 }
 .catText {
   flex: 1;
@@ -163,15 +174,16 @@
   position: absolute;                     /* overlay – არ წევს სიას */
   left: calc(100% + 4px);                /* 👉 ძალიან ახლოს ეკვრის მარჯვნიდან */
   top: 0;                                /* JS-ის inline {top: subTop} ამაზე ზემოდან დაჯდება */
-  background: #0f1f2b;
+  background: rgba(9, 17, 38, 0.94);
+  backdrop-filter: blur(18px) saturate(140%);
   padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   min-width: 260px;
   max-width: 320px;
   max-height: 320px;                     /* scrollable */
   overflow-y: auto;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 24px 50px rgba(4, 11, 34, 0.6), 0 0 0 1px rgba(79, 102, 255, 0.12);
 }
 
 /* სვეტად დალაგებული ჩიფები */
@@ -189,18 +201,21 @@
   font-size: 15px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #13293b;
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: background 0.18s ease, border-color 0.18s ease;
 }
 .subChip:hover {
-  background: #18344a;
+  background: rgba(79, 102, 255, 0.18);
+  border-color: rgba(79, 102, 255, 0.4);
 }
 .subChipActive {
-  border-color: #3aa0ff;
-  box-shadow: 0 0 0 2px rgba(58, 160, 255, 0.35) inset;
+  border-color: #4F66FF;
+  background: rgba(36, 60, 255, 0.22);
+  box-shadow: 0 0 0 2px rgba(36, 60, 255, 0.35) inset;
 }
 
 /* === RESPONSIVE === */
