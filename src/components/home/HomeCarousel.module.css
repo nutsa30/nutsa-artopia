@@ -20,14 +20,17 @@
 
 .slide {
   min-width: 100%;
+  /* match the uploaded banners (1672×941 ≈ 16:9) so every slide is identical
+     height — no white gaps from odd-ratio images */
+  aspect-ratio: 16 / 9;
   background: #e9eef4;
 }
 
 .slide img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 /* arrows */
