@@ -113,7 +113,9 @@ export default async (request, context) => {
       const post = b && (b.product ? b.product : b);
       if (!post || !(post.title || post.meta_title)) return res;
 
-      const pageUrl = post.canonical_url || `${SITE}/blog/${slug}`;
+      // Always use the real SPA route (/blog/<slug>). The backend's
+      // canonical_url field uses /blogs/<slug> which is NOT a real route.
+      const pageUrl = `${SITE}/blog/${slug}`;
       const title = clip(post.meta_title || post.title, 65);
       const description = clip(post.meta_description || post.og_description || post.description, 160);
       const image = post.og_image || post.cover_image || DEFAULT_IMAGE;
