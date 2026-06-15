@@ -11,24 +11,48 @@
 }
 
 .title {
-  font-size: 22px;
-  font-weight: 700;
+  position: relative;
+  font-size: clamp(20px, 2.6vw, 28px);
+  font-weight: 900;
   margin: 0;
-  color: white;
+  color: #fff;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  padding-left: 16px;
+}
+.title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 1.05em;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4F66FF, #243CFF);
+  box-shadow: 0 0 16px rgba(36, 60, 255, 0.6);
 }
 
 .seeAll {
-  font-family: Arial, Helvetica, sans-serif;
-  font-weight: bold;
+  font-family: inherit;
+  font-weight: 800;
   color: white;
-  background-color: #171717;
-  padding: 1em 2em;
-  border-radius: .6rem;
+  background-color: #0e1330;
+  padding: 0.85em 1.8em;
+  border-radius: .8rem;
   position: relative;
   cursor: pointer;
   overflow: hidden;
   text-decoration: none;
   display: inline-block;
+  border: 1px solid rgba(79, 102, 255, 0.35);
+  box-shadow: 0 8px 22px rgba(4, 11, 34, 0.45);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.seeAll:hover {
+  transform: translateY(-2px);
+  border-color: rgba(79, 102, 255, 0.7);
+  box-shadow: 0 12px 30px rgba(36, 60, 255, 0.4);
 }
 
 /* circles */
@@ -43,7 +67,7 @@
   transform: translate(-50%, -50%);
   height: 30px;
   width: 30px;
-  background-color: #0c66ed;
+  background-color: #243CFF;
   border-radius: 50%;
   transition: .6s ease;
 }

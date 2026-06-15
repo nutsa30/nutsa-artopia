@@ -12,13 +12,23 @@
   align-items: center;
   justify-content: space-between;
 
-  padding: 1rem 1.25rem;
+  padding: 0.85rem 1.1rem;
   border-radius: 5rem;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03)),
+    rgba(10, 22, 58, 0.55);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 18px 50px rgba(4, 11, 34, 0.55),
+    0 0 0 1px rgba(79, 102, 255, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
   pointer-events: auto;
   z-index: 2000;
+
+  /* top edge electric highlight */
+  margin-top: 14px;
 
   /* სურვილით გამოიყენე, რომ pageWrapper-იდან მართო სიმაღლე */
   --navbar-h: 108px;
@@ -34,8 +44,19 @@
   text-decoration: none;
 }
 
-.logo { width: 50px; height: 50px; }
-.h2 { color: rgb(200, 200, 200); }
+.logo {
+  width: 50px;
+  height: 50px;
+  filter: drop-shadow(0 4px 12px rgba(36, 60, 255, 0.45));
+  transition: transform 0.4s var(--ease-spring, cubic-bezier(0.175, 0.885, 0.32, 1.275));
+}
+.brandLink:hover .logo { transform: scale(1.08) rotate(-3deg); }
+.h2 {
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 18px rgba(36, 60, 255, 0.35);
+}
 
 /* ---------- შუა: ტაბების/აიკონების ზოლი — იდეალურ ცენტრში ---------- */
 .tabsWrapper {
@@ -64,8 +85,8 @@
 .blob, .blobAlt {
   position: absolute; width: 100%; height: 100%; border-radius: 1.2rem; filter: blur(8px); top: 0; left: 0;
 }
-.blob { background: linear-gradient(135deg, #0056FF, #0056FF); z-index: 0; transform: rotate(-6deg); }
-.blobAlt { background: linear-gradient(135deg, #0056FF, #0056FF); z-index: 0; transform: rotate(6deg); opacity: 0.8; }
+.blob { background: linear-gradient(135deg, #243CFF, #4F66FF); z-index: 0; transform: rotate(-6deg); }
+.blobAlt { background: linear-gradient(135deg, #4F66FF, #243CFF); z-index: 0; transform: rotate(6deg); opacity: 0.85; }
 
 /* ---------- მარჯვენა: ენების სვიჩერი ---------- */
 .langSwitcher {
@@ -105,7 +126,11 @@
   margin: 0 8px;
   padding: 0;
   border-radius: 999px;
-  background: #e0e0e0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -179,7 +204,11 @@
   width: auto;              /* 👈 მთავარი შეცვლა */
   min-width: 42px;          /* 👈 რომ აიკონი არ დაიშალოს */
 
-  background: rgb(200, 200, 200);
+  color: var(--text-1, #f4f8ff);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03)),
+    rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 1.2rem;
 
   display: flex;
@@ -187,17 +216,33 @@
   justify-content: center;
 
   backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  transition: all 0.35s var(--ease-spring, cubic-bezier(0.175, 0.885, 0.32, 1.275));
 
   padding: 0 0.75rem;
   white-space: nowrap;
   gap: 0.5rem;              /* 👈 ტექსტსა და აიკონს შორის სივრცე */
 }
-.iconWrapActive { width: 150px; gap: 0.5rem; justify-content: flex-start; }
+.tabItem:hover .iconWrap {
+  border-color: rgba(79, 102, 255, 0.5);
+  box-shadow: 0 6px 18px rgba(36, 60, 255, 0.28);
+  transform: translateY(-1px);
+}
+.iconWrapActive {
+  width: 150px;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(36, 60, 255, 0.30), rgba(79, 102, 255, 0.18));
+  border-color: rgba(255, 255, 255, 0.30);
+  box-shadow:
+    0 8px 22px rgba(36, 60, 255, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30);
+}
 .iconLabel {
   font-size: 14px;
-  font-weight: bold;
-  color: #0056FF;
+  font-weight: 800;
+  color: currentColor;
   white-space: nowrap;
 
   opacity: 1;               /* 👈 შეცვლა */
@@ -210,7 +255,7 @@
   display: block;
   width: 24px;
   height: 24px;
-  fill: #1d3557;
+  fill: #eaf1ff;
   stroke: none;
   flex-shrink: 0;
   transform-origin: center;
