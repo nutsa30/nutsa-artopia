@@ -298,7 +298,7 @@ const breadcrumbSchema = {
     { "@type": "ListItem", position: 1, name: "მთავარი", item: "https://artopia.ge/" },
     { "@type": "ListItem", position: 2, name: "პროდუქტები", item: "https://artopia.ge/products" },
     ...(category
-      ? [{ "@type": "ListItem", position: 3, name: category }]
+      ? [{ "@type": "ListItem", position: 3, name: category, item: `https://artopia.ge/products/category/${encodeURIComponent(category)}` }]
       : []),
     {
       "@type": "ListItem",
