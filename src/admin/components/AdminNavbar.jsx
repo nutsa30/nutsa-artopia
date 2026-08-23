@@ -62,7 +62,7 @@ const onSyncOptimo = async () => {
     }
   } catch (err) {
     console.error(err);
-    alert("სერვერთან კავშირი ვერ დამყარდა ან წვდომა აკრძალულია");
+    alert("სინქრონიზაციის შეცდომა: " + (err?.message || "სერვერთან კავშირი ვერ დამყარდა ან წვდომა აკრძალულია"));
   } finally {
     setLoading(false);
     setOpen(false);
