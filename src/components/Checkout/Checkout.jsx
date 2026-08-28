@@ -4,6 +4,13 @@ import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
 import DeliverySection from "./DeliverySection";
 import { trackBeginCheckout, getGaClientId, CURRENCY } from "../../utils/analytics";
+import {
+  buildCartBreakdown,
+  couponDiscountFor,
+  normalizeSale,
+  unitPrice,
+  PROMO_MESSAGES,
+} from "../../utils/pricing";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
@@ -63,13 +70,18 @@ function DeliveryDiscountBanner({ subtotal }) {
   );
 }
 
-const unitPrice = (it) => {
-  const price = Number(it?.price || 0);
-  const sale = Number(it?.sale || 0);
-  if (sale > 0 && sale <= 100) {
-    return +(price * (1 - sale / 100)).toFixed(2);
-  }
-  return +price.toFixed(2);
+// პრომო კოდის საწყისი მდგომარეობა
+// status: "idle" | "checking" | "valid" | "invalid"
+const IDLE_PROMO = {
+  status: "idle",
+  code: "",
+  percent: 0,
+  discount: 0,
+  reason: "",
+  message: "",
+  eligibleSubtotal: 0,
+  excludedSubtotal: 0,
+  appliesToAll: true,
 };
 
 const normalizeQuantity = (value) => {
@@ -82,7 +94,16 @@ const LBL = {
   orderDetails: "შეკვეთის დეტალები",
   newBadge: "ახალი",
   subtotal: "შეკვეთის ჯამური ღირებულება",
-discount: "ფასდაკლება",
+  discount: "ფასდაკლება",
+  promoDiscount: "პრომო კოდის ფასდაკლება",
+  productSavings: "პროდუქტების ფასდაკლება",
+  onSaleItems: "ფასდაკლებული პროდუქტები",
+  promoBase: "პრომო კოდი ვრცელდება",
+  promoExcludedChip: "პრომო არ ვრცელდება",
+  promoAppliedChip: "პრომო",
+  promoChecking: "მოწმდება…",
+  promoRuleHint:
+    "პრომო კოდი არ ვრცელდება უკვე ფასდაკლებულ პროდუქტებზე — მათზე მოქმედებს მხოლოდ საკუთარი ფასდაკლება.",
   deliveryFee: "მიტანის საფასური",
   total: "ჯამი",
   firstName: "სახელი",
@@ -206,43 +227,178 @@ const Checkout = () => {
   const [stockMessageById, setStockMessageById] = useState({});
   const beginCheckoutFiredRef = useRef(false);
 
-  const subtotal = cartItems.reduce(
-    (s, it) => s + unitPrice(it) * (it.quantity || 0),
-    0
+  /**
+   * კალათის დაშლა პრომო-კოდის ბაზისებად.
+   * წესი: პრომო კოდი ვრცელდება მხოლოდ იმ პროდუქტებზე, რომლებსაც
+   * ადმინის ფასდაკლება (sale) არ აქვთ.
+   */
+  const cart = useMemo(() => buildCartBreakdown(cartItems), [cartItems]);
+  const subtotal = cart.subtotal;
+  const promoEligibleSubtotal = cart.eligibleSubtotal;
+  const promoExcludedSubtotal = cart.excludedSubtotal;
+
+  // პროდუქტების საკუთარი ფასდაკლებით დაზოგილი თანხა
+  const productSavings = useMemo(
+    () =>
+      +cart.lines
+        .reduce((s, l) => s + (l.originalPrice - l.unitPrice) * l.quantity, 0)
+        .toFixed(2),
+    [cart.lines]
   );
-const [couponDiscount, setCouponDiscount] = useState(0);
 
-useEffect(() => {
-  const applyCoupon = async () => {
-    if (!formData.coupon_code) {
-      setCouponDiscount(0);
-      return;
+  // კალათის ხელმოწერა — ცვლილებაზე პრომო კოდი ხელახლა მოწმდება
+  const cartSignature = useMemo(
+    () =>
+      cartItems
+        .map((it) => `${it.id}:${it.quantity}:${normalizeSale(it.sale)}:${it.price}`)
+        .join("|"),
+    [cartItems]
+  );
+
+  const [promo, setPromo] = useState(IDLE_PROMO);
+
+  useEffect(() => {
+    const code = (formData.coupon_code || "").trim().toUpperCase();
+
+    if (!code) {
+      setPromo(IDLE_PROMO);
+      return undefined;
+    }
+    if (cartItems.length === 0) {
+      setPromo({
+        ...IDLE_PROMO,
+        status: "invalid",
+        code,
+        reason: "empty_cart",
+        message: PROMO_MESSAGES.empty_cart,
+      });
+      return undefined;
     }
 
-    try {
-   const res = await fetch(`${API_BASE}/promo-codes`);
-const json = await res.json();
+    let cancelled = false;
+    // იგივე კოდის თავიდან შემოწმებისას (მაგ. რაოდენობა შეიცვალა) პროცენტს
+    // ვინახავთ, რომ ჯამი არ აციმციმდეს; ახალ კოდზე კი ნულდება
+    setPromo((prev) =>
+      prev.code === code
+        ? { ...prev, status: "checking" }
+        : { ...IDLE_PROMO, status: "checking", code }
+    );
 
-// 🔥 FIX
-const data = json.items || [];
+    const timer = setTimeout(async () => {
+      const payload = {
+        code,
+        items: cartItems.map((it) => ({
+          product_id: it.id,
+          quantity: it.quantity,
+        })),
+      };
 
-const code = formData.coupon_code.toUpperCase().trim();
+      try {
+        // ავტორიტეტული ვალიდაცია — ბექენდი თვითონ ითვლის დასაშვებ ბაზას
+        const res = await fetch(`${API_BASE}/promo-codes/validate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (cancelled) return;
 
-const found = data.find((c) => c.code === code && c.is_active);
-      if (found) {
-        const discount = +(subtotal * (found.percent / 100)).toFixed(2);
-        setCouponDiscount(discount);
-      } else {
-        setCouponDiscount(0);
+        setPromo({
+          status: data.valid ? "valid" : "invalid",
+          code: (data.code || code).toUpperCase(),
+          percent: Number(data.percent || 0),
+          discount: Number(data.discount || 0),
+          reason: data.reason || "",
+          message: data.message || "",
+          eligibleSubtotal: Number(data.eligible_subtotal || 0),
+          excludedSubtotal: Number(data.excluded_subtotal || 0),
+          appliesToAll: !!data.applies_to_all,
+        });
+      } catch (err) {
+        // Fallback: ბექთან კავშირი ვერ დამყარდა — იგივე წესით ვთვლით ლოკალურად
+        console.error("promo validate failed, falling back:", err);
+        if (cancelled) return;
+
+        try {
+          const res = await fetch(`${API_BASE}/promo-codes?per_page=200`);
+          const json = await res.json();
+          if (cancelled) return;
+
+          const found = (json.items || []).find(
+            (c) => String(c.code || "").toUpperCase() === code && c.is_active
+          );
+
+          if (!found) {
+            setPromo({
+              ...IDLE_PROMO,
+              status: "invalid",
+              code,
+              reason: "not_found",
+              message: PROMO_MESSAGES.not_found,
+            });
+            return;
+          }
+          if (promoEligibleSubtotal <= 0) {
+            setPromo({
+              ...IDLE_PROMO,
+              status: "invalid",
+              code,
+              reason: "all_items_on_sale",
+              message: PROMO_MESSAGES.all_items_on_sale,
+              excludedSubtotal: promoExcludedSubtotal,
+            });
+            return;
+          }
+
+          setPromo({
+            status: "valid",
+            code,
+            percent: Number(found.percent || 0),
+            discount: couponDiscountFor(promoEligibleSubtotal, found.percent),
+            reason: "ok",
+            message: PROMO_MESSAGES.ok,
+            eligibleSubtotal: promoEligibleSubtotal,
+            excludedSubtotal: promoExcludedSubtotal,
+            appliesToAll: promoExcludedSubtotal <= 0,
+          });
+        } catch (err2) {
+          console.error(err2);
+          if (cancelled) return;
+          setPromo({
+            ...IDLE_PROMO,
+            status: "invalid",
+            code,
+            reason: "not_found",
+            message: PROMO_MESSAGES.not_found,
+          });
+        }
       }
-    } catch (e) {
-      console.error(e);
-      setCouponDiscount(0);
-    }
-  };
+    }, 450);
 
-  applyCoupon();
-}, [formData.coupon_code, subtotal]);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.coupon_code, cartSignature, promoEligibleSubtotal, promoExcludedSubtotal]);
+
+  /**
+   * რეალურად გამოსაყენებელი პრომო ფასდაკლება.
+   * ყოველთვის მიმდინარე კალათის დასაშვებ ბაზაზე ითვლება (და არა პასუხის
+   * ჩაბეჭდილ თანხაზე), რომ რაოდენობის ცვლილებისას ციფრი არ ჩამორჩეს.
+   */
+  // კოდი "ჩართულია" — ვალიდურია, ან იმავე კოდის ხელახალი შემოწმება მიდის
+  const promoActive =
+    promo.status === "valid" ||
+    (promo.status === "checking" && promo.percent > 0);
+
+  const couponDiscount = useMemo(
+    () =>
+      promoActive ? couponDiscountFor(promoEligibleSubtotal, promo.percent) : 0,
+    [promoActive, promo.percent, promoEligibleSubtotal]
+  );
+
 const deliveryOptions = useMemo(() => {
   return [
     { value: "storePickup", label: "ადგილზე აღება" },
@@ -295,8 +451,18 @@ const deliveryOptions = useMemo(() => {
   const delivery_fee = Math.max(0, +(baseFee - delivDisc).toFixed(2));
   const extra_discount = couponDiscount;
   const total = Math.max(0, +(subtotal - extra_discount + delivery_fee).toFixed(2));
-  return { subtotal: +subtotal.toFixed(2), base_delivery_fee: baseFee, delivery_fee, delivery_discount: delivDisc, extra_discount, total };
-}, [subtotal, formData.deliveryOption, couponDiscount, selectedCourier]);
+  return {
+    subtotal: +subtotal.toFixed(2),
+    base_delivery_fee: baseFee,
+    delivery_fee,
+    delivery_discount: delivDisc,
+    extra_discount,
+    // პრომო კოდის ბაზა — ფასდაკლებული პროდუქტების გარეშე
+    promo_base: promoEligibleSubtotal,
+    promo_excluded: promoExcludedSubtotal,
+    total,
+  };
+}, [subtotal, formData.deliveryOption, couponDiscount, selectedCourier, promoEligibleSubtotal, promoExcludedSubtotal]);
 
 // GA4 begin_checkout — ერთხელ, როცა checkout იხსნება და კალათა შევსებულია
 useEffect(() => {
@@ -355,7 +521,11 @@ const handleChange = (e) => {
     ].filter(Boolean).join(", ");
 
     const draft = {
-      formData,
+      formData: {
+        ...formData,
+        // მხოლოდ ვალიდური კოდი მიდის ბექზე (ბექი მაინც თავიდან ამოწმებს)
+        coupon_code: promoActive ? promo.code : "",
+      },
       // GA4 client_id — backend-ის Measurement Protocol purchase-ისთვის (იგივე user/session)
       ga_client_id: getGaClientId(),
       items: cartItems.map((it) => ({
@@ -370,6 +540,7 @@ const handleChange = (e) => {
         subtotal:       Number(preview.subtotal),
         delivery_fee:   Number(preview.delivery_fee),
         extra_discount: Number(preview.extra_discount),
+        promo_base:     Number(preview.promo_base),
         total:          Number(preview.total),
       },
       pickup_address: DEFAULT_PICKUP_ADDRESS,
@@ -451,9 +622,12 @@ const handleChange = (e) => {
 
             {cartItems.map((item) => {
               const up = unitPrice(item);
-              const hasSale =
-                Number(item?.sale || 0) > 0 && Number(item.sale) <= 100;
+              const saleValue = normalizeSale(item?.sale);
+              const hasSale = saleValue > 0;
               const line = up * (item.quantity || 0);
+              // ფასდაკლებულ პროდუქტზე პრომო კოდი არ ვრცელდება
+              const promoApplies = promoActive && !hasSale;
+              const promoBlocked = promoActive && hasSale;
 
               return (
                 <div key={item.id} className={styles.cartItem}>
@@ -485,8 +659,26 @@ const handleChange = (e) => {
                     </span>
 
                     <div className={styles.itemPrice}>
+                      {hasSale && (
+                        <span className={styles.oldUnitPrice}>
+                          {fmt(Number(item.price || 0))} ₾
+                        </span>
+                      )}
                       {fmt(up)} ₾ × {item.quantity} = <b>{fmt(line)} ₾</b>
                     </div>
+
+                    {(promoApplies || promoBlocked) && (
+                      <div
+                        className={`${styles.promoChip} ${
+                          promoBlocked ? styles.promoChipBlocked : styles.promoChipActive
+                        }`}
+                        title={promoBlocked ? T.promoRuleHint : undefined}
+                      >
+                        {promoBlocked
+                          ? `🔒 ${T.promoExcludedChip} — უკვე ფასდაკლებულია −${saleValue}%`
+                          : `🏷️ ${T.promoAppliedChip} −${promo.percent}%`}
+                      </div>
+                    )}
 
                     {(stockMessageById[item.id] || item.quantity >= normalizeQuantity(stockById[item.id])) && (
                       <div className={styles.stockWarning}>
@@ -592,9 +784,31 @@ const handleChange = (e) => {
                 {T.subtotal}: <strong>{fmt(preview.subtotal)} ₾</strong>
               </div>
 
-              {preview.extra_discount > 0 && (
-                <div>
-{T.discount}: <strong>-{fmt(preview.extra_discount)} ₾</strong>
+              {productSavings > 0 && (
+                <div className={styles.savingsRow}>
+                  🏷️ {T.productSavings}: <strong>−{fmt(productSavings)} ₾</strong>
+                </div>
+              )}
+
+              {promoActive && preview.extra_discount > 0 && (
+                <>
+                  <div className={styles.savingsRow}>
+                    {T.promoDiscount} ({promo.code} −{promo.percent}%):{" "}
+                    <strong>−{fmt(preview.extra_discount)} ₾</strong>
+                  </div>
+                  {promoExcludedSubtotal > 0 && (
+                    <div className={styles.promoScopeNote}>
+                      {T.promoBase} <strong>{fmt(promoEligibleSubtotal)} ₾</strong>-ზე ·{" "}
+                      {T.onSaleItems} ({fmt(promoExcludedSubtotal)} ₾) არ მონაწილეობს
+                    </div>
+                  )}
+                </>
+              )}
+
+              {promo.status !== "valid" && promoExcludedSubtotal > 0 && (
+                <div className={styles.promoScopeNote}>
+                  🏷️ {T.onSaleItems}: <strong>{fmt(promoExcludedSubtotal)} ₾</strong> —{" "}
+                  {T.promoRuleHint}
                 </div>
               )}
 
@@ -674,6 +888,11 @@ const handleChange = (e) => {
           onChange={(e) => {
             handleChange(e);
             setSelectedCourier(null);
+            // ადგილზე აღებისას პრომო ველი იმალება — კოდიც ვასუფთავებთ,
+            // რომ დამალული კოდი ჩუმად არ გამოიყენოს
+            if (e.target.value === "storePickup") {
+              setFormData((prev) => ({ ...prev, coupon_code: "" }));
+            }
           }}
           className={styles.input}
           required
@@ -697,13 +916,49 @@ const handleChange = (e) => {
         )}
 
         {formData.deliveryOption !== "storePickup" && (
-          <input
-            name="coupon_code"
-            placeholder={T.promo}
-            value={formData.coupon_code}
-            onChange={handleChange}
-            className={styles.input}
-          />
+          <div className={styles.promoField}>
+            <input
+              name="coupon_code"
+              placeholder={T.promo}
+              value={formData.coupon_code}
+              onChange={handleChange}
+              className={`${styles.input} ${
+                promo.status === "valid"
+                  ? styles.inputValid
+                  : promo.status === "invalid"
+                  ? styles.inputInvalid
+                  : ""
+              }`}
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+            />
+
+            {promo.status === "checking" && (
+              <p className={styles.promoStatusChecking}>{T.promoChecking}</p>
+            )}
+
+            {promo.status === "valid" && (
+              <p className={styles.promoStatusValid}>
+                ✓ {promo.code} · −{promo.percent}% ={" "}
+                <strong>−{fmt(couponDiscount)} ₾</strong>
+                {promoExcludedSubtotal > 0 && (
+                  <span className={styles.promoStatusPartial}>
+                    {" "}
+                    — {T.promoRuleHint}
+                  </span>
+                )}
+              </p>
+            )}
+
+            {promo.status === "invalid" && (
+              <p className={styles.promoStatusInvalid}>✕ {promo.message}</p>
+            )}
+
+            {promo.status === "idle" && promoExcludedSubtotal > 0 && (
+              <p className={styles.promoStatusHint}>ℹ️ {T.promoRuleHint}</p>
+            )}
+          </div>
         )}
 
         <textarea

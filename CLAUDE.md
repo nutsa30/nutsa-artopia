@@ -56,11 +56,30 @@ On login (`pages/logIn/LoginPage.jsx`), the backend returns `{ token, role }`. B
 
 The support panel (`pages/supportPanel/`) is reached at `/admin/support-panel/:tab` (`products` | `no-photo`). Its API calls live in `src/admin/api.js` under the "Support" sections and use `bearerHeaders()` (Authorization: Bearer), **not** the `X-Admin-Token` `jfetch` path.
 
+### Discount rule: promo codes vs. product sale (IMPORTANT)
+
+**A promo code applies ONLY to products with no admin-set discount.** A product
+with `sale > 0` keeps its own discount and the coupon percent never touches it.
+
+`src/utils/pricing.js` holds the shared math — `normalizeSale`, `unitPrice`,
+`isPromoEligible`, `buildCartBreakdown` (→ `subtotal` / `eligibleSubtotal` /
+`excludedSubtotal` / per-line `promoEligible`), and `couponDiscountFor`. Import
+from there; don't re-derive the formula in a component. It mirrors the backend's
+`app/pricing.py`, which is the authoritative version.
+
+Checkout shows the rule rather than applying it silently:
+- an on-sale line gets an amber `🔒 პრომო არ ვრცელდება` chip and its original
+  price struck through; a full-price line gets a green `🏷️ პრომო −N%` chip
+- the totals block breaks out product savings and the promo discount, and names
+  the base the promo landed on when part of the cart is excluded
+- the promo input is a live status field (checking / valid / invalid) driven by
+  `POST /promo-codes/validate`
+
 ### Checkout & payments
 
 `src/components/Checkout/Checkout.jsx` handles the full checkout flow:
 - Delivery options: `storePickup` or `courierDelivery` (uses `DeliverySection` sub-component for address + courier selection)
-- Promo codes are validated client-side against `/promo-codes` endpoint
+- Promo codes are validated by `POST /promo-codes/validate` (debounced ~450 ms, re-run whenever the cart changes). If that call fails, it falls back to the public `GET /promo-codes` list and applies the same eligible-only rule locally. Only a code that actually validated is sent with the order.
 - Payment is initiated via `POST /payments/bog/create` (Bank of Georgia), which returns a `redirect_url`; the user is hard-redirected to the BOG payment page
 - Result is handled at `/payment/result` (`PaymentResult` component)
 

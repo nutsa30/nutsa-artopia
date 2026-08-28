@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "./PromoCodes.module.css";
-import { Plus, Trash2, Ticket, RefreshCw } from "lucide-react";
+import { Plus, Trash2, Ticket, RefreshCw, Info } from "lucide-react";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
@@ -108,6 +108,16 @@ const PromoCodes = () => {
 
       {msg && <div className={styles.alertSuccess}>{msg}</div>}
       {err && <div className={styles.alertError}>{err}</div>}
+
+      <div className={styles.ruleNote}>
+        <Info size={18} />
+        <span>
+          <strong>წესი:</strong> პრომო კოდი <u>არ ვრცელდება</u> იმ პროდუქტებზე,
+          რომლებსაც უკვე აქვთ ფასდაკლება — მათზე მოქმედებს მხოლოდ საკუთარი
+          ფასდაკლება. კოდი მუშაობს მხოლოდ სრულფასიან პროდუქტებზე, და პროცენტიც
+          სწორედ მათ ჯამს აკლდება.
+        </span>
+      </div>
 
       <div className={styles.createCard}>
         <h3>ახალი კოდის დამატება</h3>
