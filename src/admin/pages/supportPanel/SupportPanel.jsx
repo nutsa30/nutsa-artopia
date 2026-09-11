@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Search, X, LogOut, Plus, Check, ChevronLeft, ChevronRight, ShoppingBag, ImageOff } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./SupportPanel.module.css";
+import { cld, IMG } from "../../../utils/cloudinary";
 import NoPhotoProducts from "./NoPhotoProducts";
 import {
   getSupportProducts,
@@ -245,7 +246,7 @@ export default function SupportPanel() {
                   <div key={p.id} className={styles.card}>
                     <div className={styles.cardImg}>
                       <img
-                        src={p.image_url1 || PLACEHOLDER}
+                        src={cld(p.image_url1, { w: IMG.ADMIN }) || PLACEHOLDER}
                         alt={p.name}
                         onError={(e) => { e.target.src = PLACEHOLDER; }}
                       />
@@ -320,7 +321,7 @@ export default function SupportPanel() {
                 <li key={item.id} className={styles.restockItem}>
                   <img
                     className={styles.restockThumb}
-                    src={item.product_image1 || PLACEHOLDER}
+                    src={cld(item.product_image1, { w: IMG.ADMIN }) || PLACEHOLDER}
                     alt={item.product_name}
                     onError={(e) => { e.target.src = PLACEHOLDER; }}
                   />

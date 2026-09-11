@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ClipboardList, Check, Loader2, Download } from "lucide-react";
 import styles from "./AdminRestock.module.css";
+import { cld, IMG } from "../../../utils/cloudinary";
 import { getAdminRestock, markRestockBrought, exportRestockBySupplier } from "../../api";
 
 function formatDate(iso) {
@@ -214,7 +215,7 @@ export default function AdminRestock() {
                       </td>
                       <td className={styles.tdPhoto}>
                         <img
-                          src={item.product_image1 || PLACEHOLDER}
+                          src={cld(item.product_image1, { w: IMG.ADMIN }) || PLACEHOLDER}
                           alt={item.product_name}
                           className={styles.thumb}
                           onError={(e) => { e.target.src = PLACEHOLDER; }}
@@ -255,7 +256,7 @@ export default function AdminRestock() {
                         onClick={(e) => e.stopPropagation()}
                       />
                       <img
-                        src={item.product_image1 || PLACEHOLDER}
+                        src={cld(item.product_image1, { w: IMG.ADMIN }) || PLACEHOLDER}
                         alt={item.product_name}
                         className={styles.mobileThumb}
                         onError={(e) => { e.target.src = PLACEHOLDER; }}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./HomeBlogs.module.css";
+import { cld, IMG } from "../../utils/cloudinary";
 
 /* API BASE */
 const API_BASE =
@@ -144,7 +145,7 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
               >
                 <div className={styles.cardImageWrap}>
                   <img
-                    src={cover}
+                    src={cld(cover, { w: IMG.BLOG_CARD })}
                     alt={title}
                     className={styles.productImage}
                     style={{ objectFit: "cover" }}

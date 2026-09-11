@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "./OrderHistory.module.css";
+import { cld, IMG } from "../../../utils/cloudinary";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
@@ -396,7 +397,7 @@ const OrderHistory = () => {
                                       <tr key={idx}>
                                         <td>
                                           {img ? (
-                                            <img src={img} alt={it.name || "item"} className={styles.itemThumb} />
+                                            <img src={cld(img, { w: IMG.ADMIN })} alt={it.name || "item"} className={styles.itemThumb} loading="lazy" />
                                           ) : (
                                             <div className={styles.noImage}>ფოტო<br/>არ არის</div>
                                           )}
@@ -421,7 +422,7 @@ const OrderHistory = () => {
                                   <div key={idx} className={styles.mobileItemCard}>
                                     <div className={styles.mobileItemTop}>
                                       {img ? (
-                                        <img src={img} alt={it.name || "item"} className={styles.mobileItemThumb} />
+                                        <img src={cld(img, { w: IMG.ADMIN })} alt={it.name || "item"} className={styles.mobileItemThumb} loading="lazy" />
                                       ) : (
                                         <div className={styles.noImageMobile}>ფოტო<br/>არ არის</div>
                                       )}

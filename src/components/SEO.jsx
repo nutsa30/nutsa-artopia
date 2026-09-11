@@ -1,5 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
+import { cld, IMG } from "../utils/cloudinary";
 
 const DEFAULT_IMAGE = "https://artopia.ge/social-preview.png";
 const SITE_NAME = "Artopia";
@@ -21,7 +22,11 @@ const SEO = ({
   const cleanTitle = clean(title);
   const cleanDescription = clean(description);
   const cleanUrl = clean(url);
-  const cleanImage = clean(image);
+  // og:image-ს სოციალური ქსელების და საძიებოების crawler-ები იწევენ, ხშირად
+  // განმეორებით. ორიგინალის ნაცვლად 1200px-იან ვერსიას ვაწვდით — crawler-ები,
+  // რომლებიც AVIF/WebP-ს არ უჭერენ მხარს, `f_auto`-ს წყალობით ისევ თავიანთ
+  // ფორმატს იღებენ, უბრალოდ გაცილებით მსუბუქს.
+  const cleanImage = cld(clean(image), { w: IMG.DETAIL });
 
   const fullTitle = cleanTitle
     ? cleanTitle.includes(SITE_NAME)

@@ -11,6 +11,7 @@ import { Helmet } from "react-helmet-async";
 import AlsoBuyModal from "../components/AlsoBuy/AlsoBuyModal";
 import { trackViewItem } from "../utils/analytics";
 import CategoryIcon from "../utils/categoryIcons";
+import { cld, IMG } from "../utils/cloudinary";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const NO_IMAGE = "/noimage.jpeg";
@@ -375,7 +376,7 @@ navigate(-1);
               )}
 
 <img
-  src={images.length > 0 ? images[currentImageIndex] : NO_IMAGE}
+  src={images.length > 0 ? cld(images[currentImageIndex], { w: IMG.DETAIL }) : NO_IMAGE}
   alt={`${title} - ${category} Artopia`}
   className={styles.productImage}
   loading="eager"
@@ -414,8 +415,10 @@ navigate(-1);
         onClick={() => setCurrentImageIndex(i)}
       >
 <img
-  src={img}
+  src={cld(img, { w: IMG.THUMB })}
   alt={`${title} ${category} ფოტო ${i + 1} - Artopia`}
+  loading="lazy"
+  decoding="async"
 />
       </button>
     ))}
@@ -549,7 +552,7 @@ navigate(-1);
       </button>
 
       <img
-        src={images[currentImageIndex]}
+        src={cld(images[currentImageIndex], { w: IMG.ZOOM })}
 alt={`${title} ${category} დეტალური ფოტო - Artopia`}
         className={styles.modalImage}
       />
@@ -615,7 +618,7 @@ alt={`${title} ${category} დეტალური ფოტო - Artopia`}
             onClick={() => handleRelatedProductClick(item)}
           >
         <img
-  src={item.image_url1 || NO_IMAGE}
+  src={cld(item.image_url1, { w: IMG.CARD }) || NO_IMAGE}
   alt={`${item.name} Artopia`}
   className={styles.relatedImage}
   loading="lazy"

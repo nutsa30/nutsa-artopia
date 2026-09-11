@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./BlogsDetailPage.module.css";
+import { cld, IMG } from "../utils/cloudinary";
 import SEO from "../components/SEO";
 import AppLoader from "../components/loaders/AppLoader";
 
@@ -300,7 +301,7 @@ if (loading) {
               {coverImage && (
                 <div className={styles.coverWrap}>
                   <img
-                    src={coverImage}
+                    src={cld(coverImage, { w: IMG.DETAIL })}
                     alt={title}
                     className={styles.coverImage}
                     loading="eager"
@@ -334,7 +335,7 @@ if (loading) {
       {hasImage && (
         <div className={styles.sectionImageWrap}>
           <img
-            src={section.image_url}
+            src={cld(section.image_url, { w: IMG.DETAIL })}
             alt={stripHtml(section.text || title).slice(0, 100) || title}
             className={styles.sectionImage}
             loading="lazy"
@@ -375,7 +376,7 @@ if (loading) {
           }}
         >
    <img
-  src={b.cover_image || "/noimage.jpeg"}
+  src={cld(b.cover_image, { w: IMG.BLOG_CARD }) || "/noimage.jpeg"}
   style={{
     width: "100%",
     height: "180px",
@@ -416,7 +417,7 @@ if (loading) {
     {preview.type === "product" && (
       <>
         <img
-          src={preview.data.image_url1}
+          src={cld(preview.data.image_url1, { w: IMG.CARD })}
           style={{ width: "100%", borderRadius: "8px" }}
         />
         <p style={{ marginTop: "8px", color: "white" }}>
@@ -428,7 +429,7 @@ if (loading) {
     {preview.type === "blog" && (
       <>
         <img
-          src={preview.data.cover_image}
+          src={cld(preview.data.cover_image, { w: IMG.CARD })}
           style={{ width: "100%", borderRadius: "8px" }}
         />
         <p style={{ marginTop: "8px", color: "white" }}>

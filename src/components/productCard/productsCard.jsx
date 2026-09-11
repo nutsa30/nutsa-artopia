@@ -3,6 +3,7 @@ import styles from "./ProductsCard.module.css";
 import { useFlyToCart } from "../useFlyToCart";
 import { useCartUiRefs } from "../Navbar/Navbar";
 import { playSound } from "../../utils/playSound";
+import { cld, IMG } from "../../utils/cloudinary";
 import popSfx from "../../assets/pop.mp3";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
@@ -136,7 +137,7 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
 <img
   ref={imgRef}
   className={styles.image}
-  src={product.image_url1 || "/noimage.jpeg"}
+  src={cld(product.image_url1, { w: IMG.CARD }) || "/noimage.jpeg"}
   alt={`${title} - ${category} Artopia`}
   loading="lazy"
   decoding="async"

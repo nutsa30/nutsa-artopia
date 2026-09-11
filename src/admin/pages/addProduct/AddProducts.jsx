@@ -7,6 +7,7 @@ import {
   deleteProductImage,
 } from "../../api";
 import styles from "./AddProducts.module.css";
+import { cld, IMG } from "../../../utils/cloudinary";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 /** Max images */
@@ -504,7 +505,7 @@ return (
             {previews.map((url, index) =>
               url ? (
                 <div key={index} className={styles.imageWrapper}>
-                  <img src={url} className={styles.previewImage} />
+                  <img src={cld(url, { w: IMG.ADMIN })} className={styles.previewImage} />
                   <button
                     type="button"
                     className={styles.deleteBtn}

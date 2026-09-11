@@ -4,6 +4,7 @@ import {
   Tag, DollarSign, Users, Star,
 } from "lucide-react";
 import styles from "./Analytics.module.css";
+import { cld, IMG } from "../../../utils/cloudinary";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
@@ -220,7 +221,7 @@ function ProductRow({ rank, item, highlight }) {
     <div className={`${styles.productRow} ${highlight ? styles.productRowTop : ""}`}>
       <span className={styles.productRank}>{rank}</span>
       {item.image_url ? (
-        <img src={item.image_url} alt={item.name} className={styles.productThumb} />
+        <img src={cld(item.image_url, { w: IMG.ADMIN })} alt={item.name} className={styles.productThumb} loading="lazy" />
       ) : (
         <div className={styles.productThumbEmpty} />
       )}
@@ -449,7 +450,7 @@ export default function Analytics() {
                 : hotSale.map((item, i) => (
                     <div key={i} className={styles.hotRow}>
                       {item.image_url
-                        ? <img src={item.image_url} alt={item.name} className={styles.hotThumb} />
+                        ? <img src={cld(item.image_url, { w: IMG.ADMIN })} alt={item.name} className={styles.hotThumb} loading="lazy" />
                         : <div className={styles.hotThumbEmpty} />
                       }
                       <div className={styles.hotInfo}>

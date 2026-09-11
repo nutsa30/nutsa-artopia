@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./Menu.module.css";
+import { cld, IMG } from "../../../utils/cloudinary";
 import { useNavigate } from "react-router-dom";
 import EdgePager from "../../../components/pagination/EdgePager";
 import { 
@@ -236,7 +237,7 @@ const Menu = () => {
                   <div className={styles.productInfo}>
                     <div className={styles.imgContainer}>
                       {p.images[0] ? (
-                        <img src={p.images[0]} alt="" className={styles.mainImg} />
+                        <img src={cld(p.images[0], { w: IMG.ADMIN })} alt="" className={styles.mainImg} loading="lazy" decoding="async" />
                       ) : (
                         <div className={styles.noImg}><Package size={20} /></div>
                       )}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import s from "./AddHomeImg.module.css";
+import { cld, IMG } from "../../../utils/cloudinary";
 const CLOUD_NAME = "dch8gnj7d";
 const UPLOAD_PRESET = "artopia_unsigned";
 
@@ -178,7 +179,7 @@ onChange={(e) => {
   <div className={s.previewGrid}>
     {previewUrls.map((url, i) => (
       <div key={i} className={s.previewItem}>
-        <img src={url} alt="preview" />
+        <img src={cld(url, { w: IMG.ADMIN })} alt="preview" />
       </div>
     ))}
   </div>
@@ -225,7 +226,7 @@ onChange={(e) => {
         {items.map((it) => (
           <div key={it.id} className={s.cardItem}>
             <div className={s.imgWrap}>
-              <img src={it.image_url} />
+              <img src={cld(it.image_url, { w: IMG.ADMIN })} loading="lazy" />
               {!it.is_active && <span className={s.badge}>გამორთული</span>}
             </div>
 

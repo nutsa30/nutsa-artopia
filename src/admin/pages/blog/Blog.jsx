@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./Blog.module.css";
+import { cld, IMG } from "../../../utils/cloudinary";
 import { useNavigate, useLocation } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -545,7 +546,7 @@ const renderLabel = (text, key, helpText) => (
     {seoData.og_image && (
       <div className={styles.seoImageWrap}>
         <strong>OG Image:</strong>
-        <img src={seoData.og_image} alt="OG Preview" className={styles.seoImage} />
+        <img src={cld(seoData.og_image, { w: IMG.ADMIN })} alt="OG Preview" className={styles.seoImage} />
       </div>
     )}
   </div>
@@ -595,7 +596,7 @@ const renderLabel = (text, key, helpText) => (
   {(coverPreview || form.cover_image) ? (
     <div className={styles.imagePreviewCard}>
       <img
-        src={coverPreview || form.cover_image}
+        src={cld(coverPreview || form.cover_image, { w: IMG.BLOG_CARD })}
         className={styles.blogImage}
         alt="cover"
       />
@@ -693,7 +694,7 @@ const renderLabel = (text, key, helpText) => (
                       {s.image_preview ? (
                         <div className={styles.imagePreviewCard}>
                           <img
-                            src={s.image_preview}
+                            src={cld(s.image_preview, { w: IMG.BLOG_CARD })}
                             className={styles.blogImage}
                             alt={`section-${idx + 1}`}
                           />
@@ -785,7 +786,7 @@ const renderLabel = (text, key, helpText) => (
                       {b.cover_image && (
                         <div className={styles.coverWrap}>
                           <img
-                            src={b.cover_image}
+                            src={cld(b.cover_image, { w: IMG.ADMIN })}
                             alt={b.title || "blog cover"}
                             className={styles.coverImage}
                           />

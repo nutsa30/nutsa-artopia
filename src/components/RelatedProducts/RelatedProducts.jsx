@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "./RelatedProducts.module.css";
+import { cld, IMG } from "../../utils/cloudinary";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
 
@@ -157,7 +158,7 @@ const relatedProducts = products;
             >
               <div className={styles.imageWrap}>
 <img
-  src={getDisplayImage(item)}
+  src={cld(getDisplayImage(item), { w: IMG.CARD })}
   alt={`${item?.name} - მსგავსი პროდუქტი Artopia`}
   className={styles.image}
   loading="lazy"

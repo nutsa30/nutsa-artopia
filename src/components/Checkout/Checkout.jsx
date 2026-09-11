@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import styles from "./Checkout.module.css";
+import { cld, IMG } from "../../utils/cloudinary";
 import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
 import DeliverySection from "./DeliverySection";
@@ -647,7 +648,7 @@ const handleChange = (e) => {
                     )}
 
                     <img
-                      src={item.image_url1 || "https://via.placeholder.com/60"}
+                      src={cld(item.image_url1, { w: IMG.MINI }) || "https://via.placeholder.com/60"}
                       alt={item.name}
                       className={styles.thumb}
                     />

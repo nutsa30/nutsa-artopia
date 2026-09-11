@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./AlsoBuyModal.module.css";
+import { cld, IMG } from "../../utils/cloudinary";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const NO_IMAGE = "/noimage.jpeg";
@@ -130,7 +131,7 @@ export default function AlsoBuyModal({ alsoBuyIds = [], isOpen, onClose }) {
                         <span className={styles.saleBadge}>-{item.sale}%</span>
                       )}
                       <img
-                        src={getImage(item)}
+                        src={cld(getImage(item), { w: IMG.CARD })}
                         alt={item.name}
                         className={styles.image}
                         loading="lazy"

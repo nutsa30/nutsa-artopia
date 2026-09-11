@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Search, Plus, X, Loader2, CheckCircle, Save } from "lucide-react";
 import styles from "./NoPhotoProducts.module.css";
+import { cld, IMG } from "../../../utils/cloudinary";
 import {
   getNoPhotoProducts,
   getSupportCategories,
@@ -264,7 +265,7 @@ export default function NoPhotoProducts() {
                   <div className={styles.photoRow}>
                     {photos.map((photo, idx) => (
                       <div key={photo.url} className={styles.thumbWrap}>
-                        <img src={photo.url} alt="" className={styles.thumb} />
+                        <img src={cld(photo.url, { w: IMG.ADMIN })} alt="" className={styles.thumb} loading="lazy" />
                         {!isProcessing && !isDone && (
                           <button
                             className={styles.removeThumb}

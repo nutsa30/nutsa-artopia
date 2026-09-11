@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCart } from '../CartContext/CartContext';
 import styles from './CartDropdown.module.css';
+import { cld, IMG } from '../../utils/cloudinary';
 import { useNavigate } from 'react-router-dom';
 
 const API_BASE = 'https://artopia-backend-2024-54872c79acdd.herokuapp.com/';
@@ -185,7 +186,7 @@ const maxQty = getMaxQty(item);
                         )}
 
                         <img
-                          src={item.image_url1 || 'https://via.placeholder.com/60'}
+                          src={cld(item.image_url1, { w: IMG.MINI }) || 'https://via.placeholder.com/60'}
                           alt={item.name}
                           className={styles.itemImage}
                         />
