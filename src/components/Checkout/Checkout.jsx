@@ -23,6 +23,7 @@ import {
   cartHasEngraving,
   engravingUnits,
   engravingSummary,
+  engravingThumb,
   engravingPickupLabel,
   MAX_ENGRAVED_UNITS,
   PRODUCTION_LABEL,
@@ -629,7 +630,11 @@ const Checkout = () => {
                     )}
 
                     <img
-                      src={cld(item.image_url1, { w: IMG.MINI }) || "https://via.placeholder.com/60"}
+                      src={
+                        (isEngr
+                          ? engravingThumb(item.image_url1, IMG.MINI)
+                          : cld(item.image_url1, { w: IMG.MINI })) || "https://via.placeholder.com/60"
+                      }
                       alt={item.name}
                       className={styles.thumb}
                     />

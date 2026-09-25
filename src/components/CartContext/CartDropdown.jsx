@@ -8,6 +8,7 @@ import {
   isEngravingItem,
   engravingUnits,
   engravingSummary,
+  engravingThumb,
   MAX_ENGRAVED_UNITS,
 } from '../../utils/engraving';
 
@@ -184,7 +185,7 @@ const maxQty = getMaxQty(item);
 
                   return (
                     <div className={styles.cartItem} key={id}>
-                      {item?.sale && (
+                      {Number(item?.sale) > 0 && (
                         <div className={styles.saleTag}>
                           <span>
                             <b>-{Number(item.sale)}%</b>
@@ -200,7 +201,11 @@ const maxQty = getMaxQty(item);
                         )}
 
                         <img
-                          src={cld(item.image_url1, { w: IMG.MINI }) || 'https://via.placeholder.com/60'}
+                          src={
+                            (isEngravingItem(item)
+                              ? engravingThumb(item.image_url1, IMG.MINI)
+                              : cld(item.image_url1, { w: IMG.MINI })) || 'https://via.placeholder.com/60'
+                          }
                           alt={item.name}
                           className={styles.itemImage}
                         />

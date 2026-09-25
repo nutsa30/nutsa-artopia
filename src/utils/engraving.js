@@ -388,6 +388,18 @@ export const engravingPickupLabel = (now = new Date()) =>
 
 export const engravingCourierEta = (baseEta) => `დამზადება ${PRODUCTION_LABEL} + მიტანა ${baseEta}`;
 
+/**
+ * კალათის მინიატურა გრავირების 3D პრევიუდან: პრევიუ ფართო ველებითაა
+ * გადაღებული, ამიტომ Cloudinary ფონს აჭრის (e_trim) და ნივთს კვადრატში
+ * სვამს (c_pad) — პატარა ესკიზში ნივთი მთელ ადგილს იკავებს.
+ */
+const CLD_UPLOAD_RE = /^(https?:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(.+)$/i;
+export const engravingThumb = (url, px = 160) => {
+  const m = typeof url === "string" ? url.match(CLD_UPLOAD_RE) : null;
+  if (!m) return url;
+  return `${m[1]}e_trim:10/c_pad,w_${px},h_${px},b_rgb:eef1f5/f_auto,q_auto/${m[2]}`;
+};
+
 /* ---------- კალათა ---------- */
 export const isEngravingItem = (item) => !!item?.engraving_token;
 
