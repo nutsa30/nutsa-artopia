@@ -36,6 +36,8 @@ import PrivacyPage from "./pages/PrivacyPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import ScrollToTop from "./components/ScrollToTop";
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
+// 3D (three.js) მხოლოდ ამ გვერდს სჭირდება — ცალკე ჩანქად იტვირთება
+const EngravingPage = React.lazy(() => import("./pages/EngravingPage"));
 
 const CartToastWrapper = () => {
   const { showToast } = useCart();
@@ -144,6 +146,15 @@ const ChatMountIfNotAdmin = () => {
 <Route path="/products/category/:slug" element={<ProductsPage />} />
 
 <Route path="/products/:slug" element={<SingleProductPage />} />
+
+<Route
+  path="/engraving"
+  element={
+    <React.Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
+      <EngravingPage />
+    </React.Suspense>
+  }
+/>
 
 <Route path="/blogs" element={<BlogsPage />} />
 

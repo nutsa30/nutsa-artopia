@@ -42,7 +42,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  /* თუ ოდესმე არ დაეტია — პირველი ტაბი არ მოიჭრება, ზოლი გადაისქროლება */
+  justify-content: safe center;
+  gap: 0.5rem;
   flex-wrap: nowrap;   /* 👈 ეს შეცვალე */
   overflow-x: auto;    /* 👈 ეს დაამატე */
   margin: 0 1rem;
@@ -189,11 +191,11 @@
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 
-  padding: 0 0.75rem;
+  padding: 0 0.6rem;
   white-space: nowrap;
   gap: 0.5rem;              /* 👈 ტექსტსა და აიკონს შორის სივრცე */
 }
-.iconWrapActive { width: 150px; gap: 0.5rem; justify-content: flex-start; }
+.iconWrapActive { width: auto; gap: 0.5rem; justify-content: flex-start; }
 .iconLabel {
   font-size: 14px;
   font-weight: bold;
@@ -230,6 +232,11 @@
 /* ≥1290px — ოდნავ კომპაქტური padding */
 @media (min-width: 1290px) {
   .tabbar { width: min(1200px, 90vw); padding: 0.9rem 1.1rem; }
+}
+
+/* 801–1365px — 5 წარწერიანი ტაბი აღარ ეტევა: წარწერა მხოლოდ აქტიურს აქვს */
+@media (min-width: 801px) and (max-width: 1365px) {
+  .tabItem:not(.active) .iconLabel { display: none; }
 }
 
 /* ≤1024px — ჯერ კიდევ ერთრიგიანად, მაგრამ კომპაქტური */

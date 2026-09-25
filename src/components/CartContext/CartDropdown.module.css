@@ -532,3 +532,11 @@
     
   }
 }
+/* გრავირებული ნივთის მოკლე აღწერა (ტექსტი · შრიფტი · ფოტო) */
+.engravingNote {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #fcd34d;
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+}

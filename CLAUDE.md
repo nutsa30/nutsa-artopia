@@ -117,6 +117,37 @@ instant UI preview.
   imports `@tailwind`/`@import "tailwindcss"`; Tailwind classes here would be
   silently inert).
 
+### Engraving (`/engraving`, გრავირება)
+
+Customers put text and/or a photo on a gold pen (25₾) or a wooden keychain
+(13₾, both sides 20₾), see it on the real 3D model, and add it to the cart.
+Rules mirror the backend's `app/engraving.py` (authoritative) in
+`src/utils/engraving.js`: prices, 5 units per order max, 2-3 business-day
+production (whole order waits), no promo code, no 20₾ minimum, card-only.
+
+| File | Role |
+|---|---|
+| `src/pages/EngravingPage.jsx` | the page: 1) text/font/photo, 2) product, 3) 3D preview + add to cart. Lazy-loaded (three.js chunk) |
+| `src/components/Engraving/EngravingViewer.jsx` | three.js viewer. Engraving overlay geometry is **measured per model** (pen: tapered shell around the barrel axis; keychain: planes on both flat faces) and scaled to real mm (pen 138 mm, keychain 35 mm) |
+| `src/components/Engraving/compose.js` | lays text/photo into the zone in mm; same function renders the 3D texture (40 px/mm) and the laser PNG (20 px/mm) → preview == output |
+| `src/components/Engraving/photo.js` | photo → pure black/white mask (contrast / dots dithering, lighten/darken, invert) |
+| `src/components/Engraving/fonts.js` | loads the 8 self-hosted fonts in `public/fonts/engraving` (OFL) via FontFace before drawing |
+| `public/models/engraving/*.glb` | the owner's own 4K models — **never recompress or edit them** |
+
+Cart lines: `{ id: "engr:<token>", engraving_token, engraving: {...} }`. Stock
+fetches skip them; `isPromoEligible` is false for them; checkout hides "pay on
+site" and switches the pickup/courier ETA text when the cart has one.
+
+Admin (`OrderHistory.jsx`): engraving orders get an amber border + badge; the
+details open with the engraving block (preview, text, font, photo, download
+links for the laser PNG / original photo) and a "მზადაა" button that emails
+the customer.
+
+**Local testing:** Heroku's CORS rejects localhost. Put
+`VITE_API_OVERRIDE=http://localhost:5055` in `.env.development.local` (gitignored)
+and `src/main.jsx` rewrites Heroku URLs to that backend — dev server only, it is
+compiled out of production builds.
+
 ### SEO
 
 `src/components/SEO.jsx` wraps `react-helmet-async`'s `<Helmet>`. Use it in every page with `title`, `description`, and `url` props. The component auto-appends `| Artopia` to titles and sets Georgian locale (`ka_GE`) by default.

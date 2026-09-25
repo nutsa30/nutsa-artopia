@@ -79,6 +79,16 @@
   margin-bottom: 8px;
 }
 
+/* გრავირებული ნივთის აღწერა (ტექსტი · შრიფტი · ფოტო) */
+.engravingNote {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #fcd34d;
+  margin: -2px 0 6px;
+  overflow-wrap: anywhere;
+}
+
 /* ორიგინალი ფასი — ადმინის ფასდაკლების გვერდით */
 .oldUnitPrice {
   text-decoration: line-through;

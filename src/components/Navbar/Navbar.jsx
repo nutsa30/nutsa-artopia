@@ -3,13 +3,14 @@ import styles from "./Navbar.module.css";
 import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../CartContext/CartContext";
 import CartDropdown from "../CartContext/CartDropdown";
-import { Home, ShoppingBag, LetterText, MessagesSquare } from "lucide-react";
+import { Home, ShoppingBag, LetterText, MessagesSquare, PenTool } from "lucide-react";
 import geFlag from "../../assets/georgiaflag.png";
 import enFlag from "../../assets/britishflag.png";
 /* ---------- Tabs ---------- */
 const tabs = [
   { id: "home", path: "/", icon: <Home size={18} /> },
   { id: "shopping", path: "/products", icon: <ShoppingBag size={18} /> },
+  { id: "engraving", path: "/engraving", icon: <PenTool size={18} /> },
   { id: "blogs", path: "/blogs", icon: <LetterText size={18} /> },
   { id: "contacts", path: "/contacts", icon: <MessagesSquare size={18} /> },
 ];
@@ -18,6 +19,7 @@ const tabs = [
 const L = {
   home: "მთავარი",
   shopping: "პროდუქტები",
+  engraving: "გრავირება",
   blogs: "არტ ბლოგი",
   contacts: "კონტაქტები",
   brand: "არტოპია",

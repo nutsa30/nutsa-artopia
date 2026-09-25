@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { PRODUCTION_LABEL } from "../../utils/engraving";
 import styles from "./Checkout.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../CartContext/CartContext";
@@ -10,6 +11,7 @@ const LBL = {
   msgSuccess: "გადახდა წარმატებით შესრულდა და თქვენი შეკვეთა მიღებულია.",
   msgFail: "გადახდა ვერ შესრულდა, შეკვეთა არ განთავსდა.",
   backToShop: "დაბრუნება პროდუქტებზე",
+  engravingNote: `გრავირებული ნივთის დამზადებას სჭირდება ${PRODUCTION_LABEL} — მზადყოფნისას ელ-ფოსტით შეგატყობინებთ.`,
 };
 
 const PaymentResult = () => {
@@ -22,6 +24,15 @@ const PaymentResult = () => {
   const status = params.get("status"); // "success" | "fail"
   const state = params.get("state") || "";
   const isSuccess = status === "success";
+
+  // pending_purchase effect-ში იშლება — გრავირების ნიშანს პირველ რენდერამდე ვიღებთ
+  const [hadEngraving] = useState(() => {
+    try {
+      return !!JSON.parse(sessionStorage.getItem("pending_purchase") || "null")?.has_engraving;
+    } catch {
+      return false;
+    }
+  });
 
   // ✅ success-ზე ქოლბექის დარეკვა + კალათის გასუფთავება
   useEffect(() => {
@@ -74,6 +85,12 @@ const PaymentResult = () => {
           <div style={{ fontSize: 18, marginBottom: 8 }}>
             {isSuccess ? T.msgSuccess : T.msgFail}
           </div>
+
+          {isSuccess && hadEngraving && (
+            <div style={{ fontSize: 15, marginBottom: 8, color: "#fde68a" }}>
+              {T.engravingNote}
+            </div>
+          )}
 
           {state ? (
             <small style={{ opacity: 0.7 }}>

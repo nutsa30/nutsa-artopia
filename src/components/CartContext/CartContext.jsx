@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext,useEffect } from 'react';
 import { trackAddToCart } from '../../utils/analytics';
+import { isEngravingItem, engravingUnits, MAX_ENGRAVED_UNITS } from '../../utils/engraving';
 
 // 1. კონტექსტის შექმნა
 const CartContext = createContext();
@@ -102,6 +103,33 @@ const addToCart = (product, qty = 1) => {
   }
 };
 
+  /**
+   * გრავირებული ნივთის დამატება. ყოველი დიზაინი ცალკე ხაზია (id = "engr:<token>"),
+   * მარაგს არ ვამოწმებთ — ლიმიტი მხოლოდ ერთ შეკვეთაში ჯამური 5 ცალია.
+   * აბრუნებს true-ს, თუ დაემატა.
+   */
+  const addEngravingToCart = (line, qty = 1) => {
+    const others = engravingUnits(cartItems.filter((it) => it.id !== line.id));
+    const existing = cartItems.find((it) => it.id === line.id);
+    const nextQty = (existing ? existing.quantity : 0) + qty;
+    if (others + nextQty > MAX_ENGRAVED_UNITS) return false;
+
+    setCartItems((prev) => {
+      if (prev.some((it) => it.id === line.id)) {
+        return prev.map((it) => (it.id === line.id ? { ...it, quantity: nextQty } : it));
+      }
+      return [...prev, { ...line, price: Number(line.price), sale: 0, quantity: qty }];
+    });
+
+    setShowToast(false);
+    setTimeout(() => {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 1800);
+    }, 10);
+    trackAddToCart({ ...line, price: Number(line.price) }, qty);
+    return true;
+  };
+
   // პროდუქტის წაშლა კალათიდან
   const removeFromCart = (productId) => {
     setCartItems(prev => prev.filter(item => item.id !== productId));
@@ -112,6 +140,14 @@ const updateQuantity = (productId, amount) => {
   setCartItems(prev =>
     prev.map(item => {
       if (item.id !== productId) return item;
+
+      // გრავირება: მარაგი არ აქვს, ლიმიტი — შეკვეთაში ჯამური 5 ცალი
+      if (isEngravingItem(item)) {
+        const others = engravingUnits(prev.filter((it) => it.id !== item.id));
+        const newQty = Math.max(1, item.quantity + amount);
+        if (others + newQty > MAX_ENGRAVED_UNITS) return item;
+        return { ...item, quantity: newQty };
+      }
 
       const maxQty = item?.maxQty ?? 0;
       const newQty = item.quantity + amount;
@@ -154,6 +190,7 @@ const getTotalPrice = () => {
       value={{
         cartItems,
         addToCart,
+        addEngravingToCart,
         removeFromCart,
         updateQuantity,
         getTotalPrice,

@@ -13,6 +13,8 @@
  *   ორივე მხარე ერთსა და იმავე შედეგს უნდა იძლეოდეს.
  */
 
+import { engravingCourierEta } from "./engraving";
+
 /** sale-ის უსაფრთხო ნორმალიზება 0..100 დიაპაზონში (არავალიდური → 0) */
 export const normalizeSale = (value) => {
   const s = Number(value);
@@ -35,8 +37,10 @@ export const originalPrice = (item) => {
   return Number.isFinite(price) && price > 0 ? +price.toFixed(2) : 0;
 };
 
-/** true — თუ პროდუქტზე პრომო კოდს უფლება აქვს (ე.ი. ადმინის ფასდაკლება არ აქვს) */
-export const isPromoEligible = (item) => normalizeSale(item?.sale) === 0;
+/** true — თუ პროდუქტზე პრომო კოდს უფლება აქვს (ე.ი. ადმინის ფასდაკლება არ აქვს
+ *  და გრავირებული არ არის — გრავირებაზე პრომო კოდი არასდროს ვრცელდება) */
+export const isPromoEligible = (item) =>
+  !item?.engraving_token && normalizeSale(item?.sale) === 0;
 
 const normalizeQuantity = (value) => {
   const q = Number(value);
@@ -114,13 +118,15 @@ export const isTbilisiCity = (city) => {
   return lc === "tbilisi" || lc === "თბილისი";
 };
 
-/** {isTbilisi, baseFee, freeThreshold, waived, fee, discount, etaLabel} */
-export const courierDeliveryInfo = (city, subtotal) => {
+/** {isTbilisi, baseFee, freeThreshold, waived, fee, discount, etaLabel}
+ *  hasEngraving — გრავირებიანი შეკვეთა კურიერს დამზადების (2-3 სამ. დღე) შემდეგ გადაეცემა */
+export const courierDeliveryInfo = (city, subtotal, hasEngraving = false) => {
   const st = Number(subtotal) || 0;
   const tbilisi = isTbilisiCity(city);
   const baseFee = tbilisi ? TBILISI_COURIER_FEE : REGION_COURIER_FEE;
   const threshold = tbilisi ? TBILISI_FREE_THRESHOLD : REGION_FREE_THRESHOLD;
-  const etaLabel = tbilisi ? "1-3 სამუშაო დღე" : "2-4 სამუშაო დღე";
+  const baseEta = tbilisi ? "1-3 სამუშაო დღე" : "2-4 სამუშაო დღე";
+  const etaLabel = hasEngraving ? engravingCourierEta(baseEta) : baseEta;
   const waived = st >= threshold;
   return {
     isTbilisi: tbilisi,
@@ -133,7 +139,9 @@ export const courierDeliveryInfo = (city, subtotal) => {
   };
 };
 
-export const meetsMinOrder = (subtotal) => (Number(subtotal) || 0) >= MIN_ORDER_SUBTOTAL;
+/** მინიმალური შეკვეთის წესი გრავირებიან კალათაზე არ მოქმედებს */
+export const meetsMinOrder = (subtotal, hasEngraving = false) =>
+  hasEngraving || (Number(subtotal) || 0) >= MIN_ORDER_SUBTOTAL;
 
 /** 'დღესვე, 20:30 საათამდე' თუ ახლა 18:00-მდეა თბილისის დროით, თორემ 'მომდევნო სამუშაო დღეს' */
 export const pickupReadyLabel = (now = new Date()) => {
@@ -162,4 +170,7 @@ export const PROMO_MESSAGES = {
   all_items_on_sale:
     "კალათაში ყველა პროდუქტი უკვე ფასდაკლებულია — პრომო კოდი ფასდაკლებულ პროდუქტზე არ ვრცელდება",
   empty_cart: "კალათა ცარიელია",
+  engraving_only: "პრომო კოდი გრავირებულ პროდუქტზე არ ვრცელდება",
+  no_eligible_items:
+    "პრომო კოდი არ ვრცელდება ფასდაკლებულ და გრავირებულ პროდუქტებზე — კალათაში მისთვის შესაბამისი პროდუქტი არ არის",
 };

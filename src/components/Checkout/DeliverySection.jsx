@@ -63,8 +63,8 @@ const CITIES_GE = [
 
 const fmt = (n) => Number(n ?? 0).toFixed(2);
 
-const DeliverySection = ({ delivery, onChange, subtotal = 0 }) => {
-  const info = courierDeliveryInfo(delivery.city, subtotal);
+const DeliverySection = ({ delivery, onChange, subtotal = 0, hasEngraving = false }) => {
+  const info = courierDeliveryInfo(delivery.city, subtotal, hasEngraving);
   const needed = Math.max(0, +(info.freeThreshold - subtotal).toFixed(2));
 
   return (

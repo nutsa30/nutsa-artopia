@@ -4,6 +4,12 @@ import { useCart } from '../CartContext/CartContext';
 import styles from './CartDropdown.module.css';
 import { cld, IMG } from '../../utils/cloudinary';
 import { useNavigate } from 'react-router-dom';
+import {
+  isEngravingItem,
+  engravingUnits,
+  engravingSummary,
+  MAX_ENGRAVED_UNITS,
+} from '../../utils/engraving';
 
 const API_BASE = 'https://artopia-backend-2024-54872c79acdd.herokuapp.com/';
 
@@ -14,6 +20,7 @@ const LBL = {
   clearAll: "ყველა წაშალე",
   checkout: "ყიდვის გაგრძელება",
   stockOnly: (n) => `მარაგში მხოლოდ ${n} ცალია.`,
+  engravingLimit: `ერთ შეკვეთაში მაქსიმუმ ${MAX_ENGRAVED_UNITS} გრავირებული ნივთია — მეტის შესაკვეთად დაგვიკავშირდით.`,
   minus: "მინუსი",
   plus: "პლუსი",
   remove: "წაშლა",
@@ -44,7 +51,9 @@ const CartDropdown = ({ showCartOpen, setShowCartOpen }) => {
   useEffect(() => {
     let ignore = false;
 
+    // გრავირებულ ნივთს მარაგი არ აქვს — მხოლოდ ჩვეულებრივ პროდუქტებს ვამოწმებთ
     const ids = cartItems
+      .filter((item) => !isEngravingItem(item))
       .map((item) => item?.id ?? item?._id)
       .filter(Boolean);
 
@@ -90,6 +99,10 @@ const handleCheckout = () => {
   const getItemId = (item) => item?.id ?? item?._id ?? item?.name;
 
   const getMaxQty = (item) => {
+    if (isEngravingItem(item)) {
+      // შეკვეთაში ჯამში მაქსიმუმ 5 გრავირებული ცალი
+      return MAX_ENGRAVED_UNITS - (engravingUnits(cartItems) - item.quantity);
+    }
     const pid = item?.id ?? item?._id;
     if (!pid) return null;
     return stockById[pid] !== undefined
@@ -102,6 +115,7 @@ const handleCheckout = () => {
     const maxQty = getMaxQty(item);
 
     if (item.quantity >= maxQty) {
+      if (isEngravingItem(item)) return;
       setStockMessageById((prev) => ({
         ...prev,
         [id]: T.stockOnly(maxQty),
@@ -194,16 +208,20 @@ const maxQty = getMaxQty(item);
 
                       <div className={styles.itemContent}>
                         <div className={styles.itemName}>{item.name}</div>
+                        {isEngravingItem(item) && (
+                          <div className={styles.engravingNote}>{engravingSummary(item)}</div>
+                        )}
 
                         <div className={styles.itemPrice}>
                           {unit.toFixed(2)} ₾ × {item.quantity} = {line.toFixed(2)} ₾
                         </div>
 
-                        {maxQty > 0 && (stockMessageById[id] || item.quantity >= maxQty) && (
-                          <div className={styles.stockWarning}>
-                            {stockMessageById[id] || T.stockOnly(maxQty)}
-                          </div>
-                        )}
+                        {!isEngravingItem(item) &&
+                          maxQty > 0 && (stockMessageById[id] || item.quantity >= maxQty) && (
+                            <div className={styles.stockWarning}>
+                              {stockMessageById[id] || T.stockOnly(maxQty)}
+                            </div>
+                          )}
 
                         <div className={styles.controls}>
                 {/* MINUS */}
@@ -277,6 +295,9 @@ const maxQty = getMaxQty(item);
                 })}
 
                 <div className={styles.cartFooter}>
+                  {engravingUnits(cartItems) >= MAX_ENGRAVED_UNITS && (
+                    <div className={styles.stockWarning}>{T.engravingLimit}</div>
+                  )}
                   <div className={styles.total}>
                     {T.total}: {getTotalPrice().toFixed(2)} ₾
                   </div>

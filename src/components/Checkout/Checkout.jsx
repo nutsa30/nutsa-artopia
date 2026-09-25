@@ -11,12 +11,22 @@ import {
   couponDiscountFor,
   normalizeSale,
   unitPrice,
+  isPromoEligible,
   PROMO_MESSAGES,
   courierDeliveryInfo,
   meetsMinOrder,
   pickupReadyLabel,
   MIN_ORDER_SUBTOTAL,
 } from "../../utils/pricing";
+import {
+  isEngravingItem,
+  cartHasEngraving,
+  engravingUnits,
+  engravingSummary,
+  engravingPickupLabel,
+  MAX_ENGRAVED_UNITS,
+  PRODUCTION_LABEL,
+} from "../../utils/engraving";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
@@ -78,6 +88,10 @@ const LBL = {
   minOrderHint: `მინიმალური შეკვეთაა ${MIN_ORDER_SUBTOTAL}₾`,
   close: "დახურვა",
   delete: "წაშლა",
+  engravingPromoChip: "პრომო არ ვრცელდება — გრავირებული ნივთი",
+  engravingCardOnly: "გრავირებული ნივთი ინდივიდუალურად მზადდება — გადახდა მხოლოდ წინასწარ, ბარათით.",
+  engravingNotice: `კალათაში გრავირებული ნივთია — დამზადებას სჭირდება ${PRODUCTION_LABEL}. მთელი შეკვეთა ერთად გაიცემა: ადგილზე აღებაც და კურიერიც ამ ვადის შემდეგ.`,
+  engravingLimit: `ერთ შეკვეთაში მაქსიმუმ ${MAX_ENGRAVED_UNITS} გრავირებული ნივთია — მეტის შესაკვეთად დაგვიკავშირდით.`,
 };
 
 const Checkout = () => {
@@ -121,6 +135,8 @@ const Checkout = () => {
    * ადმინის ფასდაკლება (sale) არ აქვთ.
    */
   const cart = useMemo(() => buildCartBreakdown(cartItems), [cartItems]);
+  const hasEngraving = useMemo(() => cartHasEngraving(cartItems), [cartItems]);
+  const engrUnits = useMemo(() => engravingUnits(cartItems), [cartItems]);
   const subtotal = cart.subtotal;
   const promoEligibleSubtotal = cart.eligibleSubtotal;
   const promoExcludedSubtotal = cart.excludedSubtotal;
@@ -173,10 +189,11 @@ const Checkout = () => {
     const timer = setTimeout(async () => {
       const payload = {
         code,
-        items: cartItems.map((it) => ({
-          product_id: it.id,
-          quantity: it.quantity,
-        })),
+        items: cartItems.map((it) =>
+          isEngravingItem(it)
+            ? { engraving_token: it.engraving_token, quantity: it.quantity }
+            : { product_id: it.id, quantity: it.quantity }
+        ),
       };
 
       try {
@@ -224,12 +241,19 @@ const Checkout = () => {
             return;
           }
           if (promoEligibleSubtotal <= 0) {
+            const engrCount = cartItems.filter(isEngravingItem).length;
+            const reason =
+              engrCount === 0
+                ? "all_items_on_sale"
+                : engrCount === cartItems.length
+                ? "engraving_only"
+                : "no_eligible_items";
             setPromo({
               ...IDLE_PROMO,
               status: "invalid",
               code,
-              reason: "all_items_on_sale",
-              message: PROMO_MESSAGES.all_items_on_sale,
+              reason,
+              message: PROMO_MESSAGES[reason],
               excludedSubtotal: promoExcludedSubtotal,
             });
             return;
@@ -284,19 +308,23 @@ const Checkout = () => {
     ];
   }, []);
 
-  // კურიერზე გადახდა მხოლოდ ბარათითაა შესაძლებელი — ავტომატურად ვაბრუნებთ "card"-ზე
+  // კურიერზე და გრავირებიან კალათაზე გადახდა მხოლოდ ბარათითაა — ავტომატურად ვაბრუნებთ "card"-ზე
   useEffect(() => {
-    if (formData.deliveryOption === "courierDelivery" && formData.paymentMethod !== "card") {
+    if (
+      (formData.deliveryOption === "courierDelivery" || hasEngraving) &&
+      formData.paymentMethod !== "card"
+    ) {
       setFormData((prev) => ({ ...prev, paymentMethod: "card" }));
     }
-  }, [formData.deliveryOption, formData.paymentMethod]);
+  }, [formData.deliveryOption, formData.paymentMethod, hasEngraving]);
 
   useEffect(() => {
     let ignore = false;
 
     const fetchStocks = async () => {
       const entries = await Promise.all(
-        cartItems.map(async (item) => {
+        // გრავირებულ ნივთს მარაგი არ აქვს — მისი ლიმიტი MAX_ENGRAVED_UNITS-ია
+        cartItems.filter((item) => !isEngravingItem(item)).map(async (item) => {
           const id = item.id;
           try {
             const res = await fetch(`${API_BASE}/products/${id}`);
@@ -327,9 +355,9 @@ const Checkout = () => {
   const courierInfo = useMemo(
     () =>
       formData.deliveryOption === "courierDelivery"
-        ? courierDeliveryInfo(delivery.city, subtotal)
+        ? courierDeliveryInfo(delivery.city, subtotal, hasEngraving)
         : null,
-    [formData.deliveryOption, delivery.city, subtotal]
+    [formData.deliveryOption, delivery.city, subtotal, hasEngraving]
   );
 
   const preview = useMemo(() => {
@@ -349,8 +377,13 @@ const Checkout = () => {
   }, [subtotal, courierInfo, couponDiscount, promoEligibleSubtotal, promoExcludedSubtotal]);
 
   const pickupReady = useMemo(
-    () => (formData.deliveryOption === "storePickup" ? pickupReadyLabel() : ""),
-    [formData.deliveryOption]
+    () =>
+      formData.deliveryOption === "storePickup"
+        ? hasEngraving
+          ? engravingPickupLabel()
+          : pickupReadyLabel()
+        : "",
+    [formData.deliveryOption, hasEngraving]
   );
 
   // GA4 begin_checkout — ერთხელ, როცა checkout იხსნება და კალათა შევსებულია
@@ -361,7 +394,7 @@ const Checkout = () => {
     }
   }, [cartItems, preview.subtotal]);
 
-  const minOrderOk = meetsMinOrder(subtotal);
+  const minOrderOk = meetsMinOrder(subtotal, hasEngraving);
 
   const canSubmit = useMemo(() => {
     if (cartItems.length === 0) return false;
@@ -410,7 +443,12 @@ const Checkout = () => {
     setError("");
 
     // ── ადგილზე აღება + ადგილზე გადახდა — ბანკის გვერდის გვერდის ავლით ──
-    if (formData.deliveryOption === "storePickup" && formData.paymentMethod === "on_site") {
+    // (გრავირებიან კალათაზე ეს გზა დაკეტილია — მხოლოდ ბარათით, წინასწარ)
+    if (
+      !hasEngraving &&
+      formData.deliveryOption === "storePickup" &&
+      formData.paymentMethod === "on_site"
+    ) {
       setSubmitting(true);
       try {
         const res = await fetch(`${API_BASE}/orders`, {
@@ -468,6 +506,7 @@ const Checkout = () => {
         sale: it.sale || 0,
         quantity: it.quantity,
         image: it.image_url1 || null,
+        ...(isEngravingItem(it) ? { engraving_token: it.engraving_token } : {}),
       })),
       totals: {
         subtotal:       Number(preview.subtotal),
@@ -521,6 +560,7 @@ const Checkout = () => {
           currency: CURRENCY,
           value: Number(preview.total),
           shipping: Number(preview.delivery_fee),
+          has_engraving: hasEngraving,
           items: cartItems.map((it) => ({
             id: it.id,
             name: it.name,
@@ -551,13 +591,25 @@ const Checkout = () => {
           <>
             <h2>{T.orderDetails}</h2>
 
+            {hasEngraving && (
+              <div className={styles.promoScopeNote} style={{ color: "#fde68a", borderColor: "rgba(253,230,138,.4)", background: "rgba(253,230,138,.08)" }}>
+                <ClockIcon /> {T.engravingNotice}
+              </div>
+            )}
+
             {cartItems.map((item) => {
               const up = unitPrice(item);
               const saleValue = normalizeSale(item?.sale);
               const hasSale = saleValue > 0;
+              const isEngr = isEngravingItem(item);
               const line = up * (item.quantity || 0);
-              const promoApplies = promoActive && !hasSale;
-              const promoBlocked = promoActive && hasSale;
+              const eligible = isPromoEligible(item);
+              const promoApplies = promoActive && eligible;
+              const promoBlocked = promoActive && !eligible;
+              // გრავირება: ლიმიტი ჯამური 5 ცალი; ჩვეულებრივი პროდუქტი: მარაგი
+              const maxQty = isEngr
+                ? MAX_ENGRAVED_UNITS - (engrUnits - item.quantity)
+                : normalizeQuantity(stockById[item.id]);
 
               return (
                 <div key={item.id} className={styles.cartItem}>
@@ -587,6 +639,9 @@ const Checkout = () => {
                     <span className={styles.itemName} title={item.name}>
                       {item.name}
                     </span>
+                    {isEngr && (
+                      <span className={styles.engravingNote}>{engravingSummary(item)}</span>
+                    )}
 
                     <div className={styles.itemPrice}>
                       {hasSale && (
@@ -605,12 +660,15 @@ const Checkout = () => {
                         title={promoBlocked ? T.promoRuleHint : undefined}
                       >
                         {promoBlocked
-                          ? `🔒 ${T.promoExcludedChip} — უკვე ფასდაკლებულია −${saleValue}%`
+                          ? isEngr
+                            ? T.engravingPromoChip
+                            : `🔒 ${T.promoExcludedChip} — უკვე ფასდაკლებულია −${saleValue}%`
                           : `🏷️ ${T.promoAppliedChip} −${promo.percent}%`}
                       </div>
                     )}
 
-                    {(stockMessageById[item.id] || item.quantity >= normalizeQuantity(stockById[item.id])) && (
+                    {!isEngr &&
+                      (stockMessageById[item.id] || item.quantity >= normalizeQuantity(stockById[item.id])) && (
                       <div className={styles.stockWarning}>
                         {stockMessageById[item.id] ||
                           `მარაგში მხოლოდ ${normalizeQuantity(stockById[item.id])} ცალია.`}
@@ -644,9 +702,8 @@ const Checkout = () => {
                           className={styles.checkbox}
                           id={`plus-${item.id}`}
                           onClick={() => {
-                            const maxQty = normalizeQuantity(stockById[item.id]);
-
                             if (item.quantity >= maxQty) {
+                              if (isEngr) return;
                               setStockMessageById((prev) => ({
                                 ...prev,
                                 [item.id]: `მარაგში მხოლოდ ${maxQty} ცალია.`,
@@ -661,7 +718,7 @@ const Checkout = () => {
 
                             updateQuantity(item.id, 1);
                           }}
-                          disabled={item.quantity >= normalizeQuantity(stockById[item.id])}
+                          disabled={item.quantity >= maxQty}
                         />
                         <label htmlFor={`plus-${item.id}`} className={styles.checkboxLabel}>
                           <div className={styles.checkboxFlip}>
@@ -702,6 +759,10 @@ const Checkout = () => {
                 </div>
               );
             })}
+
+            {engrUnits >= MAX_ENGRAVED_UNITS && (
+              <div className={styles.promoScopeNote}>{T.engravingLimit}</div>
+            )}
 
             {!minOrderOk && (
               <div className={styles.promoScopeNote} style={{ color: "#fca5a5", borderColor: "rgba(248,113,113,.4)", background: "rgba(248,113,113,.08)" }}>
@@ -852,10 +913,17 @@ const Checkout = () => {
             delivery={delivery}
             onChange={handleDeliveryChange}
             subtotal={subtotal}
+            hasEngraving={hasEngraving}
           />
         )}
 
-        {formData.deliveryOption === "storePickup" && (
+        {formData.deliveryOption === "storePickup" && hasEngraving && (
+          <p className={styles.submitHint} style={{ marginTop: 4 }}>
+            <CardIcon /> {T.engravingCardOnly}
+          </p>
+        )}
+
+        {formData.deliveryOption === "storePickup" && !hasEngraving && (
           <select
             name="paymentMethod"
             value={formData.paymentMethod}

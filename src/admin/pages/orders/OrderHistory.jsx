@@ -117,8 +117,159 @@ const calcDeliveryDiscount = (subtotal, city) => {
   return subtotal >= threshold ? baseFee : 0;
 };
 
+/* ---------- გრავირება ---------- */
+
+// Cloudinary-ს ორიგინალი ფაილი ჩამოსატვირთად (fl_attachment) — ფაილი არ იცვლება
+const cldDownload = (url, name) => {
+  if (!url) return "";
+  const m = String(url).match(/^(https?:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(.+)$/i);
+  if (!m) return url;
+  const safe = String(name || "file").replace(/[^A-Za-z0-9_-]+/g, "-").slice(0, 80);
+  return `${m[1]}fl_attachment:${safe}/${m[2]}`;
+};
+
+const fmtDateOnly = (iso) => {
+  if (!iso) return "—";
+  const [y, m, d] = String(iso).split("-").map(Number);
+  if (!y) return iso;
+  return new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString("ka-GE", {
+    timeZone: "UTC",
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+  });
+};
+
+function EngravingBadge({ engraving, status }) {
+  if (!engraving) return null;
+  const ready = !!engraving.ready_at;
+  return (
+    <span className={`${styles.engravingBadge} ${ready ? styles.engravingBadgeReady : ""}`}>
+      გრავირება · {engraving.units} ცალი ·{" "}
+      {ready
+        ? "მზადაა"
+        : status === "paid"
+        ? `ვადა: ${engraving.ready_by_label}`
+        : "გადაუხდელი"}
+    </span>
+  );
+}
+
+function EngravingDetails({ engraving, order, onReady, busy }) {
+  if (!engraving) return null;
+  const isPaid = order.status === "paid";
+  const ready = !!engraving.ready_at;
+  return (
+    <div className={styles.engravingSection}>
+      <div className={styles.engravingHead}>
+        <div>
+          <h4>გრავირება — დასამზადებელი</h4>
+          <div className={styles.engravingMeta}>
+            ვადა: <b>{engraving.production_label}</b> · {engraving.window_label}
+            <br />
+            ბოლო ვადა: <b>{engraving.ready_by_label || fmtDateOnly(engraving.ready_by)}</b>
+            {ready && (
+              <>
+                <br />
+                მზადაა: <b>{fmtDT(engraving.ready_at)}</b>
+                {engraving.ready_email_sent_at
+                  ? ` · კლიენტს ეცნობა ${fmtDT(engraving.ready_email_sent_at)}`
+                  : " · იმეილი ვერ გაიგზავნა"}
+              </>
+            )}
+          </div>
+        </div>
+        {isPaid ? (
+          <button type="button" className={styles.readyBtn} onClick={onReady} disabled={busy}>
+            {busy ? "…" : ready ? "იმეილის ხელახლა გაგზავნა" : "მზადაა — შეატყობინე კლიენტს"}
+          </button>
+        ) : (
+          <span className={styles.engravingWarn}>შეკვეთა გადახდილი არ არის — არ დაამზადოთ</span>
+        )}
+      </div>
+
+      {engraving.designs.map((d) => (
+        <div key={d.id} className={styles.designCard}>
+          <div className={styles.designTitle}>
+            {d.product_name} #{d.id} — <b>{d.quantity} ცალი</b>
+            {d.sides === 2 ? " · ორივე მხარე" : ""} · ზონა {d.zone_mm?.[0]}×{d.zone_mm?.[1]} მმ
+          </div>
+
+          <div className={styles.designSides}>
+            {d.sides_detail.map((s) => {
+              const base = `${order.order_number}-${d.product_key}-${d.id}-${s.side}`;
+              return (
+                <div key={s.side} className={styles.designSide}>
+                  <div className={styles.sideLabel}>{s.side_label}</div>
+
+                  {s.preview && (
+                    <a href={s.preview} target="_blank" rel="noreferrer">
+                      <img className={styles.designPreview} src={cld(s.preview, { w: 600 })} alt="3D პრევიუ" />
+                    </a>
+                  )}
+
+                  {s.lines?.length > 0 && (
+                    <div className={styles.designText}>
+                      <div className={styles.designTextLabel}>ტექსტი</div>
+                      {s.lines.map((l, i) => (
+                        <div key={i} className={styles.designLine}>{l}</div>
+                      ))}
+                      <div className={styles.designFont}>
+                        შრიფტი: <b>{s.font?.label || "—"}</b>
+                        {s.font?.family ? ` (${s.font.family.replace(/^Engr /, "")})` : ""}
+                        {s.text_height_mm ? ` · ასოს ზომა ≈ ${s.text_height_mm} მმ` : ""}
+                      </div>
+                    </div>
+                  )}
+
+                  {s.has_photo && (
+                    <div className={styles.designFont}>
+                      ფოტო: <b>{s.photo_style === "dots" ? "წერტილოვანი" : "კონტრასტული"}</b>
+                      {s.photo_invert ? " · ინვერსიით" : ""}
+                      {s.photo_size_mm ? ` · ${s.photo_size_mm[0]}×${s.photo_size_mm[1]} მმ` : ""}
+                    </div>
+                  )}
+
+                  {s.laser_png && (
+                    <div className={styles.laserWrap}>
+                      <img className={styles.laserImg} src={s.laser_png} alt="ლაზერის ფაილი" />
+                    </div>
+                  )}
+
+                  <div className={styles.designLinks}>
+                    {s.laser_png && (
+                      <a className={styles.primaryBtn} href={cldDownload(s.laser_png, `${base}-laser`)}>
+                        ლაზერის ფაილი (PNG)
+                      </a>
+                    )}
+                    {s.photo && (
+                      <a className={styles.secondaryBtn} href={cldDownload(s.photo, `${base}-photo`)}>
+                        ორიგინალი ფოტო
+                      </a>
+                    )}
+                    {s.preview && (
+                      <a className={styles.secondaryBtn} href={cldDownload(s.preview, `${base}-preview`)}>
+                        პრევიუ
+                      </a>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+      <div className={styles.engravingFoot}>
+        ლაზერის ფაილი შავ-თეთრი PNG-ია, ზონის ზუსტი ზომით (508 DPI): შავი = ამოიწვება. პროგრამაში
+        გახსნისას ზომა მმ-ში თავისით სწორია.
+      </div>
+    </div>
+  );
+}
+
 const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
+  const [markingReady, setMarkingReady] = useState({});
   const [error, setError] = useState("");
   const [expanded, setExpanded] = useState({});
   const [details, setDetails] = useState({});
@@ -203,6 +354,39 @@ const OrderHistory = () => {
     }
   };
 
+  const markEngravingReady = async (id) => {
+    const d = details[id];
+    const again = !!d?.engraving?.ready_at;
+    const ok = window.confirm(
+      again
+        ? "კლიენტს ხელახლა გავუგზავნოთ იმეილი, რომ შეკვეთა მზადაა?"
+        : "შეკვეთა მზადაა? კლიენტს გაეგზავნება იმეილი."
+    );
+    if (!ok) return;
+    setMarkingReady((prev) => ({ ...prev, [id]: true }));
+    try {
+      const res = await fetch(`${API_BASE}/admin/orders/${id}/engraving-ready`, {
+        method: "POST",
+        headers: buildHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "მონიშვნა ვერ მოხერხდა");
+      setDetails((prev) => ({ ...prev, [id]: data }));
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === id && o.engraving
+            ? { ...o, engraving: { ...o.engraving, ready_at: data.engraving?.ready_at || o.engraving.ready_at } }
+            : o
+        )
+      );
+      if (!data.email_sent) setError("მზადაა — მაგრამ კლიენტს იმეილი ვერ გაეგზავნა. დაურეკეთ.");
+    } catch (err) {
+      setError(err.message || "მონიშვნა ვერ მოხერხდა");
+    } finally {
+      setMarkingReady((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
   const onFilterSubmit = (e) => { e.preventDefault(); fetchOrders(); };
   const onReset = () => { setFromDate(""); setToDate(""); fetchOrders("per_page=50"); };
 
@@ -248,7 +432,12 @@ const OrderHistory = () => {
             const isPickup = o.delivery_method === "pickup";
 
             return (
-              <div key={o.id} className={styles.orderCard}>
+              <div
+                key={o.id}
+                className={`${styles.orderCard} ${
+                  o.engraving && o.status === "paid" && !o.engraving.ready_at ? styles.engravingOrder : ""
+                }`}
+              >
                 <div className={styles.orderCardTop}>
                   <div className={styles.orderMain}>
                     <div className={styles.orderNumber}>#{o.order_number}</div>
@@ -256,6 +445,7 @@ const OrderHistory = () => {
                       <span className={`${styles.statusBadge} ${statusClass(o.status)}`}>
                         {statusLabel(o.status)}
                       </span>
+                      <EngravingBadge engraving={o.engraving} status={o.status} />
                       {isCourier && (
                         <span className={styles.deliveryBadge}>კურიერი</span>
                       )}
@@ -337,6 +527,14 @@ const OrderHistory = () => {
 
                       return (
                         <div className={styles.detailsContent}>
+
+                          {/* ══ გრავირება — ყველაზე ზემოთ, რომ არაფერი გამოგრჩეთ ══ */}
+                          <EngravingDetails
+                            engraving={d.engraving}
+                            order={d}
+                            busy={!!markingReady[o.id]}
+                            onReady={() => markEngravingReady(o.id)}
+                          />
 
                           {/* ══ 2-col: კლიენტი + გადახდა ══ */}
                           <div className={styles.infoGrid}>

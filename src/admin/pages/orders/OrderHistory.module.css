@@ -729,3 +729,190 @@
     height: 68px;
   }
 }
+/* ===================== გრავირება ===================== */
+.engravingOrder {
+  border: 2px solid #f59e0b;
+  box-shadow: 0 18px 50px rgba(245, 158, 11, 0.18);
+}
+
+.engravingBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+.engravingBadgeReady {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+
+.engravingSection {
+  border: 2px solid #f59e0b;
+  background: linear-gradient(180deg, #fffbeb 0%, #fff 55%);
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.engravingHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.engravingHead h4 {
+  font-size: 17px;
+  font-weight: 800;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+
+.engravingMeta {
+  font-size: 13.5px;
+  color: #78350f;
+  line-height: 1.6;
+}
+
+.engravingWarn {
+  font-size: 13px;
+  font-weight: 700;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.readyBtn {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-weight: 800;
+  font-size: 14px;
+  background: #16a34a;
+  color: #fff;
+  cursor: pointer;
+}
+
+.readyBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.designCard {
+  background: #fff;
+  border: 1px solid #fde68a;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.designTitle {
+  font-size: 15px;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.designSides {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.designSide {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sideLabel {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #b45309;
+}
+
+.designPreview {
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #eef1f5;
+  border: 1px solid #e2e8f0;
+  display: block;
+}
+
+.designText {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.designTextLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.designLine {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.designFont {
+  font-size: 13px;
+  color: #334155;
+  margin-top: 6px;
+}
+
+.laserWrap {
+  background: repeating-conic-gradient(#f1f5f9 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+  border: 1px dashed #94a3b8;
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.laserImg {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: auto;
+  background: #fff;
+}
+
+.designLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.designLinks a {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.engravingFoot {
+  font-size: 12.5px;
+  color: #92400e;
+  margin-top: 4px;
+}

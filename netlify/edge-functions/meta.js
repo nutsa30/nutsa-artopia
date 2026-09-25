@@ -5,7 +5,7 @@
 // untouched fast SPA (react-helmet sets their meta client-side).
 //
 // Covered routes (see config.path): product detail, category, products listing,
-// blog index, blog articles, reviews, contacts, policy pages.
+// blog index, blog articles, reviews, contacts, engraving, policy pages.
 //
 // SAFETY: everything is wrapped in try/catch — on ANY error we return the
 // original response untouched (passthrough). Netlify atomic deploys mean a bad
@@ -244,6 +244,29 @@ export default async (request, context) => {
       return htmlResponse(out);
     }
 
+    /* ===================== ENGRAVING: /engraving ===================== */
+    if (path === "/engraving") {
+      const html = await res.text();
+      const out = applyMeta(html, {
+        title: "გრავირება — კალამი და ბრელოკი საკუთარი წარწერით | Artopia",
+        description:
+          "ლაზერული გრავირება Artopia-ში: ოქროსფერი კალამი (25₾) და ხის ბრელოკი (13₾, ორივე მხარე 20₾) საკუთარი წარწერით ან ფოტოთი. აირჩიეთ შრიფტი, ნახეთ 3D პრევიუ და შეუკვეთეთ ონლაინ.",
+        url: `${SITE}/engraving`,
+        image: DEFAULT_IMAGE,
+        type: "website",
+        keywords: "გრავირება, ლაზერული გრავირება, გრავირებული კალამი, ბრელოკი წარწერით, საჩუქარი, artopia",
+        jsonLd: {
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          url: `${SITE}/engraving`,
+          name: "გრავირება — კალამი და ბრელოკი საკუთარი წარწერით",
+          inLanguage: "ka-GE",
+          about: { "@id": ORG_ID },
+        },
+      });
+      return htmlResponse(out);
+    }
+
     /* ===================== POLICY PAGES ===================== */
     const policy = {
       "/terms": ["წესები და პირობები", "Artopia-ს გამოყენების წესები და პირობები — შეკვეთა, გადახდა, მიწოდება."],
@@ -403,6 +426,7 @@ export const config = {
     "/blog/*",
     "/reviews",
     "/contacts",
+    "/engraving",
     "/terms",
     "/returns",
     "/privacy",

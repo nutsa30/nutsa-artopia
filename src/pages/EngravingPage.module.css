@@ -1,0 +1,693 @@
+/* ===================== ENGRAVING PAGE ===================== */
+
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: calc(var(--navbar-h, 108px) + var(--navbar-gap, 36px)) clamp(12px, 3vw, 24px) 60px;
+  color: #f1f5f9;
+  box-sizing: border-box;
+}
+
+.hero {
+  margin-bottom: 22px;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: clamp(26px, 4vw, 38px);
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.hero p {
+  max-width: 680px;
+  margin: 0 auto;
+  color: #c7d6f9;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.colMain {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.colPreview {
+  position: sticky;
+  top: calc(var(--navbar-h, 108px) + 12px);
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .colPreview {
+    position: static;
+  }
+}
+
+.card {
+  background: #1e293b;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 20px;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 16px 14px;
+  }
+}
+
+.stepTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 19px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin-bottom: 16px;
+}
+
+.stepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1d4ed8, #0056ff);
+  color: #fff;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 16px 0 8px;
+}
+
+.label:first-of-type {
+  margin-top: 0;
+}
+
+.labelHint {
+  font-weight: 400;
+  color: #94a3b8;
+  font-size: 12.5px;
+}
+
+.hint {
+  font-size: 12.5px;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
+.notice {
+  font-size: 12.5px;
+  color: #fde68a;
+  margin-top: 6px;
+}
+
+.errorText {
+  font-size: 13px;
+  color: #fca5a5;
+  margin-top: 8px;
+}
+
+/* ---------- side tabs ---------- */
+.sideTabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.sideTab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  padding: 9px 10px;
+  border-radius: 9px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.sideTabActive {
+  background: #0056ff;
+  color: #fff;
+}
+
+/* ---------- text ---------- */
+.textInput {
+  width: 100%;
+  resize: vertical;
+  min-height: 46px;
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 16px; /* iOS-ზე ზუმი არ მოხდეს */
+  line-height: 1.45;
+  outline: none;
+}
+
+.textInput:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* ---------- fonts ---------- */
+.fontGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.fontBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #f8fafc;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.fontBtn:hover:not(:disabled) {
+  border-color: rgba(147, 197, 253, 0.6);
+}
+
+.fontBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fontBtnActive {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.fontSample {
+  font-size: 20px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.fontName {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.fontName em {
+  font-style: normal;
+}
+
+/* ---------- photo ---------- */
+.photoBox {
+  border: 1.5px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.disabled {
+  opacity: 0.45;
+}
+
+.uploadBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #bfdbfe;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.uploadBtn:disabled {
+  cursor: not-allowed;
+}
+
+.photoRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.photoThumb {
+  width: 88px;
+  height: 88px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: #0f172a;
+}
+
+.photoControls {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ვიწრო ტელეფონზე ფოტო ზემოთ, მართვა ქვემოთ — სრულ სიგანეზე */
+@media (max-width: 420px) {
+  .photoRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .photoThumb {
+    width: 100%;
+    height: 150px;
+    object-fit: contain;
+  }
+}
+
+.segmented {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.segmented button {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.segmented .segActive {
+  background: #0056ff;
+  color: #fff;
+}
+
+.sliderLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.sliderLabel input {
+  flex: 1;
+  min-width: 0;
+  accent-color: #3b82f6;
+}
+
+.photoBtns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ghostBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 9px;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghostBtn:hover:not(:disabled) {
+  border-color: rgba(147, 197, 253, 0.7);
+}
+
+.ghostBtnOn {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.ghostBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- products ---------- */
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* ტელეფონზეც გვერდიგვერდ — ორი პროდუქტი ერთი შეხედვით შესადარებელია */
+@media (max-width: 480px) {
+  .productGrid {
+    gap: 8px;
+  }
+  .productCard {
+    padding: 8px;
+    border-radius: 14px;
+  }
+  .productName {
+    font-size: 13px;
+  }
+  .productPrice {
+    font-size: 16px;
+  }
+  .productPrice small,
+  .productNote {
+    font-size: 11px;
+  }
+}
+
+.productCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f8fafc;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, transform 0.15s, background 0.15s;
+}
+
+.productCard:hover {
+  border-color: rgba(147, 197, 253, 0.6);
+  transform: translateY(-1px);
+}
+
+.productActive {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.14);
+}
+
+.productImg {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 40%, #334155, #0f172a 75%);
+}
+
+.productName {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.productPrice {
+  font-size: 18px;
+  font-weight: 800;
+  color: #93c5fd;
+}
+
+.priceLine {
+  display: block;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.productPrice small {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.productNote {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.checkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 14px;
+  color: #e2e8f0;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.checkRow input {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: #3b82f6;
+  flex-shrink: 0;
+}
+
+.checkRow small {
+  color: #94a3b8;
+}
+
+/* ---------- preview ---------- */
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 62vh;
+  border-radius: 14px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 38%, #3b4a61 0%, #1b2536 58%, #0f172a 100%);
+}
+
+.stagePen {
+  aspect-ratio: 16 / 10;
+}
+
+.stagePlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.viewBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.viewBar .hint {
+  margin-top: 0;
+}
+
+.viewBtns {
+  display: flex;
+  gap: 6px;
+}
+
+.infoBox {
+  margin-top: 14px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 13px;
+  color: #bfdbfe;
+  line-height: 1.55;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.problems {
+  margin: 12px 0 0;
+  padding: 10px 14px 10px 30px;
+  border-radius: 12px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fde68a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.buyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.qty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.qty button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.qty button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.qty span {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.total strong {
+  font-size: 22px;
+  color: #fff;
+}
+
+.addBtn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1d4ed8, #0056ff);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.addBtn:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.addBtn:disabled {
+  background: #374151;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.added {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #bbf7d0;
+  font-size: 14px;
+}
+
+.addedBtns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.addedBtns .addBtn {
+  width: auto;
+  flex: 1;
+  padding: 11px 14px;
+  font-size: 14px;
+}
+
+.addedBtns .ghostBtn {
+  margin-top: 14px;
+  padding: 10px 12px;
+}
+
+.bulk {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.55;
+}
+
+.bulkLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 8px;
+}
+
+.bulkLinks a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #93c5fd;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.bulkLinks a:hover {
+  text-decoration: underline;
+}
