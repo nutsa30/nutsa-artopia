@@ -4,6 +4,7 @@ import { cld, IMG } from "../../utils/cloudinary";
 import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
 import DeliverySection from "./DeliverySection";
+import { TruckIcon, StoreIcon, ClockIcon, PinIcon, CardIcon, WarningIcon } from "./icons";
 import { trackBeginCheckout, getGaClientId, CURRENCY } from "../../utils/analytics";
 import {
   buildCartBreakdown,
@@ -11,65 +12,15 @@ import {
   normalizeSale,
   unitPrice,
   PROMO_MESSAGES,
+  courierDeliveryInfo,
+  meetsMinOrder,
+  pickupReadyLabel,
+  MIN_ORDER_SUBTOTAL,
 } from "../../utils/pricing";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
-const DEFAULT_PICKUP_ADDRESS =
-  "ადგილზე გატანა - არტოპია, სიმონ ჩიკოვანის 45, თბილისი";
-
-const isTbilisi = (str) => {
-  const lc = (str || "").trim().toLowerCase();
-  return lc === "tbilisi" || lc === "თბილისი";
-};
-
 const fmt = (n) => Number(n ?? 0).toFixed(2);
-
-// მიტანაზე ფასდაკლება კალათის ჯამის მიხედვით
-const DELIVERY_TIERS = [
-  { min: 201, discount: 20 },
-  { min: 100, discount: 10 },
-  { min: 50,  discount: 5  },
-];
-
-function calcDeliveryDiscount(subtotal, baseFee) {
-  for (const t of DELIVERY_TIERS) {
-    if (subtotal >= t.min) return Math.min(t.discount, baseFee);
-  }
-  return 0;
-}
-
-function DeliveryDiscountBanner({ subtotal }) {
-  if (subtotal >= 201) {
-    return (
-      <div style={{ background: "#dcfce7", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#15803d", fontWeight: 600, margin: "10px 0" }}>
-        🎉 მიტანაზე 20₾ ფასდაკლება გეკუთვნის!
-      </div>
-    );
-  }
-  if (subtotal >= 100) {
-    const needed = (201 - subtotal).toFixed(2);
-    return (
-      <div style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#166534", margin: "10px 0" }}>
-        ✓ <strong>10₾ ფასდაკლება მიტანაზე!</strong> კიდევ <strong>{needed}₾</strong> და 20₾ ფასდაკლება
-      </div>
-    );
-  }
-  if (subtotal >= 50) {
-    const needed = (100 - subtotal).toFixed(2);
-    return (
-      <div style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#166534", margin: "10px 0" }}>
-        ✓ <strong>5₾ ფასდაკლება მიტანაზე!</strong> კიდევ <strong>{needed}₾</strong> და 10₾ ფასდაკლება
-      </div>
-    );
-  }
-  const needed = (50 - subtotal).toFixed(2);
-  return (
-    <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#1d4ed8", margin: "10px 0" }}>
-      🚚 კიდევ <strong>{needed}₾</strong> და მიტანაზე <strong>5₾ ფასდაკლება</strong> მიიღებ!
-    </div>
-  );
-}
 
 // პრომო კოდის საწყისი მდგომარეობა
 // status: "idle" | "checking" | "valid" | "invalid"
@@ -117,82 +68,20 @@ const LBL = {
   comment: "კომენტარი",
   deliveryOption: "აირჩიეთ მიტანის ვარიანტი",
   paymentMethod: "აირჩიეთ გადახდის მეთოდი",
-  payCard: "ბარათით გადახდა",
-  optTomorrow: "მომდევნო დღე",
-  optPickup: "ადგილზე მისვლით",
-  optRegional: "რეგიონალური მიტანა (8 ₾)",
+  payCard: "ბარათით გადახდა (წინასწარ)",
+  payOnSite: "ადგილზე გადახდა",
+  courierCardOnlyNote: "კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.",
   proceed: "გაგრძელება",
   errOrderCreate: "შეკვეთის შექმნა ვერ მოხერხდა",
   errChooseProduct: "გთხოვთ ჯერ აირჩიოთ პროდუქტი",
-  successPaid: "✅ შეკვეთა და ტესტ-გადახდა წარმატებით შესრულდა!",
-  successCreatedOnly: "✅ შეკვეთა შეიქმნა (ტესტ-გადახდა ვერ შესრულდა)",
-  successCreated: "✅ შეკვეთა შექმნილია.",
+  errMinOrder: `მინიმალური შეკვეთაა ${MIN_ORDER_SUBTOTAL}₾`,
+  minOrderHint: `მინიმალური შეკვეთაა ${MIN_ORDER_SUBTOTAL}₾`,
   close: "დახურვა",
-  minus: "მინუსი",
-  plus: "პლუსი",
   delete: "წაშლა",
 };
 
-const CITIES_GE = [
-  "თბილისი",
-  "ბათუმი",
-  "რუსთავი",
-  "ქუთაისი",
-  "გორი",
-  "ფოთი",
-  "ზუგდიდი",
-  "მარნეული",
-  "ხაშური",
-  "სამტრედია",
-  "ზესტაფონი",
-  "თელავი",
-  "ქობულეთი",
-  "ახალციხე",
-  "სენაკი",
-  "ოზურგეთი",
-  "კასპი",
-  "ჭიათურა",
-  "გარდაბანი",
-  "ბორჯომი",
-  "საგარეჯო",
-  "ყვარელი",
-  "ბოლნისი",
-  "ტყიბული",
-  "ხონი",
-  "წყალტუბო",
-  "ახალქალაქი",
-  "მცხეთა",
-  "გურჯაანი",
-  "დუშეთი",
-  "ქარელი",
-  "ლანჩხუთი",
-  "ახმეტა",
-  "ლაგოდეხი",
-  "საჩხერე",
-  "დედოფლისწყარო",
-  "ვალე",
-  "თერჯოლა",
-  "წნორი",
-  "თეთრიწყარო",
-  "აბაშა",
-  "მარტვილი",
-  "ნინოწმინდა",
-  "წალკა",
-  "ვანი",
-  "ხობი",
-  "დმანისი",
-  "წალენჯიხა",
-  "ბაღდათი",
-  "ონი",
-  "ჩხოროწყუ",
-  "ამბროლაური",
-  "სიღნაღი",
-  "ჯვარი",
-  "ცაგერი",
-];
-
 const Checkout = () => {
-  const { cartItems, updateQuantity, removeFromCart } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart();
   const navigate = useNavigate();
   const T = LBL;
 
@@ -201,22 +90,19 @@ const Checkout = () => {
     last_name: "",
     email: "",
     phone: "",
-    city: "",
-    address: "",
     deliveryOption: "",
     paymentMethod: "card",
     coupon_code: "",
     comment: "",
   });
 
-
-
   const [delivery, setDelivery] = useState({
-    streetName: "", city: "Tbilisi",
-    lat: 41.6941, lng: 44.8337,
-    hallway: "", floor: "", apartment: "",
+    city: "თბილისი",
+    address: "",
+    hallway: "",
+    floor: "",
+    apartment: "",
   });
-  const [selectedCourier, setSelectedCourier] = useState(null);
 
   const handleDeliveryChange = useCallback((updates) => {
     setDelivery((prev) => ({ ...prev, ...updates }));
@@ -224,6 +110,7 @@ const Checkout = () => {
 
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [stockById, setStockById] = useState({});
   const [stockMessageById, setStockMessageById] = useState({});
   const beginCheckoutFiredRef = useRef(false);
@@ -277,8 +164,6 @@ const Checkout = () => {
     }
 
     let cancelled = false;
-    // იგივე კოდის თავიდან შემოწმებისას (მაგ. რაოდენობა შეიცვალა) პროცენტს
-    // ვინახავთ, რომ ჯამი არ აციმციმდეს; ახალ კოდზე კი ნულდება
     setPromo((prev) =>
       prev.code === code
         ? { ...prev, status: "checking" }
@@ -295,7 +180,6 @@ const Checkout = () => {
       };
 
       try {
-        // ავტორიტეტული ვალიდაცია — ბექენდი თვითონ ითვლის დასაშვებ ბაზას
         const res = await fetch(`${API_BASE}/promo-codes/validate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -317,7 +201,6 @@ const Checkout = () => {
           appliesToAll: !!data.applies_to_all,
         });
       } catch (err) {
-        // Fallback: ბექთან კავშირი ვერ დამყარდა — იგივე წესით ვთვლით ლოკალურად
         console.error("promo validate failed, falling back:", err);
         if (cancelled) return;
 
@@ -384,12 +267,6 @@ const Checkout = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.coupon_code, cartSignature, promoEligibleSubtotal, promoExcludedSubtotal]);
 
-  /**
-   * რეალურად გამოსაყენებელი პრომო ფასდაკლება.
-   * ყოველთვის მიმდინარე კალათის დასაშვებ ბაზაზე ითვლება (და არა პასუხის
-   * ჩაბეჭდილ თანხაზე), რომ რაოდენობის ცვლილებისას ციფრი არ ჩამორჩეს.
-   */
-  // კოდი "ჩართულია" — ვალიდურია, ან იმავე კოდის ხელახალი შემოწმება მიდის
   const promoActive =
     promo.status === "valid" ||
     (promo.status === "checking" && promo.percent > 0);
@@ -400,12 +277,19 @@ const Checkout = () => {
     [promoActive, promo.percent, promoEligibleSubtotal]
   );
 
-const deliveryOptions = useMemo(() => {
-  return [
-    { value: "storePickup", label: "ადგილზე აღება" },
-    { value: "courierDelivery", label: "კურიერული მომსახურება" },
-  ];
-}, []);
+  const deliveryOptions = useMemo(() => {
+    return [
+      { value: "storePickup", label: "ადგილზე აღება" },
+      { value: "courierDelivery", label: "კურიერული მომსახურება" },
+    ];
+  }, []);
+
+  // კურიერზე გადახდა მხოლოდ ბარათითაა შესაძლებელი — ავტომატურად ვაბრუნებთ "card"-ზე
+  useEffect(() => {
+    if (formData.deliveryOption === "courierDelivery" && formData.paymentMethod !== "card") {
+      setFormData((prev) => ({ ...prev, paymentMethod: "card" }));
+    }
+  }, [formData.deliveryOption, formData.paymentMethod]);
 
   useEffect(() => {
     let ignore = false;
@@ -440,67 +324,73 @@ const deliveryOptions = useMemo(() => {
     };
   }, [cartItems]);
 
+  const courierInfo = useMemo(
+    () =>
+      formData.deliveryOption === "courierDelivery"
+        ? courierDeliveryInfo(delivery.city, subtotal)
+        : null,
+    [formData.deliveryOption, delivery.city, subtotal]
+  );
 
   const preview = useMemo(() => {
-  const baseFee =
-    formData.deliveryOption === "courierDelivery" && selectedCourier
-      ? +(selectedCourier.amount ?? 0)
-      : 0;
-  const delivDisc = formData.deliveryOption === "courierDelivery"
-    ? calcDeliveryDiscount(subtotal, baseFee)
-    : 0;
-  const delivery_fee = Math.max(0, +(baseFee - delivDisc).toFixed(2));
-  const extra_discount = couponDiscount;
-  const total = Math.max(0, +(subtotal - extra_discount + delivery_fee).toFixed(2));
-  return {
-    subtotal: +subtotal.toFixed(2),
-    base_delivery_fee: baseFee,
-    delivery_fee,
-    delivery_discount: delivDisc,
-    extra_discount,
-    // პრომო კოდის ბაზა — ფასდაკლებული პროდუქტების გარეშე
-    promo_base: promoEligibleSubtotal,
-    promo_excluded: promoExcludedSubtotal,
-    total,
-  };
-}, [subtotal, formData.deliveryOption, couponDiscount, selectedCourier, promoEligibleSubtotal, promoExcludedSubtotal]);
+    const delivery_fee = courierInfo ? courierInfo.fee : 0;
+    const delivery_discount = courierInfo ? courierInfo.discount : 0;
+    const extra_discount = couponDiscount;
+    const total = Math.max(0, +(subtotal - extra_discount + delivery_fee).toFixed(2));
+    return {
+      subtotal: +subtotal.toFixed(2),
+      delivery_fee,
+      delivery_discount,
+      extra_discount,
+      promo_base: promoEligibleSubtotal,
+      promo_excluded: promoExcludedSubtotal,
+      total,
+    };
+  }, [subtotal, courierInfo, couponDiscount, promoEligibleSubtotal, promoExcludedSubtotal]);
 
-// GA4 begin_checkout — ერთხელ, როცა checkout იხსნება და კალათა შევსებულია
-useEffect(() => {
-  if (!beginCheckoutFiredRef.current && cartItems.length > 0) {
-    beginCheckoutFiredRef.current = true;
-    trackBeginCheckout(cartItems, preview.subtotal);
-  }
-}, [cartItems, preview.subtotal]);
+  const pickupReady = useMemo(
+    () => (formData.deliveryOption === "storePickup" ? pickupReadyLabel() : ""),
+    [formData.deliveryOption]
+  );
 
+  // GA4 begin_checkout — ერთხელ, როცა checkout იხსნება და კალათა შევსებულია
+  useEffect(() => {
+    if (!beginCheckoutFiredRef.current && cartItems.length > 0) {
+      beginCheckoutFiredRef.current = true;
+      trackBeginCheckout(cartItems, preview.subtotal);
+    }
+  }, [cartItems, preview.subtotal]);
 
-const canSubmit = useMemo(() => {
-  if (cartItems.length === 0) return false;
-  if (!formData.first_name?.trim() || !formData.last_name?.trim()) return false;
-  if (!formData.email?.trim() || !formData.phone?.trim()) return false;
-  if (!formData.deliveryOption) return false;
-  if (formData.deliveryOption === "courierDelivery") {
-    if (!delivery.streetName?.trim()) return false;
-    if (!selectedCourier) return false;
-  }
-  return true;
-}, [cartItems, formData, delivery, selectedCourier]);
+  const minOrderOk = meetsMinOrder(subtotal);
 
-const submitHint = useMemo(() => {
-  if (cartItems.length === 0) return "კალათა ცარიელია";
-  if (!formData.deliveryOption) return "აირჩიეთ მიტანის ვარიანტი";
-  if (formData.deliveryOption === "courierDelivery") {
-    if (!delivery.streetName?.trim()) return "შეიყვანეთ მიტანის მისამართი";
-    if (!selectedCourier) return "აირჩიეთ კურიერი";
-  }
-  if (!formData.first_name?.trim() || !formData.last_name?.trim() ||
-      !formData.email?.trim() || !formData.phone?.trim()) {
-    return "შეავსეთ ყველა სავალდებულო ველი";
-  }
-  return "";
-}, [cartItems, formData, delivery, selectedCourier]);
+  const canSubmit = useMemo(() => {
+    if (cartItems.length === 0) return false;
+    if (!minOrderOk) return false;
+    if (!formData.first_name?.trim() || !formData.last_name?.trim()) return false;
+    if (!formData.email?.trim() || !formData.phone?.trim()) return false;
+    if (!formData.deliveryOption) return false;
+    if (formData.deliveryOption === "courierDelivery") {
+      if (!delivery.address?.trim()) return false;
+      if (!delivery.city) return false;
+    }
+    return true;
+  }, [cartItems, formData, delivery, minOrderOk]);
 
-const handleChange = (e) => {
+  const submitHint = useMemo(() => {
+    if (cartItems.length === 0) return "კალათა ცარიელია";
+    if (!minOrderOk) return T.minOrderHint;
+    if (!formData.deliveryOption) return "აირჩიეთ მიტანის ვარიანტი";
+    if (formData.deliveryOption === "courierDelivery" && !delivery.address?.trim()) {
+      return "შეიყვანეთ მიტანის მისამართი";
+    }
+    if (!formData.first_name?.trim() || !formData.last_name?.trim() ||
+        !formData.email?.trim() || !formData.phone?.trim()) {
+      return "შეავსეთ ყველა სავალდებულო ველი";
+    }
+    return "";
+  }, [cartItems, formData, delivery, minOrderOk, T.minOrderHint]);
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -512,9 +402,53 @@ const handleChange = (e) => {
       setError(T.errChooseProduct);
       return;
     }
+    if (!minOrderOk) {
+      setError(T.errMinOrder);
+      return;
+    }
 
     setError("");
 
+    // ── ადგილზე აღება + ადგილზე გადახდა — ბანკის გვერდის გვერდის ავლით ──
+    if (formData.deliveryOption === "storePickup" && formData.paymentMethod === "on_site") {
+      setSubmitting(true);
+      try {
+        const res = await fetch(`${API_BASE}/orders`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customer: {
+              first_name: formData.first_name,
+              last_name: formData.last_name,
+              email: formData.email,
+              phone: formData.phone,
+            },
+            comment: formData.comment,
+            items: cartItems.map((it) => ({
+              product_id: it.id,
+              quantity: it.quantity,
+            })),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.message || T.errOrderCreate);
+        }
+
+        clearCart();
+        setSuccessMessage(
+          `შეკვეთა მიღებულია — #${data.order_number}. გადასახდელია ${fmt(data.total)} ₾ ადგილზე. მზად იქნება: ${data.pickup_ready_label}.`
+        );
+      } catch (err) {
+        console.error(err);
+        setError(err.message || T.errOrderCreate);
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    // ── ბარათით გადახდა (pickup ან courier) — BOG ──
     const addrComment = [
       delivery.hallway   ? `სადარბაზო ${delivery.hallway}`  : "",
       delivery.floor     ? `სართული ${delivery.floor}`      : "",
@@ -524,10 +458,8 @@ const handleChange = (e) => {
     const draft = {
       formData: {
         ...formData,
-        // მხოლოდ ვალიდური კოდი მიდის ბექზე (ბექი მაინც თავიდან ამოწმებს)
         coupon_code: promoActive ? promo.code : "",
       },
-      // GA4 client_id — backend-ის Measurement Protocol purchase-ისთვის (იგივე user/session)
       ga_client_id: getGaClientId(),
       items: cartItems.map((it) => ({
         id: it.id,
@@ -544,20 +476,17 @@ const handleChange = (e) => {
         promo_base:     Number(preview.promo_base),
         total:          Number(preview.total),
       },
-      pickup_address: DEFAULT_PICKUP_ADDRESS,
       delivery: formData.deliveryOption === "courierDelivery" ? {
-        streetName:     delivery.streetName,
         city:           delivery.city,
-        latitude:       delivery.lat,
-        longitude:      delivery.lng,
+        address:        delivery.address,
         hallway:        delivery.hallway,
         floor:          delivery.floor,
         apartment:      delivery.apartment,
         addressComment: addrComment,
-        courier: selectedCourier,
       } : null,
     };
 
+    setSubmitting(true);
     try {
       const res = await fetch(`${API_BASE}/payments/bog/create`, {
         method: "POST",
@@ -568,17 +497,17 @@ const handleChange = (e) => {
       const data = await res.json();
 
       if (!res.ok || !data?.redirect_url) {
-        throw new Error(`HTTP ${res.status} – redirect_url not provided`);
+        throw new Error(data?.message || `HTTP ${res.status} – redirect_url not provided`);
       }
 
-      // BOG order_id — ჯერ backend-ის პასუხიდან (იგივეს იყენებს webhook-იც),
-      // შემდეგ redirect_url-დან. transaction_id-ის თანმიმდევრულობისთვის.
       let orderId = data.order_id || "";
       if (!orderId) {
         try {
           const u = new URL(data.redirect_url);
           orderId = u.searchParams.get("order_id") || "";
-        } catch {}
+        } catch {
+          // redirect_url URL-ად ვერ დაიპარსა — orderId ცარიელი დარჩება
+        }
       }
       if (orderId) sessionStorage.setItem("last_bog_order_id", orderId);
 
@@ -586,8 +515,6 @@ const handleChange = (e) => {
         sessionStorage.setItem("last_bog_state", data.state);
       }
 
-      // GA4 purchase-ის snapshot — გადახდის წარმატებით დასრულების შემდეგ
-      // PaymentResult-ში გამოვა. transaction_id = backend order_id (fallback: state).
       try {
         const pendingPurchase = {
           transaction_id: orderId || data.state || "",
@@ -603,12 +530,15 @@ const handleChange = (e) => {
           })),
         };
         sessionStorage.setItem("pending_purchase", JSON.stringify(pendingPurchase));
-      } catch {}
+      } catch {
+        // sessionStorage მიუწვდომელია (პრივატული ბრაუზერი და მისთ.) — უვნებელია
+      }
 
       window.location.href = data.redirect_url;
     } catch (err) {
       console.error(err);
       setError(err.message || "გადახდის ინიციალიზაცია ვერ მოხერხდა");
+      setSubmitting(false);
     }
   };
 
@@ -626,7 +556,6 @@ const handleChange = (e) => {
               const saleValue = normalizeSale(item?.sale);
               const hasSale = saleValue > 0;
               const line = up * (item.quantity || 0);
-              // ფასდაკლებულ პროდუქტზე პრომო კოდი არ ვრცელდება
               const promoApplies = promoActive && !hasSale;
               const promoBlocked = promoActive && hasSale;
 
@@ -689,62 +618,58 @@ const handleChange = (e) => {
                     )}
 
                     <div className={styles.controls}>
-{/* MINUS */}
-<div className={styles.checkboxWrapper}>
-  <input
-    type="checkbox"
-    className={styles.checkbox}
-    id={`minus-${item.id}`}
-    onClick={() => updateQuantity(item.id, -1)}
-    disabled={item.quantity === 1}
-  />
+                      <div className={styles.checkboxWrapper}>
+                        <input
+                          type="checkbox"
+                          className={styles.checkbox}
+                          id={`minus-${item.id}`}
+                          onClick={() => updateQuantity(item.id, -1)}
+                          disabled={item.quantity === 1}
+                        />
+                        <label htmlFor={`minus-${item.id}`} className={styles.checkboxLabel}>
+                          <div className={styles.checkboxFlip}>
+                            <div className={styles.checkboxFront}>−</div>
+                            <div className={styles.checkboxBack}>−</div>
+                          </div>
+                        </label>
+                      </div>
 
-  <label htmlFor={`minus-${item.id}`} className={styles.checkboxLabel}>
-    <div className={styles.checkboxFlip}>
-      <div className={styles.checkboxFront}>−</div>
-      <div className={styles.checkboxBack}>−</div>
-    </div>
-  </label>
-</div>
+                      <span className={styles.quantityDisplay}>
+                        {item.quantity}
+                      </span>
 
-<span className={styles.quantityDisplay}>
-  {item.quantity}
-</span>
+                      <div className={styles.checkboxWrapper}>
+                        <input
+                          type="checkbox"
+                          className={styles.checkbox}
+                          id={`plus-${item.id}`}
+                          onClick={() => {
+                            const maxQty = normalizeQuantity(stockById[item.id]);
 
-{/* PLUS */}
-<div className={styles.checkboxWrapper}>
-  <input
-    type="checkbox"
-    className={styles.checkbox}
-    id={`plus-${item.id}`}
-    onClick={() => {
-      const maxQty = normalizeQuantity(stockById[item.id]);
+                            if (item.quantity >= maxQty) {
+                              setStockMessageById((prev) => ({
+                                ...prev,
+                                [item.id]: `მარაგში მხოლოდ ${maxQty} ცალია.`,
+                              }));
+                              return;
+                            }
 
-      if (item.quantity >= maxQty) {
-        setStockMessageById((prev) => ({
-          ...prev,
-          [item.id]: `მარაგში მხოლოდ ${maxQty} ცალია.`,
-        }));
-        return;
-      }
+                            setStockMessageById((prev) => ({
+                              ...prev,
+                              [item.id]: "",
+                            }));
 
-      setStockMessageById((prev) => ({
-        ...prev,
-        [item.id]: "",
-      }));
-
-      updateQuantity(item.id, 1);
-    }}
-    disabled={item.quantity >= normalizeQuantity(stockById[item.id])}
-  />
-
-  <label htmlFor={`plus-${item.id}`} className={styles.checkboxLabel}>
-    <div className={styles.checkboxFlip}>
-      <div className={styles.checkboxFront}>+</div>
-      <div className={styles.checkboxBack}>+</div>
-    </div>
-  </label>
-</div>
+                            updateQuantity(item.id, 1);
+                          }}
+                          disabled={item.quantity >= normalizeQuantity(stockById[item.id])}
+                        />
+                        <label htmlFor={`plus-${item.id}`} className={styles.checkboxLabel}>
+                          <div className={styles.checkboxFlip}>
+                            <div className={styles.checkboxFront}>+</div>
+                            <div className={styles.checkboxBack}>+</div>
+                          </div>
+                        </label>
+                      </div>
 
                       <button
                         className={styles.binButton}
@@ -778,7 +703,11 @@ const handleChange = (e) => {
               );
             })}
 
-            <DeliveryDiscountBanner subtotal={subtotal} />
+            {!minOrderOk && (
+              <div className={styles.promoScopeNote} style={{ color: "#fca5a5", borderColor: "rgba(248,113,113,.4)", background: "rgba(248,113,113,.08)" }}>
+                <WarningIcon /> {T.minOrderHint} — კიდევ დაამატეთ {fmt(MIN_ORDER_SUBTOTAL - subtotal)} ₾-ის ღირებულების პროდუქტი.
+              </div>
+            )}
 
             <div className={styles.totalPrice}>
               <div>
@@ -813,27 +742,35 @@ const handleChange = (e) => {
                 </div>
               )}
 
-              {formData.deliveryOption === "courierDelivery" && (
+              {formData.deliveryOption === "courierDelivery" && courierInfo && (
                 <>
                   {preview.delivery_discount > 0 && (
                     <div style={{ color: "#16a34a", fontWeight: 600 }}>
-                      🚚 მიტანაზე ფასდაკლება: <strong>−{fmt(preview.delivery_discount)}₾</strong>
+                      <TruckIcon /> მიტანაზე ფასდაკლება (შეკვ. ≥ {courierInfo.freeThreshold}₾):{" "}
+                      <strong>−{fmt(preview.delivery_discount)}₾</strong>
                     </div>
                   )}
                   <div>
-                    {T.deliveryFee}:{" "}
+                    <TruckIcon /> {T.deliveryFee}:{" "}
                     <strong>
-                      {selectedCourier
-                        ? `${fmt(preview.delivery_fee)} ₾ · ${selectedCourier.providerName}`
-                        : "კურიერი არ არის არჩეული"}
+                      {preview.delivery_fee > 0 ? `${fmt(preview.delivery_fee)} ₾` : "უფასო"}
                     </strong>
-                    {preview.delivery_discount > 0 && selectedCourier && (
+                    {preview.delivery_discount > 0 && (
                       <span style={{ textDecoration: "line-through", color: "#94a3b8", marginLeft: 6, fontWeight: 400 }}>
-                        {fmt(preview.base_delivery_fee)}₾
+                        {fmt(courierInfo.baseFee)}₾
                       </span>
                     )}
+                    <span style={{ color: "#94a3b8", marginLeft: 8, fontSize: 12 }}>
+                      ({courierInfo.etaLabel})
+                    </span>
                   </div>
                 </>
+              )}
+
+              {formData.deliveryOption === "storePickup" && (
+                <div style={{ color: "#4ade80", fontWeight: 600 }}>
+                  <StoreIcon /> ადგილზე აღება: უფასო
+                </div>
               )}
 
               <hr />
@@ -881,14 +818,11 @@ const handleChange = (e) => {
           required
         />
 
-  
-
         <select
           name="deliveryOption"
           value={formData.deliveryOption}
           onChange={(e) => {
             handleChange(e);
-            setSelectedCourier(null);
             // ადგილზე აღებისას პრომო ველი იმალება — კოდიც ვასუფთავებთ,
             // რომ დამალული კოდი ჩუმად არ გამოიყენოს
             if (e.target.value === "storePickup") {
@@ -906,14 +840,38 @@ const handleChange = (e) => {
           ))}
         </select>
 
+        {formData.deliveryOption === "storePickup" && (
+          <div style={{ background: "rgba(59,130,246,.1)", border: "1px solid rgba(59,130,246,.35)", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: "#bfdbfe", margin: "7px 0" }}>
+            <div><ClockIcon /> შეკვეთა მზად იქნება: <strong>{pickupReady}</strong></div>
+            <div><PinIcon /> არტოპია — სიმონ ჩიკოვანის 45, თბილისი</div>
+          </div>
+        )}
+
         {formData.deliveryOption === "courierDelivery" && (
           <DeliverySection
             delivery={delivery}
             onChange={handleDeliveryChange}
-            selectedCourier={selectedCourier}
-            onCourierSelect={setSelectedCourier}
             subtotal={subtotal}
           />
+        )}
+
+        {formData.deliveryOption === "storePickup" && (
+          <select
+            name="paymentMethod"
+            value={formData.paymentMethod}
+            onChange={handleChange}
+            className={styles.input}
+            required
+          >
+            <option value="card">{T.payCard}</option>
+            <option value="on_site">{T.payOnSite}</option>
+          </select>
+        )}
+
+        {formData.deliveryOption === "courierDelivery" && (
+          <p className={styles.submitHint} style={{ marginTop: 4 }}>
+            <CardIcon /> {T.courierCardOnlyNote}
+          </p>
         )}
 
         {formData.deliveryOption !== "storePickup" && (
@@ -971,23 +929,13 @@ const handleChange = (e) => {
           rows={3}
         />
 
-        <select
-          name="paymentMethod"
-          value={formData.paymentMethod}
-          onChange={handleChange}
-          className={styles.input}
-          required
-        >
-          <option value="card">{T.payCard}</option>
-        </select>
-
         <button
           type="submit"
           className={styles.submitBtn}
-          disabled={!canSubmit}
+          disabled={!canSubmit || submitting}
           title={submitHint || undefined}
         >
-          {T.proceed}
+          {submitting ? "..." : T.proceed}
         </button>
         {submitHint && (
           <p className={styles.submitHint}>{submitHint}</p>

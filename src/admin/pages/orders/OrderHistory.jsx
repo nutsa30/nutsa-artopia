@@ -97,11 +97,24 @@ const deliveryMethodLabel = (method) => {
   return method || "—";
 };
 
-const calcDeliveryDiscount = (subtotal) => {
-  if (subtotal >= 201) return 20;
-  if (subtotal >= 100) return 10;
-  if (subtotal >= 50) return 5;
-  return 0;
+const paymentMethodLabel = (method) => {
+  const m = (method || "").toLowerCase();
+  if (m === "cash_on_pickup") return "ადგილზე გადახდა";
+  if (m === "card" || m === "bog" || m === "test") return "ბარათით (ონლაინ)";
+  return method || "—";
+};
+
+const isTbilisiCity = (city) => {
+  const lc = (city || "").trim().toLowerCase();
+  return lc === "tbilisi" || lc === "თბილისი";
+};
+
+// ახალი, ქალაქზე დამოკიდებული ფიქსირებული ტარიფი (QuickShipper-ის მოცილების შემდეგ)
+const calcDeliveryDiscount = (subtotal, city) => {
+  const tbilisi = isTbilisiCity(city);
+  const baseFee = tbilisi ? 5 : 7;
+  const threshold = tbilisi ? 50 : 70;
+  return subtotal >= threshold ? baseFee : 0;
 };
 
 const OrderHistory = () => {
@@ -113,6 +126,7 @@ const OrderHistory = () => {
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [markingPaid, setMarkingPaid] = useState({});
 
   const queryString = useMemo(() => {
     const qs = new URLSearchParams();
@@ -170,6 +184,25 @@ const OrderHistory = () => {
     }
   };
 
+  const markPaid = async (id) => {
+    setMarkingPaid((prev) => ({ ...prev, [id]: true }));
+    try {
+      const res = await fetch(`${API_BASE}/admin/orders/${id}/mark-paid`, {
+        method: "POST",
+        headers: buildHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "მონიშვნა ვერ მოხერხდა");
+
+      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: "paid" } : o)));
+      setDetails((prev) => (prev[id] ? { ...prev, [id]: { ...prev[id], status: "paid", paid_at: data.paid_at } } : prev));
+    } catch (err) {
+      setError(err.message || "მონიშვნა ვერ მოხერხდა");
+    } finally {
+      setMarkingPaid((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
   const onFilterSubmit = (e) => { e.preventDefault(); fetchOrders(); };
   const onReset = () => { setFromDate(""); setToDate(""); fetchOrders("per_page=50"); };
 
@@ -224,20 +257,34 @@ const OrderHistory = () => {
                         {statusLabel(o.status)}
                       </span>
                       {isCourier && (
-                        <span className={styles.deliveryBadge}>
-                          🚚 {o.quickshipper_provider_name || "კურიერი"}
-                        </span>
+                        <span className={styles.deliveryBadge}>კურიერი</span>
                       )}
                       {isPickup && (
-                        <span className={styles.pickupBadge}>🏪 ადგილზე გატანა</span>
+                        <span className={styles.pickupBadge}>ადგილზე გატანა</span>
+                      )}
+                      {o.payment_method === "cash_on_pickup" && (
+                        <span className={styles.pickupBadge}>{paymentMethodLabel(o.payment_method)}</span>
                       )}
                       <span className={styles.metaText}>{fmtDT(dt)}</span>
                     </div>
                   </div>
 
                   <div className={styles.orderAside}>
-                    <div className={styles.totalLabel}>სულ გადახდილია</div>
+                    <div className={styles.totalLabel}>
+                      {o.status === "paid" ? "სულ გადახდილია" : "სულ გადასახდელია"}
+                    </div>
                     <div className={styles.totalValue}>{fmtMoney(o.total)}</div>
+                    {o.status !== "paid" && o.payment_method === "cash_on_pickup" && (
+                      <button
+                        type="button"
+                        className={styles.primaryBtn}
+                        style={{ marginTop: 8 }}
+                        onClick={() => markPaid(o.id)}
+                        disabled={!!markingPaid[o.id]}
+                      >
+                        {markingPaid[o.id] ? "…" : "მონიშნე გადახდილად"}
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -255,6 +302,10 @@ const OrderHistory = () => {
                   <div className={styles.summaryCell}>
                     <span className={styles.summaryLabel}>მიტანა</span>
                     <span className={styles.summaryValue}>{deliveryMethodLabel(o.delivery_method)}</span>
+                  </div>
+                  <div className={styles.summaryCell}>
+                    <span className={styles.summaryLabel}>გადახდა</span>
+                    <span className={styles.summaryValue}>{paymentMethodLabel(o.payment_method)}</span>
                   </div>
                   <div className={styles.summaryCell}>
                     <span className={styles.summaryLabel}>თარიღი</span>
@@ -279,7 +330,7 @@ const OrderHistory = () => {
                     {!loadingIds[o.id] && details[o.id] && (() => {
                       const d = details[o.id];
                       const subtotal = d.subtotal || 0;
-                      const delivDisc = calcDeliveryDiscount(subtotal);
+                      const delivDisc = calcDeliveryDiscount(subtotal, d.customer?.city);
                       const couponDisc = d.coupon?.discount || 0;
                       const isCourierDetail = d.delivery_method === "courier";
                       const isPickupDetail = d.delivery_method === "pickup";
@@ -324,38 +375,14 @@ const OrderHistory = () => {
 
                           {/* ══ მიტანის სექცია (full width) ══ */}
                           <div className={`${styles.infoCard} ${isCourierDetail ? styles.courierCard : ""}`}>
-                            <h4>{isCourierDetail ? "🚚 კურიერული მიტანა" : isPickupDetail ? "🏪 ადგილზე გატანა" : "🚚 მიტანა"}</h4>
+                            <h4>{isCourierDetail ? "კურიერული მიტანა" : isPickupDetail ? "ადგილზე გატანა" : "მიტანა"}</h4>
                             <div className={styles.infoRows}>
                               {isCourierDetail && (
                                 <>
-                                  {d.quickshipper_provider_name && (
-                                    <div>
-                                      <span>საკურიერო კომპანია:</span>{" "}
-                                      <strong>{d.quickshipper_provider_name}</strong>
-                                    </div>
-                                  )}
+                                  <div><span>ქალაქი:</span> {d.customer?.city || "—"}</div>
                                   <div><span>მიტანის მისამართი:</span> {d.customer?.address || "—"}</div>
                                   {d.delivery_address_comment && (
                                     <div><span>სადარბ. / სართ. / ბინა:</span> {d.delivery_address_comment}</div>
-                                  )}
-                                  {d.quickshipper_order_no && (
-                                    <div><span>კურიერის შეკვ. №:</span> <span className={styles.monoText}>{d.quickshipper_order_no}</span></div>
-                                  )}
-                                  {d.quickshipper_tracking_url && (
-                                    <div>
-                                      <span>თვალყურის დევნება:</span>{" "}
-                                      <a
-                                        href={d.quickshipper_tracking_url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className={styles.trackingLink}
-                                      >
-                                        📍 ამანათის ლოკაციის ნახვა →
-                                      </a>
-                                    </div>
-                                  )}
-                                  {!d.quickshipper_order_no && !d.quickshipper_tracking_url && (
-                                    <div className={styles.pendingNote}>კურიერის შეკვეთა ჯერ არ შექმნილა</div>
                                   )}
                                 </>
                               )}
@@ -363,6 +390,9 @@ const OrderHistory = () => {
                                 <>
                                   <div><span>მისამართი:</span> სიმონ ჩიქოვანის 45, საბურთალო, თბილისი</div>
                                   <div><span>სამუშაო საათები:</span> ყოველდღე 11:30–20:30</div>
+                                  {o.payment_method === "cash_on_pickup" && (
+                                    <div><span>გადახდა:</span> ადგილზე, ნივთის აღებისას</div>
+                                  )}
                                 </>
                               )}
                               {!isCourierDetail && !isPickupDetail && (
@@ -474,9 +504,20 @@ const OrderHistory = () => {
                               </div>
                             ) : null}
                             <div className={`${styles.totalRow} ${styles.grandTotal}`}>
-                              <span>სულ გადახდილია</span>
+                              <span>{d.status === "paid" ? "სულ გადახდილია" : "სულ გადასახდელია"}</span>
                               <b>{fmtMoney(d.total)}</b>
                             </div>
+                            {d.status !== "paid" && o.payment_method === "cash_on_pickup" && (
+                              <button
+                                type="button"
+                                className={styles.primaryBtn}
+                                style={{ marginTop: 10, width: "100%" }}
+                                onClick={() => markPaid(o.id)}
+                                disabled={!!markingPaid[o.id]}
+                              >
+                                {markingPaid[o.id] ? "…" : "მონიშნე გადახდილად"}
+                              </button>
+                            )}
                           </div>
 
                         </div>

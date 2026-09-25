@@ -73,18 +73,18 @@ const DATA = {
 
   answers: {
     tbilisi_delivery: {
-      ka: "მიწოდება ხორციელდება QuickShipper-ის კურიერული სერვისით. ტარიფი ჩანს შეკვეთის გვერდზე კონკრეტული მისამართისთვის.\n\nმიტანაზე ფასდაკლებები:\n• 50–99₾ შეკვეთა → 5₾ ფასდაკლება\n• 100–200₾ შეკვეთა → 10₾ ფასდაკლება\n• 201₾+ შეკვეთა → 20₾ ფასდაკლება\n\nასევე შეგიძლიათ ადგილზე აღება — მაღაზიიდან, უფასოდ.",
-      en: "Delivery is provided by QuickShipper courier service. The fee is shown at checkout based on your specific address.\n\nDelivery discounts:\n• Order 50–99₾ → 5₾ off\n• Order 100–200₾ → 10₾ off\n• Order 201₾+ → 20₾ off\n\nYou can also pick up in store for free.",
+      ka: "თბილისში კურიერული მიწოდება 5₾ ღირს. 50₾ და მეტი ღირებულების შეკვეთაზე მიწოდება უფასოა. მიტანის ვადაა 1-3 სამუშაო დღე. კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.\n\nმინიმალური შეკვეთაა 20₾.\n\nასევე შეგიძლიათ ადგილზე აღება მაღაზიიდან, უფასოდ.",
+      en: "Courier delivery in Tbilisi costs 5₾. Orders of 50₾ or more get free delivery. Delivery takes 1-3 business days. Courier orders are paid by card online only, in advance.\n\nMinimum order is 20₾.\n\nYou can also pick up your order from the store for free.",
     },
 
     regions_delivery: {
-      ka: "რეგიონებშიც მიწოდება QuickShipper-ის კურიერული სერვისით ხდება. ტარიფი ჩანს შეკვეთის გვერდზე.\n\nმიტანაზე ფასდაკლებები:\n• 50–99₾ შეკვეთა → 5₾ ფასდაკლება\n• 100–200₾ შეკვეთა → 10₾ ფასდაკლება\n• 201₾+ შეკვეთა → 20₾ ფასდაკლება",
-      en: "Delivery to regions is also via QuickShipper courier. The fee is shown at checkout.\n\nDelivery discounts:\n• Order 50–99₾ → 5₾ off\n• Order 100–200₾ → 10₾ off\n• Order 201₾+ → 20₾ off",
+      ka: "რეგიონში კურიერული მიწოდება 7₾ ღირს. 70₾ და მეტი ღირებულების შეკვეთაზე მიწოდება უფასოა. მიტანის ვადაა 2-4 სამუშაო დღე. კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.\n\nმინიმალური შეკვეთაა 20₾.",
+      en: "Courier delivery to regions costs 7₾. Orders of 70₾ or more get free delivery. Delivery takes 2-4 business days. Courier orders are paid by card online only, in advance.\n\nMinimum order is 20₾.",
     },
 
     pickup: {
-      ka: "შეკვეთის ადგილზე აღება შესაძლებელია არტოპიაში.",
-      en: "You can collect your order from the store.",
+      ka: "შეკვეთის ადგილზე აღება შესაძლებელია არტოპიაში, უფასოდ. 18:00 საათამდე გაკეთებული შეკვეთა მზად იქნება დღესვე, 20:30 საათამდე — მოგვიანებით გაკეთებული კი მომდევნო სამუშაო დღეს. გადახდა შეგიძლიათ წინასწარ ბარათით საიტიდან, ან ადგილზე, ნივთის აღებისას.",
+      en: "You can collect your order from the store for free. Orders placed before 18:00 are ready the same day by 20:30 — later orders are ready the next business day. You can pay by card online in advance, or in person when you pick up the order.",
     },
 
     address: {

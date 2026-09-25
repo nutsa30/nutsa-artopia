@@ -95,6 +95,60 @@ export const couponDiscountFor = (eligibleSubtotal, percent) => {
   return +Math.min(base, base * (pct / 100)).toFixed(2);
 };
 
+/**
+ * მიტანის ლოგიკა (QuickShipper-ის ჩანაცვლების შემდეგ — ფიქსირებული, ქალაქზე
+ * დამოკიდებული ტარიფი). ავტორიტეტული გამოთვლა ბექენდშია (`app/delivery.py`),
+ * აქაური კი მხოლოდ მყისიერი UI-პრევიუსთვისაა.
+ */
+export const MIN_ORDER_SUBTOTAL = 20;
+
+export const TBILISI_COURIER_FEE = 5;
+export const TBILISI_FREE_THRESHOLD = 50;
+export const REGION_COURIER_FEE = 7;
+export const REGION_FREE_THRESHOLD = 70;
+
+export const PICKUP_CUTOFF_HOUR = 18;
+
+export const isTbilisiCity = (city) => {
+  const lc = (city || "").trim().toLowerCase();
+  return lc === "tbilisi" || lc === "თბილისი";
+};
+
+/** {isTbilisi, baseFee, freeThreshold, waived, fee, discount, etaLabel} */
+export const courierDeliveryInfo = (city, subtotal) => {
+  const st = Number(subtotal) || 0;
+  const tbilisi = isTbilisiCity(city);
+  const baseFee = tbilisi ? TBILISI_COURIER_FEE : REGION_COURIER_FEE;
+  const threshold = tbilisi ? TBILISI_FREE_THRESHOLD : REGION_FREE_THRESHOLD;
+  const etaLabel = tbilisi ? "1-3 სამუშაო დღე" : "2-4 სამუშაო დღე";
+  const waived = st >= threshold;
+  return {
+    isTbilisi: tbilisi,
+    baseFee,
+    freeThreshold: threshold,
+    waived,
+    fee: waived ? 0 : baseFee,
+    discount: waived ? baseFee : 0,
+    etaLabel,
+  };
+};
+
+export const meetsMinOrder = (subtotal) => (Number(subtotal) || 0) >= MIN_ORDER_SUBTOTAL;
+
+/** 'დღესვე, 20:30 საათამდე' თუ ახლა 18:00-მდეა თბილისის დროით, თორემ 'მომდევნო სამუშაო დღეს' */
+export const pickupReadyLabel = (now = new Date()) => {
+  const tbilisiHour = Number(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Tbilisi",
+      hour: "2-digit",
+      hour12: false,
+    }).format(now)
+  );
+  return tbilisiHour < PICKUP_CUTOFF_HOUR
+    ? "დღესვე, 20:30 საათამდე"
+    : "მომდევნო სამუშაო დღეს";
+};
+
 /** ბექენდის REASON_* კოდების ქართული შესატყვისები (ოფლაინ fallback-ისთვის) */
 export const PROMO_MESSAGES = {
   ok: "პრომო კოდი გააქტიურდა",

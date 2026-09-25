@@ -77,11 +77,45 @@ Checkout shows the rule rather than applying it silently:
 
 ### Checkout & payments
 
+QuickShipper was removed (2026-09) — no more third-party courier lookup, map
+picker, or per-provider selection. Delivery is flat and city-based; the shared
+math lives in `src/utils/pricing.js` (`courierDeliveryInfo`, `meetsMinOrder`,
+`pickupReadyLabel`, `MIN_ORDER_SUBTOTAL`) and mirrors the backend's
+`app/delivery.py` — that backend file is authoritative, this is only for the
+instant UI preview.
+
+| Rule | Value |
+|---|---|
+| Minimum order (site-wide) | 20₾ |
+| Courier — Tbilisi | 5₾, free at ≥50₾ |
+| Courier — region | 7₾, free at ≥70₾ |
+| Pickup | Always free. Ready today by 20:30 if ordered before 18:00 (Asia/Tbilisi), else next business day. |
+| Courier payment | Card only, prepaid — no cash on delivery. |
+| Pickup payment | Customer's choice: card (prepaid) or on-site (pay when collecting). |
+
 `src/components/Checkout/Checkout.jsx` handles the full checkout flow:
-- Delivery options: `storePickup` or `courierDelivery` (uses `DeliverySection` sub-component for address + courier selection)
-- Promo codes are validated by `POST /promo-codes/validate` (debounced ~450 ms, re-run whenever the cart changes). If that call fails, it falls back to the public `GET /promo-codes` list and applies the same eligible-only rule locally. Only a code that actually validated is sent with the order.
-- Payment is initiated via `POST /payments/bog/create` (Bank of Georgia), which returns a `redirect_url`; the user is hard-redirected to the BOG payment page
-- Result is handled at `/payment/result` (`PaymentResult` component)
+- Delivery options: `storePickup` or `courierDelivery`. `courierDelivery` renders
+  `DeliverySection` — a plain city `<select>` + address/hallway/floor/apartment
+  text inputs (no map, no courier-provider picker).
+- The payment-method `<select>` (card / on-site) only appears for `storePickup`;
+  for `courierDelivery` it's forced to `card` and hidden.
+- Promo codes are validated by `POST /promo-codes/validate` (debounced ~450 ms, re-run whenever the cart changes). If that call fails, it falls back to the public `GET /promo-codes` list and applies the same eligible-only rule locally. Only a code that actually validated is sent with the order. The promo field is hidden entirely for `storePickup`.
+- **Pickup + pay-by-card** and **courier** (always card) go through `POST
+  /payments/bog/create` (Bank of Georgia), which returns a `redirect_url`; the
+  user is hard-redirected to the BOG payment page. Result is handled at
+  `/payment/result` (`PaymentResult` component).
+- **Pickup + pay-on-site** skips the bank entirely: `POST /orders` creates the
+  order immediately (`status: "placed"`), the cart is cleared, and a modal shows
+  the amount due plus the pickup-ready time from the response
+  (`pickup_ready_label`). An admin later marks it paid in
+  `src/admin/pages/orders/OrderHistory.jsx` once the customer pays in store.
+- Small inline SVG icons (truck/store/clock/pin/card/warning) live in
+  `src/components/Checkout/icons.jsx` — used instead of emoji throughout
+  checkout, matching the plain CSS-Modules styling already used in this folder
+  (this app does **not** have Tailwind wired into its build despite it being a
+  listed dependency — `vite.config.js` has no Tailwind plugin and no CSS file
+  imports `@tailwind`/`@import "tailwindcss"`; Tailwind classes here would be
+  silently inert).
 
 ### SEO
 
@@ -94,3 +128,11 @@ Checkout shows the rule rather than applying it silently:
 ### UI language
 
 All user-facing strings are in Georgian (ქართული). Keep new UI text in Georgian to match the existing codebase.
+
+### No emoji on the storefront (IMPORTANT)
+
+The customer-facing site must look clean — no emoji as icons (e.g. a truck/phone
+emoji for delivery). Use small inline SVG icons instead (see
+`src/components/Checkout/icons.jsx` for the pattern: a shared `base` props object,
+`currentColor` stroke, sized via props). This applies to new UI; don't go back
+and strip emoji from unrelated existing features unless asked.
