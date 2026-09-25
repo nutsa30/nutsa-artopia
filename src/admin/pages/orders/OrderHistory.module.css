@@ -916,3 +916,10 @@
   color: #92400e;
   margin-top: 4px;
 }
+
+/* მრგვალი ზონა — წრის კონტური მხოლოდ ჩვენებაშია, ფაილში არა */
+.laserCircle {
+  border-radius: 50%;
+  outline: 2px dashed #f59e0b;
+  outline-offset: -2px;
+}

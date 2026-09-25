@@ -119,8 +119,18 @@ instant UI preview.
 
 ### Engraving (`/engraving`, გრავირება)
 
-Customers put text and/or a photo on a gold pen (25₾) or a wooden keychain
-(13₾, both sides 20₾), see it on the real 3D model, and add it to the cart.
+Customers put text and/or a photo on one of 9 products — 5 pens (gold 25₾,
+silver 23₾, full-metal 18₾, red 16₾, rifle 32₾) and 4 keychains (square/round
+wood, square/round leather in white/black/brown/red; 13₾, both sides 20₾) —
+see it on the real 3D model, and add it to the cart. For keychains the editor
+splits into front (required) and back (optional) panels; filling the back
+switches the price to 20₾ automatically. Engraving on the customer's own item
+(10₾) is offered by phone/email/socials/visit only. Every product's overlay is
+measured from its own GLB (`PEN_GEOM` / `PLATE_GEOM` in `EngravingViewer.jsx`);
+the engraved look depends on the material (`ENGRAVE_LOOKS`); leather color is a
+shader tint applied only to non-metal parts. SEO: page JSON-LD (Service offers +
+FAQ), edge-function meta for bots, sitemap images, robots `Allow`, footer link,
+chat-bot answer.
 Rules mirror the backend's `app/engraving.py` (authoritative) in
 `src/utils/engraving.js`: prices, 5 units per order max, 2-3 business-day
 production (whole order waits), no promo code, no 20₾ minimum, card-only.

@@ -1,74 +1,126 @@
 /**
  * 3D პრევიუ: GLB მოდელი (public/models/engraving) + გრავირების ფენა.
  *
- * გრავირების ფენის გეომეტრია თითოეულ მოდელზე ცალკე, მისი ბადის ზომებიდან
- * არის გაზომილი (კალმის ღერძი/რადიუსი, ბრელოკის ზედაპირი) და რეალურ
- * მილიმეტრებზეა მიბმული:
- *   • კალამი — 138 მმ = 1.911 ერთეული → 72.2 მმ/ერთ. ზონა 54×6 მმ ქვედა ნაწილზე
- *     (რგოლსა და წვერს შორის), სამაგრის მოპირდაპირე მხარეს. კორპუსი ოდნავ
- *     კონუსურია, ამიტომ ფენაც კონუსურია — ტექსტი ზედაპირს ზუსტად მიჰყვება.
- *   • ბრელოკი — ფირფიტა 35 მმ = 0.977 ერთეული → 35.8 მმ/ერთ. ზონა 29×29 მმ
- *     ბრტყელ ზედაპირზე, წინა და უკანა მხარეს.
+ * გრავირების ფენის გეომეტრია თითოეულ მოდელზე ცალკე, მისი ბადიდან არის
+ * გაზომილი და რეალურ მილიმეტრებზეა მიბმული (იხ. PEN_GEOM / PLATE_GEOM):
+ *   • კალამი — ღერძი, ამოწვის მიმართულება (სამაგრის მოპირდაპირე მხარე) და
+ *     კორპუსის რადიუსი ზონის გასწვრივ (ცხრილით — კორპუსი ხშირად კონუსურია),
+ *     ფენა ზედაპირს ~0.09 მმ-ით მიჰყვება. სიგრძე: 14 სმ (ოქროსფერი — 13.8 სმ).
+ *   • ბრელოკი — ბრტყელი წინა და უკანა ზედაპირის სიბრტყე, ზონის ცენტრი და
+ *     მასშტაბი ფირფიტის რეალური ზომიდან.
+ * ტყავის ბრელოკის ფერი შეიცვლება მხოლოდ ტყავზე (ლითონის რგოლი უცვლელია):
+ * შეიდერში ფერი მრავლდება მხოლოდ იქ, სადაც მასალა ლითონი არ არის.
  *
- * ref API: snapshot(side) → Promise<Blob PNG>, setView(side)
+ * ref API: snapshot(side) → Promise<Blob PNG>, setView(side), isReady()
  */
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { ENGRAVING_PRODUCTS } from "../../utils/engraving";
+import { ENGRAVING_PRODUCTS, colorById, engraveLook } from "../../utils/engraving";
 import styles from "./EngravingViewer.module.css";
 
 /* ---------- მოდელების გაზომილი გეომეტრია (GLB-ის ლოკალურ ერთეულებში) ---------- */
-const PEN_MM_PER_UNIT = 138 / 1.911;
-const PEN = {
-  xCap: 0.047, // ზონის კიდე რგოლის მხარეს (+x — ქუდისკენ)
-  xTip: -0.701, // ზონის კიდე წვერის მხარეს
-  axisY: 0,
-  axisZ: 0.019, // კორპუსის ღერძი (სამაგრი −z მხარესაა)
-  radius: (x) => 0.073 + 0.01187 * (x - 0.019), // კონუსური კორპუსი
-  lift: 0.0012, // ფენა ზედაპირიდან ~0.09 მმ-ით — წახნაგები რომ არ გადაფაროს
+// dir — ამოწვის მიმართულება ღერძის გარშემო (გრადუსი, +Z-იდან +Y-ისკენ);
+// tipAtNegX — წვერი −X მხარესაა (ეკრანზე მარჯვნივ რომ მოხვდეს, 180°-ით ვაბრუნებთ).
+const PEN_GEOM = {
+  pen: {
+    mmPerUnit: 138 / 1.9111,
+    axis: [0, 0.019],
+    dir: 0,
+    tipAtNegX: true,
+    zoneCenterX: -0.327,
+    radius: [[-0.701, 0.0645], [-0.576, 0.0661], [-0.514, 0.0671], [-0.452, 0.068], [-0.389, 0.0689], [-0.327, 0.0695], [-0.265, 0.0705], [-0.202, 0.0713], [-0.14, 0.0721], [-0.078, 0.0729], [-0.015, 0.0737], [0.047, 0.0745]],
+  },
+  "pen-silver": {
+    mmPerUnit: 140 / 1.8997,
+    axis: [-0.0125, -0.0047],
+    dir: -90,
+    tipAtNegX: true,
+    zoneCenterX: -0.27,
+    radius: [[-0.61, 0.0689], [-0.553, 0.0715], [-0.497, 0.0731], [-0.44, 0.0753], [-0.383, 0.0764], [-0.327, 0.077], [-0.27, 0.0777], [-0.213, 0.0779], [-0.157, 0.078], [-0.1, 0.0778], [-0.043, 0.0774], [0.013, 0.0767], [0.07, 0.0759]],
+  },
+  "pen-fullsilver": {
+    mmPerUnit: 140 / 1.9063,
+    axis: [-0.0007, -0.0151],
+    dir: 180,
+    tipAtNegX: true,
+    zoneCenterX: -0.29,
+    radius: [[-0.617, 0.0578], [-0.563, 0.0595], [-0.508, 0.0611], [-0.454, 0.0625], [-0.399, 0.0635], [-0.344, 0.0649], [-0.29, 0.066], [-0.235, 0.0667], [-0.181, 0.0673], [-0.127, 0.0679], [-0.072, 0.0683], [-0.017, 0.0686], [0.037, 0.0686]],
+  },
+  "pen-red": {
+    mmPerUnit: 140 / 1.9008,
+    axis: [0.0098, -0.0005],
+    dir: 90,
+    tipAtNegX: false,
+    zoneCenterX: 0.2865,
+    radius: [[-0.08, 0.0762], [0.653, 0.0763]],
+  },
+  "pen-rifle": {
+    mmPerUnit: 140 / 1.9119,
+    axis: [-0.0085, -0.0414],
+    dir: 0,
+    tipAtNegX: true,
+    zoneCenterX: 0.03,
+    radius: [[-0.27, 0.0906], [-0.22, 0.0907], [-0.17, 0.0926], [-0.12, 0.0939], [-0.07, 0.0944], [-0.02, 0.0946], [0.03, 0.0947], [0.08, 0.0949], [0.13, 0.0949], [0.18, 0.0947], [0.23, 0.0936], [0.28, 0.092], [0.33, 0.0899]],
+  },
 };
-const KEY_MM_PER_UNIT = 35 / 0.977;
-const KEY = {
-  cx: 0,
-  cy: -0.468,
-  zFront: 0.14,
-  zBack: -0.1425,
-  lift: 0.0008,
+const PEN_LIFT = 0.0012; // ~0.09 მმ — წახნაგები რომ არ გადაფარონ
+
+const PLATE_GEOM = {
+  keychain: { mmPerUnit: 35 / 0.977, center: [0, -0.468], zFront: 0.1404, zBack: -0.1429 },
+  "keychain-round": { mmPerUnit: 40 / 1.0253, center: [0, -0.422], zFront: 0.064, zBack: -0.0676 },
+  "leather-square": { mmPerUnit: 40 / 0.8367, center: [0, -0.335], zFront: 0.0477, zBack: -0.0449 },
+  // ზონა თასმის კიდესა (y = −0.208) და ქვედა ნაკერს შორის
+  "leather-round": { mmPerUnit: 50 / 1.1755, center: [-0.0016, -0.532], zFront: 0.0646, zBack: -0.0659 },
 };
+const PLATE_LIFT = 0.0008;
 
 const VIEWS = {
-  pen: { target: [0, 0, 0], halfW: 1.08, halfH: 0.42 },
-  keychain: { target: [0, 0, 0], halfW: 0.62, halfH: 1.04 },
+  pen: { halfW: 1.08, halfH: 0.42 },
+  keychain: { halfW: 0.62, halfH: 1.04 },
 };
 
-function penShellGeometry(zoneMm) {
+const lerpTable = (table, x) => {
+  if (x <= table[0][0]) return table[0][1];
+  for (let i = 1; i < table.length; i++) {
+    const [x1, r1] = table[i];
+    if (x <= x1) {
+      const [x0, r0] = table[i - 1];
+      return r0 + ((r1 - r0) * (x - x0)) / (x1 - x0);
+    }
+  }
+  return table[table.length - 1][1];
+};
+
+function penShellGeometry(g, zoneMm) {
   const [lenMm, hMm] = zoneMm;
-  const arc = hMm / PEN_MM_PER_UNIT;
-  const segU = 96;
-  const segV = 12;
+  const arc = hMm / g.mmPerUnit;
+  const half = lenMm / g.mmPerUnit / 2;
+  // u = 0 — ქუდის მხარე (ეკრანზე მარცხნივ), u = 1 — წვერის მხარე
+  const x0 = g.tipAtNegX ? g.zoneCenterX + half : g.zoneCenterX - half;
+  const x1 = g.tipAtNegX ? g.zoneCenterX - half : g.zoneCenterX + half;
+  const phi = THREE.MathUtils.degToRad(g.dir);
+  const segU = 120;
+  const segV = 14;
   const pos = [];
   const nrm = [];
   const uv = [];
   const idx = [];
-  // ზონის სიგრძე მმ-ით: ცენტრი რგოლ-წვერს შორის
-  const mid = (PEN.xCap + PEN.xTip) / 2;
-  const half = lenMm / PEN_MM_PER_UNIT / 2;
-  const x0 = mid + half; // u = 0 (ქუდის მხარე, ეკრანზე მარცხნივ)
-  const x1 = mid - half; // u = 1 (წვერის მხარე)
   for (let i = 0; i <= segU; i++) {
     const u = i / segU;
     const x = x0 + (x1 - x0) * u;
-    const r = PEN.radius(x) + PEN.lift;
+    const r = lerpTable(g.radius, x) + PEN_LIFT;
     const span = arc / r;
     for (let j = 0; j <= segV; j++) {
       const v = j / segV;
-      const th = (0.5 - v) * span; // v = 1 → −y ლოკალურად → ზემოთ ეკრანზე
-      const sy = Math.sin(th);
-      const cz = Math.cos(th);
-      pos.push(x, PEN.axisY + r * sy, PEN.axisZ + r * cz);
+      // v = 1 (ტექსტურის ზედა კიდე) ეკრანზე ზემოთ უნდა მოხვდეს
+      const th = (g.tipAtNegX ? 0.5 - v : v - 0.5) * span;
+      const psi = phi + th;
+      const sy = Math.sin(psi);
+      const cz = Math.cos(psi);
+      pos.push(x, g.axis[0] + r * sy, g.axis[1] + r * cz);
       nrm.push(0, sy, cz);
       uv.push(u, v);
     }
@@ -81,16 +133,15 @@ function penShellGeometry(zoneMm) {
       idx.push(a, b, a + 1, b, b + 1, a + 1);
     }
   }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute("normal", new THREE.Float32BufferAttribute(nrm, 3));
-  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
-  g.setIndex(idx);
-  return g;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute("normal", new THREE.Float32BufferAttribute(nrm, 3));
+  geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  geo.setIndex(idx);
+  return geo;
 }
 
-function overlayMaterial(productKey) {
-  const pen = productKey === "pen";
+function overlayMaterial() {
   return new THREE.MeshStandardMaterial({
     transparent: true,
     depthWrite: false,
@@ -98,28 +149,52 @@ function overlayMaterial(productKey) {
     polygonOffset: true,
     polygonOffsetFactor: -4,
     polygonOffsetUnits: -4,
-    roughness: pen ? 0.6 : 0.95,
-    metalness: pen ? 0.15 : 0,
+    roughness: 0.9,
+    metalness: 0,
+    emissive: new THREE.Color("#ffffff"),
+    emissiveIntensity: 0,
     visible: false,
   });
 }
 
 function buildOverlays(productKey) {
   const zone = ENGRAVING_PRODUCTS[productKey].zoneMm;
-  if (productKey === "pen") {
-    const front = new THREE.Mesh(penShellGeometry(zone), overlayMaterial(productKey));
+  if (PEN_GEOM[productKey]) {
+    const front = new THREE.Mesh(penShellGeometry(PEN_GEOM[productKey], zone), overlayMaterial());
     front.renderOrder = 2;
     return { front, back: null };
   }
-  const size = zone[0] / KEY_MM_PER_UNIT;
-  const front = new THREE.Mesh(new THREE.PlaneGeometry(size, size), overlayMaterial(productKey));
-  front.position.set(KEY.cx, KEY.cy, KEY.zFront + KEY.lift);
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(size, size), overlayMaterial(productKey));
-  back.position.set(KEY.cx, KEY.cy, KEY.zBack - KEY.lift);
+  const g = PLATE_GEOM[productKey];
+  const w = zone[0] / g.mmPerUnit;
+  const h = zone[1] / g.mmPerUnit;
+  const front = new THREE.Mesh(new THREE.PlaneGeometry(w, h), overlayMaterial());
+  front.position.set(g.center[0], g.center[1], g.zFront + PLATE_LIFT);
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(w, h), overlayMaterial());
+  back.position.set(g.center[0], g.center[1], g.zBack - PLATE_LIFT);
   back.rotation.y = Math.PI; // უკნიდან რომ იკითხებოდეს
   front.renderOrder = 2;
   back.renderOrder = 2;
   return { front, back };
+}
+
+/** ტყავის ფერი: შეიდერში base color მრავლდება uTint-ზე მხოლოდ არალითონურ ნაწილზე */
+function applyTint(root, tintUniform) {
+  root.traverse((o) => {
+    if (!o.isMesh || !o.material || o.material.userData.tintPatched) return;
+    const mat = o.material;
+    mat.userData.tintPatched = true;
+    mat.onBeforeCompile = (shader) => {
+      shader.uniforms.uTint = tintUniform;
+      shader.fragmentShader = shader.fragmentShader
+        .replace("#include <common>", "#include <common>\nuniform vec3 uTint;")
+        .replace(
+          "#include <metalnessmap_fragment>",
+          "#include <metalnessmap_fragment>\n  diffuseColor.rgb *= mix(uTint, vec3(1.0), step(0.5, metalnessFactor));"
+        );
+    };
+    mat.customProgramCacheKey = () => "engr-tint";
+    mat.needsUpdate = true;
+  });
 }
 
 const modelCache = new Map(); // url -> Promise<gltf>
@@ -136,7 +211,17 @@ function loadModel(url, onProgress) {
   return modelCache.get(url);
 }
 
-const EngravingViewer = forwardRef(function EngravingViewer({ productKey, textures }, ref) {
+const disposeOverlays = (overlays) => {
+  if (!overlays) return;
+  for (const m of [overlays.front, overlays.back]) {
+    if (!m) continue;
+    m.material.map?.dispose();
+    m.material.dispose();
+    m.geometry.dispose();
+  }
+};
+
+const EngravingViewer = forwardRef(function EngravingViewer({ productKey, color, textures }, ref) {
   const hostRef = useRef(null);
   const threeRef = useRef(null);
   const [status, setStatus] = useState({ loading: false, progress: 0, error: "" });
@@ -212,6 +297,8 @@ const EngravingViewer = forwardRef(function EngravingViewer({ productKey, textur
       requestRender,
       root: null,
       overlays: null,
+      productKey: null,
+      tint: { value: new THREE.Color("#ffffff") },
       view: "front",
       suspended: false,
     };
@@ -221,15 +308,7 @@ const EngravingViewer = forwardRef(function EngravingViewer({ productKey, textur
       ro.disconnect();
       if (frame) cancelAnimationFrame(frame);
       controls.dispose();
-      const t = threeRef.current;
-      if (t?.overlays) {
-        for (const m of [t.overlays.front, t.overlays.back]) {
-          if (!m) continue;
-          m.material.map?.dispose();
-          m.material.dispose();
-          m.geometry.dispose();
-        }
-      }
+      disposeOverlays(threeRef.current?.overlays);
       envTex.dispose();
       pmrem.dispose();
       renderer.dispose();
@@ -241,23 +320,23 @@ const EngravingViewer = forwardRef(function EngravingViewer({ productKey, textur
   }, []);
 
   /* ---------- კამერის ხედები ---------- */
-  const fitView = (side = "front", animate = false, aspectOverride = null) => {
+  const fitView = (side = "front", angled = false, aspectOverride = null) => {
     const t = threeRef.current;
     if (!t || !t.productKey) return;
-    const v = VIEWS[t.productKey];
+    const v = VIEWS[ENGRAVING_PRODUCTS[t.productKey].category];
     const aspect = aspectOverride || t.camera.aspect || 1;
     const tanV = Math.tan(THREE.MathUtils.degToRad(t.camera.fov / 2));
     const dist = Math.max(v.halfH / tanV, v.halfW / (tanV * aspect));
-    const target = new THREE.Vector3(...v.target);
+    const target = new THREE.Vector3(0, 0, 0);
     const dir = side === "back" ? new THREE.Vector3(0, 0, -1) : new THREE.Vector3(0, 0, 1);
-    if (animate) {
+    if (angled) {
       // ოდნავ ზემოდან და გვერდიდან — რომ მოცულობა ჩანდეს
       dir.add(new THREE.Vector3(side === "back" ? -0.28 : 0.28, 0.18, 0)).normalize();
     }
     t.camera.position.copy(target).addScaledVector(dir, dist);
     t.camera.up.set(0, 1, 0);
     t.controls.target.copy(target);
-    t.controls.minDistance = dist * 0.45;
+    t.controls.minDistance = dist * 0.35;
     t.controls.maxDistance = dist * 1.8;
     t.camera.updateProjectionMatrix();
     t.controls.update();
@@ -282,26 +361,27 @@ const EngravingViewer = forwardRef(function EngravingViewer({ productKey, textur
         if (cancelled || !threeRef.current) return;
         if (t.root) {
           t.scene.remove(t.root);
-          if (t.overlays) {
-            for (const m of [t.overlays.front, t.overlays.back]) {
-              if (!m) continue;
-              m.material.map?.dispose();
-              m.material.dispose();
-              m.geometry.dispose();
-            }
-          }
+          disposeOverlays(t.overlays);
         }
-        const root = new THREE.Group();
-        root.add(gltf.scene);
+        // outer: წვერი მარჯვნივ; inner: ამოწვის მხარე კამერისკენ
+        const outer = new THREE.Group();
+        const inner = new THREE.Group();
+        outer.add(inner);
+        inner.add(gltf.scene);
         const overlays = buildOverlays(productKey);
-        root.add(overlays.front);
-        if (overlays.back) root.add(overlays.back);
-        if (productKey === "pen") root.rotation.z = Math.PI; // წვერი მარჯვნივ, წარწერა კამერისკენ
-        t.scene.add(root);
-        t.root = root;
+        inner.add(overlays.front);
+        if (overlays.back) inner.add(overlays.back);
+        const pg = PEN_GEOM[productKey];
+        if (pg) {
+          inner.rotation.x = THREE.MathUtils.degToRad(pg.dir);
+          if (pg.tipAtNegX) outer.rotation.z = Math.PI;
+        }
+        if (product.colors) applyTint(gltf.scene, t.tint);
+        t.scene.add(outer);
+        t.root = outer;
         t.overlays = overlays;
         t.productKey = productKey;
-        t.fitView = fitView;
+        t.applyColor?.();
         fitView("front", true);
         setStatus({ loading: false, progress: 100, error: "" });
         t.applyTextures?.();
@@ -318,6 +398,19 @@ const EngravingViewer = forwardRef(function EngravingViewer({ productKey, textur
     };
   }, [productKey]);
 
+  /* ---------- ტყავის ფერი ---------- */
+  useEffect(() => {
+    const t = threeRef.current;
+    if (!t) return;
+    t.applyColor = () => {
+      const c = colorById(productKey, color);
+      t.tint.value.set(c ? c.tint : "#ffffff");
+      t.tint.value.multiplyScalar(ENGRAVING_PRODUCTS[productKey]?.tintBoost || 1);
+      t.render();
+    };
+    t.applyColor();
+  }, [productKey, color]);
+
   /* ---------- გრავირების ტექსტურები ---------- */
   useEffect(() => {
     const t = threeRef.current;
@@ -325,30 +418,37 @@ const EngravingViewer = forwardRef(function EngravingViewer({ productKey, textur
     t.applyTextures = () => {
       const tt = threeRef.current;
       if (!tt?.overlays || tt.productKey !== productKey) return;
+      const look = engraveLook(productKey, color);
       for (const side of ["front", "back"]) {
         const mesh = tt.overlays[side];
         if (!mesh) continue;
         const src = textures?.[side] || null;
         const mat = mesh.material;
-        if (mat.userData.src === src) continue;
-        mat.map?.dispose();
-        if (src) {
-          const tex = new THREE.CanvasTexture(src);
-          tex.colorSpace = THREE.SRGBColorSpace;
-          tex.anisotropy = tt.renderer.capabilities.getMaxAnisotropy();
-          mat.map = tex;
-          mat.visible = true;
-        } else {
-          mat.map = null;
-          mat.visible = false;
+        mat.metalness = look.metalness;
+        mat.roughness = look.roughness;
+        mat.emissiveIntensity = look.glow || 0;
+        if (mat.userData.src !== src) {
+          mat.map?.dispose();
+          if (src) {
+            const tex = new THREE.CanvasTexture(src);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.anisotropy = tt.renderer.capabilities.getMaxAnisotropy();
+            mat.map = tex;
+            mat.emissiveMap = tex;
+            mat.visible = true;
+          } else {
+            mat.map = null;
+            mat.emissiveMap = null;
+            mat.visible = false;
+          }
+          mat.userData.src = src;
+          mat.needsUpdate = true;
         }
-        mat.userData.src = src;
-        mat.needsUpdate = true;
       }
       tt.render();
     };
     t.applyTextures();
-  }, [textures, productKey]);
+  }, [textures, productKey, color]);
 
   /* ---------- ref API ---------- */
   useImperativeHandle(ref, () => ({
@@ -357,7 +457,7 @@ const EngravingViewer = forwardRef(function EngravingViewer({ productKey, textur
     async snapshot(side = "front") {
       const t = threeRef.current;
       if (!t?.overlays) throw new Error("viewer not ready");
-      const [w, h] = productKey === "pen" ? [1600, 600] : [1000, 1000];
+      const [w, h] = ENGRAVING_PRODUCTS[productKey].category === "pen" ? [1600, 600] : [1000, 1000];
       const prev = {
         pos: t.camera.position.clone(),
         target: t.controls.target.clone(),

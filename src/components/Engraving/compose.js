@@ -53,6 +53,24 @@ function measureLines(lines, fontId) {
   });
 }
 
+/**
+ * ფოტოს ზომა მრგვალ ზონაში (დიამეტრი D): ფოტო + მის ქვეშ `extraH` სიმაღლის და
+ * `minW` სიგანის ბლოკი (ტექსტი) ერთად უნდა ჩაეტიოს წრეში — ანუ მთლიანი
+ * მართკუთხედის დიაგონალი ≤ D. ბინარული ძებნა ფოტოს სიმაღლეზე.
+ */
+function fitPhotoInCircle(photo, D, extraH, minW) {
+  const a = photo.width / photo.height;
+  const fits = (ph) => Math.hypot(Math.max(a * ph, minW), ph + extraH) <= D;
+  let lo = 0;
+  let hi = D;
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2;
+    if (fits(mid)) lo = mid;
+    else hi = mid;
+  }
+  return [a * lo, lo];
+}
+
 /** ტექსტის ბლოკის ზომები em-ზე (100-იან ერთეულებში) */
 function blockUnits(metrics) {
   const maxW = Math.max(...metrics.map((m) => m.left + m.right));
@@ -84,22 +102,46 @@ export function layoutSide(productKey, { text, fontId, photo }) {
     ({ maxW: unitsW, h: unitsH } = blockUnits(metrics));
   }
 
-  const fitEm = (maxEm, availW, availH) =>
-    Math.min(maxEm, (availW / unitsW) * 100, (availH / unitsH) * 100);
+  const circle = product.shape === "circle";
+  // მრგვალ ზონაში ბლოკის დიაგონალი დიამეტრს არ უნდა აღემატებოდეს (კუთხეები წრის შიგნით)
+  const fitEm = (maxEm, availW, availH) => {
+    let em = Math.min(maxEm, (availW / unitsW) * 100, (availH / unitsH) * 100);
+    if (circle) em = Math.min(em, (W / Math.hypot(unitsW, unitsH)) * 100);
+    return em;
+  };
 
   let photoBox = null;
   if (lines.length && !usePhoto) {
     emMm = fitEm(product.maxTextMm, W, H);
   } else if (!lines.length && usePhoto) {
-    const [pw, ph] = fitPhotoMm(photo, W, H);
+    const [pw, ph] = circle ? fitPhotoInCircle(photo, W, 0, 0) : fitPhotoMm(photo, W, H);
     photoBox = { w: pw, h: ph };
-  } else {
+  } else if (!circle) {
     // ფოტო + ტექსტი: ტექსტს ვზღუდავთ ისე, რომ ფოტოს სიმაღლის ნახევარი მაინც დარჩეს
     const maxTextH = H * (1 - PHOTO_MIN_SHARE) - GAP_MM;
     emMm = fitEm(Math.min(product.maxTextMm, TEXT_WITH_PHOTO_MAX_MM), W, maxTextH);
     const textH = (unitsH * emMm) / 100;
     const [pw, ph] = fitPhotoMm(photo, W, H - textH - GAP_MM);
     photoBox = { w: pw, h: ph };
+  } else {
+    // მრგვალი ზონა, ფოტო + ტექსტი: ვეძებთ უდიდეს ტექსტს, რომლის დროსაც ფოტოს
+    // სიმაღლის მინიმუმ 40% რჩება და მთელი ბლოკი წრეში ეტევა
+    let em = fitEm(Math.min(product.maxTextMm, TEXT_WITH_PHOTO_MAX_MM), W * 0.92, H * 0.45);
+    for (let i = 0; i < 40; i++) {
+      const tw = (unitsW * em) / 100;
+      const th = (unitsH * em) / 100;
+      const [pw, ph] = fitPhotoInCircle(photo, W, th + GAP_MM, tw);
+      if (ph >= H * 0.4 || em <= product.minTextMm * 0.6) {
+        photoBox = { w: pw, h: ph };
+        break;
+      }
+      em *= 0.94;
+    }
+    emMm = em;
+    if (!photoBox) {
+      const [pw, ph] = fitPhotoInCircle(photo, W, (unitsH * em) / 100 + GAP_MM, (unitsW * em) / 100);
+      photoBox = { w: pw, h: ph };
+    }
   }
 
   const textBlockMm = lines.length ? (unitsH * emMm) / 100 : 0;
@@ -166,6 +208,15 @@ export function composeSide(productKey, side, pxPerMm = PX_PER_MM) {
     });
   }
 
+  // მრგვალ ზონაზე წრის გარეთ არაფერი ამოიწვება (ბექიც იგივეს ამოწმებს)
+  if (product.shape === "circle") {
+    ctx.globalCompositeOperation = "destination-in";
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = "source-over";
+  }
+
   return { canvas, layout };
 }
 
@@ -181,8 +232,12 @@ export function laserPngBlob(maskCanvas) {
   return new Promise((resolve) => out.toBlob(resolve, "image/png"));
 }
 
-/** ნიღბის შეღებვა 3D პრევიუსთვის: ხე — დამწვარი მუქი, კალამი — ღია ოქროსფერი */
-export function tintMask(maskCanvas, productKey) {
+/**
+ * ნიღბის შეღებვა 3D პრევიუსთვის მასალის მიხედვით (look — ENGRAVE_LOOKS-იდან):
+ *   halo — ირგვლივ დამწვრის კვალი (გაბუნდოვანებული), edge — ღარის კიდე
+ *   (~0.07 მმ-ით წანაცვლებული, სიღრმის შთაბეჭდილებისთვის), fill — თავად ამოწვა.
+ */
+export function tintMask(maskCanvas, look, pxPerMm = PX_PER_MM) {
   const tint = (color, blurPx = 0) => {
     const c = document.createElement("canvas");
     c.width = maskCanvas.width;
@@ -201,15 +256,17 @@ export function tintMask(maskCanvas, productKey) {
   out.width = maskCanvas.width;
   out.height = maskCanvas.height;
   const ctx = out.getContext("2d");
-  if (productKey === "keychain") {
-    // ამოწვის ირგვლივ ოდნავ შეყვითლებული/მოყავისფრო კვალი, შუაში — მუქი
+  if (look.halo) {
     ctx.globalAlpha = 0.45;
-    ctx.drawImage(tint("#6b4423", Math.max(1, maskCanvas.width / 500)), 0, 0);
+    ctx.drawImage(tint(look.halo, Math.max(1, pxPerMm * 0.06)), 0, 0);
     ctx.globalAlpha = 1;
-    ctx.drawImage(tint("#23150b"), 0, 0);
-  } else {
-    // ოქროსფერ საფარზე ამოწვა ღია, მოყვითალო, მქრქალ ლითონს აჩენს
-    ctx.drawImage(tint("#fbe9a6"), 0, 0);
   }
+  if (look.edge) {
+    const o = Math.max(1, Math.round(pxPerMm * (look.edgeMm || 0.07)));
+    ctx.globalAlpha = 0.95;
+    ctx.drawImage(tint(look.edge), o, o);
+    ctx.globalAlpha = 1;
+  }
+  ctx.drawImage(tint(look.fill), 0, 0);
   return out;
 }

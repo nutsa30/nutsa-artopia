@@ -1,40 +1,42 @@
 /**
  * /engraving — გრავირება.
  *
- * 1) ზემოთ: წარწერა (შრიფტის არჩევით) და/ან ფოტო
- * 2) ქვემოთ: პროდუქტი — კალამი (25₾) ან ბრელოკი (13₾, ორივე მხარე 20₾)
- * 3) 3D პრევიუ (ტრიალებს) → კალათაში დამატება
+ * 1) ზემოთ: წარწერა (შრიფტის არჩევით) და/ან ფოტო. ბრელოკის არჩევისას ფორმა
+ *    ორ პანელად იყოფა — წინა და უკანა მხარე. უკანა მხარე არასავალდებულოა:
+ *    თუ მასზე რამეა, ფასი ავტომატურად 13₾-დან 20₾-ზე გადადის.
+ * 2) ქვემოთ: პროდუქტი (5 კალამი, 4 ბრელოკი); ტყავის ბრელოკზე — ფერი.
+ * 3) 3D პრევიუ (ტრიალებს) → კალათაში დამატება.
  *
  * "კალათაში დამატებისას" დიზაინი ინახება ბექზე (POST /engraving/designs):
  * ლაზერის შავ-თეთრი PNG (ზონის ზუსტი მმ ზომით), ორიგინალი ფოტო, 3D პრევიუს
- * სურათი და ტექსტი/შრიფტი — ადმინი ზუსტად ამას ხედავს შეკვეთაში.
+ * სურათი, ტექსტი/შრიფტი და ფერი — ადმინი ზუსტად ამას ხედავს შეკვეთაში.
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, Trash2, RotateCcw, Phone, Mail, Contrast } from "lucide-react";
+import { RotateCcw, Phone, Mail, ArrowUp } from "lucide-react";
 import { FaInstagram, FaFacebook, FaTiktok } from "react-icons/fa";
+import { Helmet } from "react-helmet-async";
 import SEO from "../components/SEO";
 import EngravingViewer from "../components/Engraving/EngravingViewer";
+import SideEditor from "../components/Engraving/SideEditor";
 import { ensureAllFonts } from "../components/Engraving/fonts";
-import { readPhotoFile, releasePhoto, PHOTO_STYLES } from "../components/Engraving/photo";
 import { composeSide, laserPngBlob, tintMask } from "../components/Engraving/compose";
 import { useCart } from "../components/CartContext/CartContext";
-import { ClockIcon, WarningIcon, StoreIcon, TruckIcon } from "../components/Checkout/icons";
+import { ClockIcon, WarningIcon, StoreIcon, TruckIcon, PinIcon } from "../components/Checkout/icons";
 import {
   ENGRAVING_PRODUCTS,
-  ENGRAVING_FONTS,
+  PRODUCT_GROUPS,
   DEFAULT_FONT_ID,
   MAX_ENGRAVED_UNITS,
-  MAX_LINE_CHARS,
   PRODUCTION_LABEL,
   PX_PER_MM,
   SIDE_LABELS,
+  colorById,
+  engraveLook,
   engravingPrice,
   engravingUnits,
   fontById,
   fontSupportsText,
-  hasGeorgian,
-  sanitizeEngravingText,
 } from "../utils/engraving";
 import styles from "./EngravingPage.module.css";
 
@@ -56,38 +58,113 @@ const emptySide = () => ({
   photoInvert: false,
 });
 
+/** საკუთარ (მომხმარებლის მოტანილ) ნივთზე გრავირება — შეკვეთა ტელეფონით/მესიჯით/ადგილზე */
+const OWN_ITEM_PRICE = 10;
+
+const SITE = "https://artopia.ge";
+
+/** სტრუქტურული მონაცემები Google-ისთვის: სერვისი + ფასები + ხშირი კითხვები */
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Service",
+      "@id": `${SITE}/engraving#service`,
+      name: "ლაზერული გრავირება",
+      alternateName: ["გრავირება", "Laser engraving", "Engraving"],
+      serviceType: "Laser engraving",
+      description:
+        "გრავირებული კალმები და ხის/ტყავის ბრელოკები საკუთარი წარწერით ან ფოტოთი, ასევე გრავირება მომხმარებლის ნივთზე.",
+      url: `${SITE}/engraving`,
+      provider: { "@id": `${SITE}/#organization` },
+      areaServed: { "@type": "Country", name: "Georgia" },
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "გრავირება",
+        itemListElement: [
+          ...Object.values(ENGRAVING_PRODUCTS).map((p) => ({
+            "@type": "Offer",
+            name: `გრავირებული ${p.name}`,
+            price: String(p.prices[1]),
+            priceCurrency: "GEL",
+            availability: "https://schema.org/InStock",
+            url: `${SITE}/engraving`,
+            image: `${SITE}${p.image}`,
+          })),
+          {
+            "@type": "Offer",
+            name: "გრავირება მომხმარებლის ნივთზე",
+            price: String(OWN_ITEM_PRICE),
+            priceCurrency: "GEL",
+            url: `${SITE}/engraving#own-item`,
+          },
+        ],
+      },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "რა ღირს გრავირება?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: `გრავირებული კალამი — 16-დან 32 ₾-მდე, ბრელოკი — 13 ₾ ერთ მხარეს და 20 ₾ ორივე მხარეს, თქვენს ნივთზე გრავირება — ${OWN_ITEM_PRICE} ₾.`,
+          },
+        },
+        {
+          "@type": "Question",
+          name: "რამდენ ხანში მზადდება გრავირებული ნივთი?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: `${PRODUCTION_LABEL}. აღება მაღაზიიდან ან კურიერით — დამზადების შემდეგ.`,
+          },
+        },
+        {
+          "@type": "Question",
+          name: "შეიძლება ფოტოს ამოწვა?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "კი, ბრელოკებზე. ფოტო შავ-თეთრად მუშავდება და 3D პრევიუში ჩანს, როგორ ამოიწვება.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "შეგიძლიათ ჩემს ნივთზე გრავირება?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: `კი, ${OWN_ITEM_PRICE} ₾. დაგვირეკეთ, მოგვწერეთ ან მობრძანდით მაღაზიაში — სიმონ ჩიქოვანის 45, თბილისი.`,
+          },
+        },
+      ],
+    },
+  ],
+};
+
 const fmt = (n) => `${Number(n).toFixed(0)} ₾`;
+const rawLineCount = (text) => String(text || "").split("\n").filter((l) => l.trim()).length;
 
 export default function EngravingPage() {
   const navigate = useNavigate();
   const { cartItems, addEngravingToCart } = useCart();
   const viewerRef = useRef(null);
-  const fileRef = useRef(null);
+  const editorRef = useRef(null);
 
   const [sides, setSides] = useState({ front: emptySide(), back: emptySide() });
-  const [activeSide, setActiveSide] = useState("front");
   const [productKey, setProductKey] = useState(null);
-  const [twoSided, setTwoSided] = useState(false);
+  const [color, setColor] = useState(null);
+  const [viewSide, setViewSide] = useState("front");
   const [qty, setQty] = useState(1);
   const [confirmed, setConfirmed] = useState(false);
   const [fontsReady, setFontsReady] = useState(false);
-  const [textNotice, setTextNotice] = useState("");
-  const [photoError, setPhotoError] = useState("");
-  const [photoBusy, setPhotoBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [added, setAdded] = useState(null);
   const [contact, setContact] = useState(null);
 
   const product = productKey ? ENGRAVING_PRODUCTS[productKey] : null;
-  const sideKeys = useMemo(
-    () => (productKey === "keychain" && twoSided ? ["front", "back"] : ["front"]),
-    [productKey, twoSided]
-  );
-  const editSide = sideKeys.includes(activeSide) ? activeSide : "front";
-  const current = sides[editSide];
-  const photoAllowed = !product || product.allowPhoto;
-  const maxLines = product ? product.maxLines : 3;
+  const isKeychain = product?.category === "keychain";
+  const editSides = isKeychain ? ["front", "back"] : ["front"];
 
   useEffect(() => {
     let alive = true;
@@ -101,73 +178,49 @@ export default function EngravingPage() {
     };
   }, []);
 
-  // ორმხრივიდან ცალმხრივზე გადასვლისას რედაქტორი წინა მხარეს ბრუნდება
-  useEffect(() => {
-    if (!sideKeys.includes(activeSide)) setActiveSide("front");
-  }, [sideKeys, activeSide]);
-
   const updateSide = (key, patch) =>
     setSides((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
 
-  /* ---------- ტექსტი ---------- */
-  const onTextChange = (e) => {
-    const { text, removed } = sanitizeEngravingText(e.target.value);
-    let lines = text.split("\n");
-    let notice = removed
-      ? "დაშვებულია მხოლოდ ქართული და ლათინური ასოები, ციფრები და ძირითადი სიმბოლოები."
-      : "";
-    if (lines.length > 3) {
-      lines = lines.slice(0, 3);
-      notice = "მაქსიმუმ 3 ხაზი.";
-    }
-    if (lines.some((l) => l.length > MAX_LINE_CHARS)) {
-      lines = lines.map((l) => l.slice(0, MAX_LINE_CHARS));
-      notice = `ერთ ხაზში მაქსიმუმ ${MAX_LINE_CHARS} სიმბოლო.`;
-    }
-    const nextText = lines.join("\n");
-    const patch = { text: nextText };
-    // ქართული ტექსტი ლათინურ შრიფტზე — ავტომატურად ქართულ შრიფტზე გადავდივართ
-    if (!fontSupportsText(fontById(current.fontId), nextText)) {
-      patch.fontId = DEFAULT_FONT_ID;
-      notice = "ეს შრიფტი ქართულ ასოებს არ შეიცავს — შეიცვალა ქართულით.";
-    }
-    setTextNotice(notice);
-    updateSide(editSide, patch);
+  const selectProduct = (key) => {
+    const p = ENGRAVING_PRODUCTS[key];
+    setProductKey(key);
+    setColor(p.colors ? (p.colors.some((c) => c.id === color) ? color : p.colors[0].id) : null);
+    setViewSide("front");
+    setAdded(null);
   };
 
-  /* ---------- ფოტო ---------- */
-  const onPhotoPick = async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    setPhotoError("");
-    setPhotoBusy(true);
-    try {
-      const photo = await readPhotoFile(file);
-      releasePhoto(current.photo);
-      updateSide(editSide, { photo, photoLevel: 0, photoInvert: false });
-    } catch (err) {
-      setPhotoError(err.message || "ფოტო ვერ წაიკითხა");
-    } finally {
-      setPhotoBusy(false);
-    }
+  const focusSide = (key) => {
+    if (!isKeychain || key === viewSide) return;
+    setViewSide(key);
+    viewerRef.current?.setView(key);
   };
 
   /* ---------- აწყობა: 3D ტექსტურები + შემოწმებები ---------- */
   const composed = useMemo(() => {
     if (!product || !fontsReady) return null;
+    const look = engraveLook(productKey, color);
     const out = {};
-    for (const key of sideKeys) {
+    for (const key of editSides) {
       const { canvas, layout } = composeSide(productKey, sides[key], PREVIEW_PX_PER_MM);
-      out[key] = { layout, texture: layout.empty ? null : tintMask(canvas, productKey) };
+      out[key] = {
+        layout,
+        texture: layout.empty ? null : tintMask(canvas, look, PREVIEW_PX_PER_MM),
+      };
     }
     return out;
-  }, [product, productKey, sides, sideKeys, fontsReady]);
+    // editSides იცვლება მხოლოდ productKey-სთან ერთად
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, productKey, sides, color, fontsReady]);
 
   const textures = useMemo(() => {
     if (!composed) return {};
     return Object.fromEntries(Object.entries(composed).map(([k, v]) => [k, v.texture]));
   }, [composed]);
+
+  const filled = (key) => !!composed?.[key] && !composed[key].layout.empty;
+  // ბრელოკი: უკანა მხარე ითვლება მხოლოდ მაშინ, თუ მასზე რამეა
+  const usedSides = isKeychain && filled("back") ? ["front", "back"] : ["front"];
+  const unitPrice = product ? engravingPrice(productKey, usedSides.length) : null;
 
   const inCartUnits = engravingUnits(cartItems);
   const remaining = Math.max(0, MAX_ENGRAVED_UNITS - inCartUnits);
@@ -175,23 +228,27 @@ export default function EngravingPage() {
     if (qty > Math.max(1, remaining)) setQty(Math.max(1, remaining));
   }, [remaining, qty]);
 
-  const unitPrice = product ? engravingPrice(productKey, sideKeys.length) : null;
-
   const problems = useMemo(() => {
-    const list = [];
     if (!product) return ["აირჩიეთ პროდუქტი"];
     if (!fontsReady) return ["შრიფტები იტვირთება…"];
-    for (const key of sideKeys) {
-      const side = sides[key];
+    const list = [];
+    if (product.colors && !colorById(productKey, color)) list.push("აირჩიეთ ფერი");
+    if (!filled("front")) {
+      list.push(
+        !isKeychain
+          ? "დაწერეთ წარწერა — კალამზე მხოლოდ ტექსტი ამოიწვება"
+          : filled("back")
+          ? "წინა მხარე ცარიელია — ერთ მხარეზე გრავირებისთვის გამოიყენეთ წინა მხარე"
+          : "წინა მხარეზე დაწერეთ ტექსტი ან ატვირთეთ ფოტო"
+      );
+    }
+    for (const key of editSides) {
       const lay = composed?.[key]?.layout;
-      const label = sideKeys.length > 1 ? `${SIDE_LABELS[key]}: ` : "";
-      if (!lay || lay.empty) {
-        list.push(
-          product.allowPhoto
-            ? `${label}დაწერეთ ტექსტი ან ატვირთეთ ფოტო`
-            : "დაწერეთ წარწერა — კალამზე მხოლოდ ტექსტი ამოიწვება"
-        );
-        continue;
+      const side = sides[key];
+      if (!lay || lay.empty) continue;
+      const label = isKeychain ? `${SIDE_LABELS[key]}: ` : "";
+      if (!isKeychain ? false : rawLineCount(side.text) > product.maxLines) {
+        list.push(`${label}ამ პროდუქტზე მაქსიმუმ ${product.maxLines} ხაზია — ზედმეტი ხაზი წაშალეთ`);
       }
       if (lay.tooSmall) {
         list.push(`${label}ტექსტი ძალიან გრძელია — ამოწვისას ძალიან წვრილი გამოვა. შეამოკლეთ.`);
@@ -202,7 +259,8 @@ export default function EngravingPage() {
     }
     if (remaining <= 0) list.push("კალათაში უკვე მაქსიმალური რაოდენობის გრავირებული ნივთია");
     return list;
-  }, [product, fontsReady, sideKeys, sides, composed, remaining]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, productKey, color, fontsReady, sides, composed, remaining]);
 
   const canAdd = problems.length === 0 && confirmed && !submitting;
 
@@ -216,9 +274,10 @@ export default function EngravingPage() {
 
       const fd = new FormData();
       fd.append("product_key", productKey);
-      fd.append("sides", String(sideKeys.length));
+      fd.append("sides", String(usedSides.length));
+      if (color) fd.append("color", color);
       const cfgSides = [];
-      for (const key of sideKeys) {
+      for (const key of usedSides) {
         const side = sides[key];
         const { canvas, layout } = composeSide(productKey, side, PX_PER_MM);
         const png = await laserPngBlob(canvas);
@@ -241,7 +300,7 @@ export default function EngravingPage() {
       }
       fd.append("config", JSON.stringify({ sides: cfgSides }));
       fd.append("preview", await viewerRef.current.snapshot("front"), "preview.png");
-      if (sideKeys.includes("back")) {
+      if (usedSides.includes("back")) {
         fd.append("preview_back", await viewerRef.current.snapshot("back"), "preview-back.png");
       }
 
@@ -253,12 +312,14 @@ export default function EngravingPage() {
         {
           id: `engr:${data.token}`,
           engraving_token: data.token,
-          name: data.sides === 2 ? `${data.name} (ორივე მხარე)` : data.name,
+          name: data.name,
           price: data.unit_price,
           image_url1: data.preview_url,
           engraving: {
             product_key: data.product_key,
             sides: data.sides,
+            color: data.color || null,
+            color_label: colorById(data.product_key, data.color)?.label || null,
             sides_detail: cfgSides.map((s) => ({
               side: s.side,
               lines: s.lines,
@@ -270,7 +331,7 @@ export default function EngravingPage() {
         qty
       );
       if (!ok) throw new Error(`ერთ შეკვეთაში მაქსიმუმ ${MAX_ENGRAVED_UNITS} გრავირებული ნივთია`);
-      setAdded({ name: data.name, qty, price: data.unit_price });
+      setAdded({ name: data.name, qty });
       setConfirmed(false);
     } catch (err) {
       console.error(err);
@@ -280,190 +341,81 @@ export default function EngravingPage() {
     }
   };
 
-  const sampleText = (font) => {
-    const first = (current.text.split("\n").find((l) => l.trim()) || "").trim().slice(0, 18);
-    if (first && fontSupportsText(font, first)) return first;
-    return font.georgian ? "არტოპია" : "Artopia";
-  };
-
   const phone = contact?.phone;
   const email = contact?.email;
 
   return (
     <div className={styles.page}>
       <SEO
-        title="გრავირება — კალამი და ბრელოკი საკუთარი წარწერით"
-        description="ლაზერული გრავირება Artopia-ში: ოქროსფერი კალამი და ხის ბრელოკი საკუთარი წარწერით ან ფოტოთი. აირჩიეთ შრიფტი, ნახეთ 3D პრევიუ და შეუკვეთეთ ონლაინ."
+        title="გრავირება თბილისში — გრავირებული კალამი და ბრელოკი | Engraving"
+        description="ლაზერული გრავირება (engraving) Artopia-ში: გრავირებული კალმები 16–32₾, ხის და ტყავის ბრელოკები წარწერით ან ფოტოთი — 13₾, ორივე მხარე 20₾. გრავირება თქვენს ნივთზე — 10₾. 3D პრევიუ და ონლაინ შეკვეთა."
         url="https://artopia.ge/engraving"
+        image="https://artopia.ge/images/engraving/pen.webp"
       />
+      <Helmet>
+        <meta
+          name="keywords"
+          content="გრავირება, ლაზერული გრავირება, გრავირება თბილისში, გრავირებული კალამი, კალამი წარწერით, ბრელოკი წარწერით, ხის ბრელოკი, ტყავის ბრელოკი, ფოტოს ამოწვა, პერსონალური საჩუქარი, engraving, laser engraving, engraved pen, engraved keychain, Tbilisi"
+        />
+        <script type="application/ld+json">{JSON.stringify(JSON_LD)}</script>
+      </Helmet>
 
       <header className={styles.hero}>
         <h1>გრავირება</h1>
         <p>
-          საჩუქარი საკუთარი წარწერით ან ფოტოთი — ლაზერული გრავირება ოქროსფერ კალამზე და ხის
-          ბრელოკზე. დაწერეთ ტექსტი, აირჩიეთ პროდუქტი და ნახეთ, როგორ გამოჩნდება.
+          საჩუქარი საკუთარი წარწერით ან ფოტოთი — ლაზერული გრავირება კალმებზე და ხის ან ტყავის
+          ბრელოკებზე. დაწერეთ ტექსტი, აირჩიეთ პროდუქტი და ნახეთ, როგორ გამოჩნდება.
         </p>
       </header>
 
       <div className={styles.layout}>
         <div className={styles.colMain}>
           {/* ───────── 1. წარწერა / ფოტო ───────── */}
-          <section className={styles.card}>
+          <section className={styles.card} ref={editorRef}>
             <h2 className={styles.stepTitle}>
               <span className={styles.stepNum}>1</span> წარწერა ან ფოტო
             </h2>
 
-            {sideKeys.length > 1 && (
-              <div className={styles.sideTabs} role="tablist">
-                {sideKeys.map((k) => (
-                  <button
-                    key={k}
-                    type="button"
-                    role="tab"
-                    aria-selected={editSide === k}
-                    className={`${styles.sideTab} ${editSide === k ? styles.sideTabActive : ""}`}
-                    onClick={() => {
-                      setActiveSide(k);
-                      viewerRef.current?.setView(k);
-                    }}
+            {isKeychain ? (
+              <>
+                <p className={styles.sideIntro}>
+                  ბრელოკს ორი მხარე აქვს. წინა მხარე სავალდებულოა, უკანა — არა. თუ უკანა
+                  მხარესაც შეავსებთ, ფასი ავტომატურად გახდება{" "}
+                  <b>{fmt(product.prices[2])}</b>.
+                </p>
+                {editSides.map((key) => (
+                  <div
+                    key={key}
+                    className={`${styles.sidePanel} ${viewSide === key ? styles.sidePanelActive : ""}`}
                   >
-                    {SIDE_LABELS[k]}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <label className={styles.label} htmlFor="engr-text">
-              წარწერა{" "}
-              <span className={styles.labelHint}>
-                {maxLines === 1 ? "კალამზე — ერთ ხაზად" : `მაქსიმუმ ${maxLines} ხაზი`}
-              </span>
-            </label>
-            <textarea
-              id="engr-text"
-              className={styles.textInput}
-              rows={maxLines === 1 ? 1 : 3}
-              placeholder={maxLines === 1 ? "მაგ.: ნუცას, სიყვარულით" : "მაგ.: ნუცა\n25.09.2026"}
-              value={current.text}
-              onChange={onTextChange}
-              spellCheck={false}
-            />
-            {textNotice && <p className={styles.notice}>{textNotice}</p>}
-
-            <div className={styles.label}>შრიფტი</div>
-            <div className={styles.fontGrid}>
-              {ENGRAVING_FONTS.map((f) => {
-                const supported = fontSupportsText(f, current.text);
-                const active = current.fontId === f.id;
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    className={`${styles.fontBtn} ${active ? styles.fontBtnActive : ""}`}
-                    disabled={!supported}
-                    onClick={() => updateSide(editSide, { fontId: f.id })}
-                    title={supported ? f.label : "ქართულ ასოებს არ შეიცავს"}
-                  >
-                    <span className={styles.fontSample} style={{ fontFamily: `"${f.family}", sans-serif` }}>
-                      {sampleText(f)}
-                    </span>
-                    <span className={styles.fontName}>
-                      {f.label}
-                      {!f.georgian && <em> · მხოლოდ ლათინური</em>}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            {hasGeorgian(current.text) && (
-              <p className={styles.hint}>ლათინური შრიფტები ქართულ ტექსტზე არ მუშაობს.</p>
-            )}
-
-            <div className={styles.label}>
-              ფოტო{" "}
-              <span className={styles.labelHint}>
-                {photoAllowed ? "ამოიწვება შავ-თეთრად, როგორც პრევიუშია" : "კალამზე ფოტო არ ამოიწვება — მხოლოდ წარწერა"}
-              </span>
-            </div>
-            <div className={`${styles.photoBox} ${!photoAllowed ? styles.disabled : ""}`}>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={onPhotoPick}
-                disabled={!photoAllowed}
-              />
-              {current.photo ? (
-                <div className={styles.photoRow}>
-                  <img className={styles.photoThumb} src={current.photo.url} alt="ატვირთული ფოტო" />
-                  <div className={styles.photoControls}>
-                    <div className={styles.segmented}>
-                      {PHOTO_STYLES.map((s) => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          className={current.photoStyle === s.id ? styles.segActive : ""}
-                          onClick={() => updateSide(editSide, { photoStyle: s.id })}
-                          disabled={!photoAllowed}
-                        >
-                          {s.label}
-                        </button>
-                      ))}
+                    <div className={styles.sidePanelHead}>
+                      <span className={styles.sidePanelTitle}>{SIDE_LABELS[key]}</span>
+                      <span className={`${styles.sideChip} ${filled(key) ? styles.sideChipOn : ""}`}>
+                        {filled(key)
+                          ? "შევსებულია"
+                          : key === "back"
+                          ? "არასავალდებულო"
+                          : "ცარიელია"}
+                      </span>
                     </div>
-                    <label className={styles.sliderLabel}>
-                      <span>ღია</span>
-                      <input
-                        type="range"
-                        min={-50}
-                        max={50}
-                        step={1}
-                        value={current.photoLevel}
-                        onChange={(e) => updateSide(editSide, { photoLevel: Number(e.target.value) })}
-                        disabled={!photoAllowed}
-                        aria-label="სიმუქე"
-                      />
-                      <span>მუქი</span>
-                    </label>
-                    <div className={styles.photoBtns}>
-                      <button
-                        type="button"
-                        className={`${styles.ghostBtn} ${current.photoInvert ? styles.ghostBtnOn : ""}`}
-                        onClick={() => updateSide(editSide, { photoInvert: !current.photoInvert })}
-                        disabled={!photoAllowed}
-                        aria-pressed={current.photoInvert}
-                        title="ამოსაწვავი და ხელუხლებელი ნაწილები ადგილს იცვლის — მუქ ფონიან ფოტოზე"
-                      >
-                        <Contrast size={15} /> ინვერსია
-                      </button>
-                      <button type="button" className={styles.ghostBtn} onClick={() => fileRef.current?.click()} disabled={!photoAllowed}>
-                        <Upload size={15} /> შეცვლა
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.ghostBtn}
-                        onClick={() => {
-                          releasePhoto(current.photo);
-                          updateSide(editSide, { photo: null });
-                        }}
-                      >
-                        <Trash2 size={15} /> წაშლა
-                      </button>
-                    </div>
+                    <SideEditor
+                      id={`engr-${key}`}
+                      side={sides[key]}
+                      onChange={(patch) => updateSide(key, patch)}
+                      product={product}
+                      onFocusSide={() => focusSide(key)}
+                    />
                   </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className={styles.uploadBtn}
-                  onClick={() => fileRef.current?.click()}
-                  disabled={!photoAllowed || photoBusy}
-                >
-                  <Upload size={18} /> {photoBusy ? "იტვირთება…" : "ფოტოს ატვირთვა"}
-                </button>
-              )}
-            </div>
-            {photoError && <p className={styles.errorText}>{photoError}</p>}
+                ))}
+              </>
+            ) : (
+              <SideEditor
+                id="engr-front"
+                side={sides.front}
+                onChange={(patch) => updateSide("front", patch)}
+                product={product}
+              />
+            )}
           </section>
 
           {/* ───────── 2. პროდუქტი ───────── */}
@@ -471,57 +423,87 @@ export default function EngravingPage() {
             <h2 className={styles.stepTitle}>
               <span className={styles.stepNum}>2</span> აირჩიეთ პროდუქტი
             </h2>
-            <div className={styles.productGrid}>
-              {Object.values(ENGRAVING_PRODUCTS).map((p) => {
-                const active = productKey === p.key;
-                return (
-                  <button
-                    key={p.key}
-                    type="button"
-                    className={`${styles.productCard} ${active ? styles.productActive : ""}`}
-                    onClick={() => {
-                      setProductKey(p.key);
-                      setAdded(null);
-                    }}
-                    aria-pressed={active}
-                  >
-                    <img className={styles.productImg} src={p.image} alt={p.name} loading="lazy" />
-                    <span className={styles.productName}>{p.name}</span>
-                    <span className={styles.productPrice}>
-                      {p.key === "keychain" ? (
-                        <>
-                          <span className={styles.priceLine}>
-                            {fmt(p.prices[1])} <small>ერთი მხარე</small>
+            {PRODUCT_GROUPS.map((g) => (
+              <div key={g.id} className={styles.productGroup}>
+                <h3 className={styles.groupTitle}>{g.label}</h3>
+                <div className={styles.productGrid}>
+                  {Object.values(ENGRAVING_PRODUCTS)
+                    .filter((p) => p.category === g.id)
+                    .map((p) => {
+                      const active = productKey === p.key;
+                      return (
+                        <button
+                          key={p.key}
+                          type="button"
+                          className={`${styles.productCard} ${active ? styles.productActive : ""}`}
+                          onClick={() => selectProduct(p.key)}
+                          aria-pressed={active}
+                        >
+                          <img className={styles.productImg} src={p.image} alt={p.name} loading="lazy" />
+                          <span className={styles.productName}>{p.name}</span>
+                          {p.sizeLabel && <span className={styles.productSize}>{p.sizeLabel}</span>}
+                          <span className={styles.productPrice}>
+                            {p.category === "keychain" ? (
+                              <>
+                                <span className={styles.priceLine}>
+                                  {fmt(p.prices[1])} <small>ერთი მხარე</small>
+                                </span>
+                                <span className={styles.priceLine}>
+                                  {fmt(p.prices[2])} <small>ორივე მხარე</small>
+                                </span>
+                              </>
+                            ) : (
+                              fmt(p.prices[1])
+                            )}
                           </span>
-                          <span className={styles.priceLine}>
-                            {fmt(p.prices[2])} <small>ორივე მხარე</small>
-                          </span>
-                        </>
-                      ) : (
-                        fmt(p.prices[1])
-                      )}
-                    </span>
-                    <span className={styles.productNote}>{p.note}</span>
-                  </button>
-                );
-              })}
-            </div>
+                          {p.colors && (
+                            <span className={styles.cardSwatches} aria-hidden="true">
+                              {p.colors.map((c) => (
+                                <i key={c.id} style={{ background: c.swatch }} />
+                              ))}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+            ))}
 
-            {productKey === "keychain" && (
-              <label className={styles.checkRow}>
-                <input
-                  type="checkbox"
-                  checked={twoSided}
-                  onChange={(e) => {
-                    setTwoSided(e.target.checked);
-                    if (e.target.checked) setActiveSide("back");
-                  }}
-                />
-                <span>
-                  ორივე მხარეს გრავირება — ჯამში {fmt(ENGRAVING_PRODUCTS.keychain.prices[2])}
-                  <small> (უკანა მხარეს სხვა წარწერა ან ფოტო)</small>
-                </span>
-              </label>
+            {product?.colors && (
+              <div className={styles.colorRow}>
+                <span className={styles.label}>ფერი</span>
+                <div className={styles.swatches} role="radiogroup" aria-label="ფერი">
+                  {product.colors.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={color === c.id}
+                      className={`${styles.swatchBtn} ${color === c.id ? styles.swatchActive : ""}`}
+                      onClick={() => setColor(c.id)}
+                    >
+                      <i style={{ background: c.swatch }} />
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {product && (
+              <p className={styles.productPicked}>
+                <b>{product.name}</b> — {product.note}
+                {isKeychain && (
+                  <button
+                    type="button"
+                    className={styles.linkBtn}
+                    onClick={() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  >
+                    <ArrowUp size={14} /> შეავსეთ წინა და უკანა მხარე
+                  </button>
+                )}
+              </p>
             )}
           </section>
         </div>
@@ -533,9 +515,9 @@ export default function EngravingPage() {
               <span className={styles.stepNum}>3</span> პრევიუ
             </h2>
 
-            <div className={`${styles.stage} ${productKey === "pen" ? styles.stagePen : ""}`}>
+            <div className={`${styles.stage} ${product?.category === "pen" ? styles.stagePen : ""}`}>
               {product ? (
-                <EngravingViewer ref={viewerRef} productKey={productKey} textures={textures} />
+                <EngravingViewer ref={viewerRef} productKey={productKey} color={color} textures={textures} />
               ) : (
                 <div className={styles.stagePlaceholder}>აირჩიეთ პროდუქტი — აქ გამოჩნდება 3D პრევიუ</div>
               )}
@@ -545,12 +527,26 @@ export default function EngravingPage() {
               <div className={styles.viewBar}>
                 <span className={styles.hint}>დაატრიალეთ თითით ან მაუსით</span>
                 <div className={styles.viewBtns}>
-                  {productKey === "keychain" && (
+                  {isKeychain && (
                     <>
-                      <button type="button" className={styles.ghostBtn} onClick={() => viewerRef.current?.setView("front")}>
+                      <button
+                        type="button"
+                        className={`${styles.ghostBtn} ${viewSide === "front" ? styles.ghostBtnOn : ""}`}
+                        onClick={() => {
+                          setViewSide("front");
+                          viewerRef.current?.setView("front");
+                        }}
+                      >
                         წინა
                       </button>
-                      <button type="button" className={styles.ghostBtn} onClick={() => viewerRef.current?.setView("back")}>
+                      <button
+                        type="button"
+                        className={`${styles.ghostBtn} ${viewSide === "back" ? styles.ghostBtnOn : ""}`}
+                        onClick={() => {
+                          setViewSide("back");
+                          viewerRef.current?.setView("back");
+                        }}
+                      >
                         უკანა
                       </button>
                     </>
@@ -558,7 +554,7 @@ export default function EngravingPage() {
                   <button
                     type="button"
                     className={styles.ghostBtn}
-                    onClick={() => viewerRef.current?.setView("front")}
+                    onClick={() => viewerRef.current?.setView(viewSide)}
                     aria-label="ხედის აღდგენა"
                   >
                     <RotateCcw size={15} />
@@ -609,7 +605,10 @@ export default function EngravingPage() {
                   <div className={styles.total}>
                     {unitPrice != null && (
                       <>
-                        <span>{fmt(unitPrice)} × {qty}</span>
+                        <span>
+                          {fmt(unitPrice)} × {qty}
+                          {isKeychain && ` · ${usedSides.length === 2 ? "ორივე მხარე" : "ერთი მხარე"}`}
+                        </span>
                         <strong>{fmt(unitPrice * qty)}</strong>
                       </>
                     )}
@@ -676,6 +675,71 @@ export default function EngravingPage() {
           </section>
         </aside>
       </div>
+
+      {/* ───────── საკუთარ ნივთზე გრავირება ───────── */}
+      <section className={`${styles.card} ${styles.ownItem}`} id="own-item">
+        <h2>გრავირება თქვენს ნივთზე</h2>
+        <p>
+          გრავირებას ვაკეთებთ თქვენს საკუთარ ან სასურველ ნივთზეც — ხის, ტყავის, ლითონის და სხვა
+          ნივთებზე. ნივთის შესაფერისობას წინასწარ შევამოწმებთ.
+        </p>
+        <span className={styles.ownPrice}>ფასი: {OWN_ITEM_PRICE} ₾</span>
+        <p>
+          შესაკვეთად დაგვირეკეთ, მოგვწერეთ ელ-ფოსტაზე ან სოციალურ ქსელებში, ან მობრძანდით ჩვენს
+          მაღაზიაში.
+        </p>
+        <div className={styles.ownLinks}>
+          {phone && (
+            <a href={`tel:${String(phone).replace(/\s+/g, "")}`}>
+              <Phone size={16} /> {phone}
+            </a>
+          )}
+          {email && (
+            <a href={`mailto:${email}`}>
+              <Mail size={16} /> {email}
+            </a>
+          )}
+          <a href={SOCIAL.instagram} target="_blank" rel="noopener noreferrer">
+            <FaInstagram /> Instagram
+          </a>
+          <a href={SOCIAL.facebook} target="_blank" rel="noopener noreferrer">
+            <FaFacebook /> Facebook
+          </a>
+          <a href={SOCIAL.tiktok} target="_blank" rel="noopener noreferrer">
+            <FaTiktok /> TikTok
+          </a>
+          <span>
+            <PinIcon /> {contact?.address || "სიმონ ჩიქოვანის 45, თბილისი"}
+            {contact?.working_hours ? ` · ${contact.working_hours}` : ""}
+          </span>
+        </div>
+      </section>
+
+      {/* ───────── გრავირების შესახებ (SEO) ───────── */}
+      <section className={`${styles.card} ${styles.about}`}>
+        <h2>ლაზერული გრავირება თბილისში — Artopia</h2>
+        <p>
+          Artopia-ში ლაზერული გრავირებით (engraving) შეგიძლიათ შექმნათ პერსონალური საჩუქარი:
+          გრავირებული კალამი სახელით ან მილოცვით, ხის ან ტყავის ბრელოკი წარწერით ან ფოტოთი.
+          წარწერა ქართულად ან ინგლისურად, რამდენიმე შრიფტით — შეკვეთამდე 3D პრევიუში ხედავთ,
+          ზუსტად როგორ ამოიწვება.
+        </p>
+        <h3>რა ღირს გრავირება?</h3>
+        <p>
+          გრავირებული კალამი — 16-დან 32 ₾-მდე (ფასი კალმის ჩათვლით). ბრელოკი — 13 ₾ ერთ
+          მხარეს, 20 ₾ ორივე მხარეს. თქვენს ნივთზე გრავირება — {OWN_ITEM_PRICE} ₾.
+        </p>
+        <h3>რამდენ ხანში მზადდება?</h3>
+        <p>
+          {PRODUCTION_LABEL}. შეკვეთის აღება შეგიძლიათ მაღაზიიდან ან მიიღოთ კურიერით —
+          მიწოდება დამზადების შემდეგ ხდება.
+        </p>
+        <h3>შეიძლება ფოტოს ამოწვა?</h3>
+        <p>
+          კი — ბრელოკებზე ფოტოც ამოიწვება. ლაზერი ფერს ვერ გადმოსცემს, ამიტომ ფოტო შავ-თეთრად
+          მუშავდება და პრევიუში ზუსტად ისე ჩანს, როგორც ამოიწვება.
+        </p>
+      </section>
     </div>
   );
 }

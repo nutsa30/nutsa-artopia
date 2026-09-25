@@ -192,7 +192,13 @@ function EngravingDetails({ engraving, order, onReady, busy }) {
         <div key={d.id} className={styles.designCard}>
           <div className={styles.designTitle}>
             {d.product_name} #{d.id} — <b>{d.quantity} ცალი</b>
-            {d.sides === 2 ? " · ორივე მხარე" : ""} · ზონა {d.zone_mm?.[0]}×{d.zone_mm?.[1]} მმ
+            {d.color_label ? (
+              <>
+                {" "}· ფერი: <b>{d.color_label}</b>
+              </>
+            ) : null}
+            {d.sides === 2 ? " · ორივე მხარე" : " · ერთი მხარე"} · ზონა{" "}
+            {d.shape === "circle" ? `⌀${d.zone_mm?.[0]}` : `${d.zone_mm?.[0]}×${d.zone_mm?.[1]}`} მმ
           </div>
 
           <div className={styles.designSides}>
@@ -232,7 +238,11 @@ function EngravingDetails({ engraving, order, onReady, busy }) {
 
                   {s.laser_png && (
                     <div className={styles.laserWrap}>
-                      <img className={styles.laserImg} src={s.laser_png} alt="ლაზერის ფაილი" />
+                      <img
+                        className={`${styles.laserImg} ${d.shape === "circle" ? styles.laserCircle : ""}`}
+                        src={s.laser_png}
+                        alt="ლაზერის ფაილი"
+                      />
                     </div>
                   )}
 

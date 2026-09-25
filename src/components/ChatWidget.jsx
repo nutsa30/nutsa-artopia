@@ -58,6 +58,7 @@ const DATA = {
       { id: "address", label: "მაღაზიის მისამართი" },
       { id: "hours", label: "მაღაზიის სამუშაო საათები" },
       { id: "exchange", label: "გაცვლა/დაბრუნება" },
+      { id: "engraving", label: "გრავირება" },
       { id: "contact", label: "კონტაქტი" },
     ],
     en: [
@@ -67,6 +68,7 @@ const DATA = {
       { id: "address", label: "Address" },
       { id: "hours", label: "Working hours" },
       { id: "exchange", label: "Exchange/Returns" },
+      { id: "engraving", label: "Engraving" },
       { id: "contact", label: "Contact" },
     ],
   },
@@ -100,6 +102,11 @@ const DATA = {
     exchange: {
       ka: "გაცვლა/დაბრუნება შესაძლებელია შეკვეთის მიღებიდან 2 დღის განმავლობაში, თუ პროდუქტი არ არის გახსნილი/დაზიანებული და არის იმავე მდგომარეობაში, როგორშიც მიიღეთ. დაგვიკავშირდით ელ-ფოსტაზე ან ნომერზე.",
       en: "Exchange/Returns is allowed within 2 days after delivery, only if the product is unopened/undamaged and in the same condition as received. Please contact us via email or phone.",
+    },
+
+    engraving: {
+      ka: "ლაზერული გრავირება: გრავირებული კალმები (16–32₾) და ხის ან ტყავის ბრელოკები წარწერით ან ფოტოთი — 13₾ ერთ მხარეს, 20₾ ორივე მხარეს. შეკვეთა საიტზე, 3D პრევიუთი: artopia.ge/engraving\n\nდამზადება 2-3 სამუშაო დღე — აღებაც და კურიერიც ამ ვადის შემდეგ. გადახდა მხოლოდ ბარათით, წინასწარ.\n\nგრავირება თქვენს ნივთზე — 10₾: დაგვირეკეთ, მოგვწერეთ ან მობრძანდით მაღაზიაში.",
+      en: "Laser engraving: engraved pens (16–32₾) and wooden or leather keychains with text or a photo — 13₾ one side, 20₾ both sides. Order online with a 3D preview: artopia.ge/engraving\n\nProduction takes 2-3 business days — pickup and courier happen after that. Card payment only, in advance.\n\nEngraving on your own item — 10₾: call us, message us or visit the store.",
     },
 
     contact: {

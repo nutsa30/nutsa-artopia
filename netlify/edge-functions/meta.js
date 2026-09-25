@@ -247,21 +247,89 @@ export default async (request, context) => {
     /* ===================== ENGRAVING: /engraving ===================== */
     if (path === "/engraving") {
       const html = await res.text();
+      const faq = [
+        ["რა ღირს გრავირება?", "გრავირებული კალამი — 16-დან 32 ₾-მდე, ბრელოკი — 13 ₾ ერთ მხარეს და 20 ₾ ორივე მხარეს, თქვენს ნივთზე გრავირება — 10 ₾."],
+        ["რამდენ ხანში მზადდება გრავირებული ნივთი?", "2-3 სამუშაო დღე. აღება მაღაზიიდან ან კურიერით — დამზადების შემდეგ."],
+        ["შეიძლება ფოტოს ამოწვა?", "კი, ბრელოკებზე. ფოტო შავ-თეთრად მუშავდება და 3D პრევიუში ჩანს, როგორ ამოიწვება."],
+        ["შეგიძლიათ ჩემს ნივთზე გრავირება?", "კი, 10 ₾. დაგვირეკეთ (+995 593 204 098), მოგვწერეთ (info@artopia.ge) ან მობრძანდით მაღაზიაში — სიმონ ჩიქოვანის 45, თბილისი."],
+      ];
+      const offers = [
+        ["გრავირებული ოქროსფერი კალამი", 25, "pen"],
+        ["გრავირებული ვერცხლისფერი კალამი", 23, "pen-silver"],
+        ["გრავირებული ლითონის კალამი", 18, "pen-fullsilver"],
+        ["გრავირებული წითელი კალამი", 16, "pen-red"],
+        ["გრავირებული კალამი „თოფი“", 32, "pen-rifle"],
+        ["გრავირებული ხის ბრელოკი — კვადრატი", 13, "keychain"],
+        ["გრავირებული ხის ბრელოკი — მრგვალი", 13, "keychain-round"],
+        ["გრავირებული ტყავის ბრელოკი — ოთხკუთხა", 13, "leather-square"],
+        ["გრავირებული ტყავის ბრელოკი — მრგვალი", 13, "leather-round"],
+      ];
       const out = applyMeta(html, {
-        title: "გრავირება — კალამი და ბრელოკი საკუთარი წარწერით | Artopia",
+        title: "გრავირება თბილისში — გრავირებული კალამი და ბრელოკი | Engraving | Artopia",
         description:
-          "ლაზერული გრავირება Artopia-ში: ოქროსფერი კალამი (25₾) და ხის ბრელოკი (13₾, ორივე მხარე 20₾) საკუთარი წარწერით ან ფოტოთი. აირჩიეთ შრიფტი, ნახეთ 3D პრევიუ და შეუკვეთეთ ონლაინ.",
+          "ლაზერული გრავირება (engraving) Artopia-ში: გრავირებული კალმები 16–32₾, ხის და ტყავის ბრელოკები წარწერით ან ფოტოთი — 13₾, ორივე მხარე 20₾. გრავირება თქვენს ნივთზე — 10₾. 3D პრევიუ და ონლაინ შეკვეთა.",
         url: `${SITE}/engraving`,
-        image: DEFAULT_IMAGE,
+        image: `${SITE}/images/engraving/pen.webp`,
         type: "website",
-        keywords: "გრავირება, ლაზერული გრავირება, გრავირებული კალამი, ბრელოკი წარწერით, საჩუქარი, artopia",
+        keywords:
+          "გრავირება, ლაზერული გრავირება, გრავირება თბილისში, გრავირებული კალამი, კალამი წარწერით, ბრელოკი წარწერით, ხის ბრელოკი, ტყავის ბრელოკი, ფოტოს ამოწვა, პერსონალური საჩუქარი, engraving, laser engraving, engraved pen, engraved keychain, Tbilisi",
         jsonLd: {
           "@context": "https://schema.org",
-          "@type": "WebPage",
-          url: `${SITE}/engraving`,
-          name: "გრავირება — კალამი და ბრელოკი საკუთარი წარწერით",
-          inLanguage: "ka-GE",
-          about: { "@id": ORG_ID },
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": `${SITE}/engraving#webpage`,
+              url: `${SITE}/engraving`,
+              name: "გრავირება თბილისში — გრავირებული კალამი და ბრელოკი",
+              inLanguage: "ka-GE",
+              about: { "@id": `${SITE}/engraving#service` },
+              isPartOf: { "@id": `${SITE}/#website` },
+              breadcrumb: breadcrumb([
+                { name: "მთავარი", item: `${SITE}/` },
+                { name: "გრავირება", item: `${SITE}/engraving` },
+              ]),
+            },
+            {
+              "@type": "Service",
+              "@id": `${SITE}/engraving#service`,
+              name: "ლაზერული გრავირება",
+              alternateName: ["გრავირება", "Laser engraving", "Engraving"],
+              serviceType: "Laser engraving",
+              url: `${SITE}/engraving`,
+              provider: { "@id": ORG_ID },
+              areaServed: { "@type": "Country", name: "Georgia" },
+              hasOfferCatalog: {
+                "@type": "OfferCatalog",
+                name: "გრავირება",
+                itemListElement: [
+                  ...offers.map(([name, price, img]) => ({
+                    "@type": "Offer",
+                    name,
+                    price: String(price),
+                    priceCurrency: "GEL",
+                    availability: "https://schema.org/InStock",
+                    url: `${SITE}/engraving`,
+                    image: `${SITE}/images/engraving/${img}.webp`,
+                  })),
+                  {
+                    "@type": "Offer",
+                    name: "გრავირება მომხმარებლის ნივთზე",
+                    price: "10",
+                    priceCurrency: "GEL",
+                    url: `${SITE}/engraving#own-item`,
+                  },
+                ],
+              },
+            },
+            {
+              "@type": "FAQPage",
+              mainEntity: faq.map(([q, a]) => ({
+                "@type": "Question",
+                name: q,
+                acceptedAnswer: { "@type": "Answer", text: a },
+              })),
+            },
+          ],
         },
       });
       return htmlResponse(out);

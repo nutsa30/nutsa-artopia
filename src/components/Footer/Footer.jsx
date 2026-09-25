@@ -125,6 +125,7 @@ const Footer = () => {
 
           <div className={styles.footerLinks}>
   <div className={styles.policyLinks}>
+    <a href="/engraving" className={styles.policyBtn}>გრავირება</a>
     <a href="/terms" className={styles.policyBtn}>წესები და პირობები</a>
     <a href="/returns" className={styles.policyBtn}>დაბრუნების პოლიტიკა</a>
     <a href="/privacy" className={styles.policyBtn}>კონფიდენციალურობა</a>
