@@ -18,7 +18,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { ENGRAVING_PRODUCTS, colorById, engraveLook } from "../../utils/engraving";
+import { ENGRAVING_PRODUCTS, MODEL_VERSION, colorById, engraveLook } from "../../utils/engraving";
 import styles from "./EngravingViewer.module.css";
 
 /* ---------- მოდელების გაზომილი გეომეტრია (GLB-ის ლოკალურ ერთეულებში) ---------- */
@@ -199,12 +199,19 @@ function applyTint(root, tintUniform) {
 
 const modelCache = new Map(); // url -> Promise<gltf>
 
-function loadModel(url, onProgress) {
+/** GLB ჩატვირთვა; ქსელის გაწყვეტისას (მობილური ინტერნეტი) თავად ცდის კიდევ ორჯერ */
+function loadModel(path, onProgress) {
+  const url = `${path}?v=${MODEL_VERSION}`;
   if (!modelCache.has(url)) {
     const loader = new GLTFLoader();
-    const p = new Promise((resolve, reject) => {
-      loader.load(url, resolve, onProgress, reject);
-    });
+    const attempt = (n) =>
+      new Promise((resolve, reject) => {
+        loader.load(url, resolve, onProgress, reject);
+      }).catch((err) => {
+        if (n >= 2) throw err;
+        return new Promise((r) => setTimeout(r, 1500 * (n + 1))).then(() => attempt(n + 1));
+      });
+    const p = attempt(0);
     p.catch(() => modelCache.delete(url));
     modelCache.set(url, p);
   }

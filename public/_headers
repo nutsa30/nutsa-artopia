@@ -1,0 +1,13 @@
+# Netlify headers.
+# გრავირების 3D მოდელები, შრიფტები და სურათები ბრაუზერში ერთი წლით ინახება —
+# მეორე ვიზიტზე აღარ იწერება და სერვერსაც აღარ ეკითხება.
+# მოდელის შეცვლისას src/utils/engraving.js-ში MODEL_VERSION გაზარდეთ
+# (URL-ს ?v= ემატება), რომ ყველამ ახალი ფაილი მიიღოს.
+/models/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/engraving/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/engraving/*
+  Cache-Control: public, max-age=2592000

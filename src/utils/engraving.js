@@ -20,6 +20,12 @@ export const PRODUCTION_LABEL = "2-3 სამუშაო დღე";
 const PRODUCTION_DAYS_MIN = 2;
 const PRODUCTION_DAYS_MAX = 3;
 
+/**
+ * 3D მოდელები ბრაუზერში ერთი წლით ქეშირდება (public/_headers). მოდელის ფაილის
+ * შეცვლისას ეს რიცხვი გაზარდეთ — URL-ს ?v= ემატება და ყველა ახალ ფაილს მიიღებს.
+ */
+export const MODEL_VERSION = 1;
+
 /** ლაზერის ფაილის გარჩევადობა — ბექიც ამას ამოწმებს (20px/მმ ≈ 508 DPI) */
 export const PX_PER_MM = 20;
 
