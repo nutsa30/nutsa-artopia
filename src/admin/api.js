@@ -283,11 +283,11 @@ export const uploadTempPhoto = (productId, file) => {
   });
 };
 
-export const finalizeProductPhotos = (productId, urls) =>
+export const finalizeProductPhotos = (productId, photos) =>
   fetch(`${BASE}/support/products/${productId}/finalize`, {
     method: "POST",
     headers: bearerHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ urls }),
+    body: JSON.stringify({ photos }),
   }).then(async (res) => {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -295,6 +295,63 @@ export const finalizeProductPhotos = (productId, urls) =>
       err.status = res.status;
       throw err;
     }
+    return data;
+  });
+
+export const replaceProductPhotoJobItem = (batchId, slot, photo) =>
+  fetch(`${BASE}/support/photo-jobs/${batchId}/items/${slot}/replace`, {
+    method: "POST",
+    headers: bearerHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ photo }),
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.error || data.message || `${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  });
+
+export const getConsultantPhotosAdmin = ({ search = "" } = {}) => {
+  const params = new URLSearchParams();
+  if (search) params.set("search", search);
+  return fetch(`${BASE}/support/admin/consultant-photos?${params.toString()}`, {
+    headers: bearerHeaders(),
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || data.error || `${res.status}`);
+    return data;
+  });
+};
+
+export const publishConsultantPhotoJob = (batchId) =>
+  fetch(`${BASE}/support/admin/photo-jobs/${batchId}/publish`, {
+    method: "POST",
+    headers: bearerHeaders(),
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || data.message || `${res.status}`);
+    return data;
+  });
+
+export const rejectConsultantPhotoJobItem = (batchId, slot) =>
+  fetch(`${BASE}/support/admin/photo-jobs/${batchId}/items/${slot}`, {
+    method: "DELETE",
+    headers: bearerHeaders(),
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || data.message || `${res.status}`);
+    return data;
+  });
+
+export const deleteConsultantProductPhoto = (productId, slot) =>
+  fetch(`${BASE}/support/admin/products/${productId}/photos/${slot}`, {
+    method: "DELETE",
+    headers: bearerHeaders(),
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || data.message || `${res.status}`);
     return data;
   });
 

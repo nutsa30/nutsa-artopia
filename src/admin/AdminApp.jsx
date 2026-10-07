@@ -15,6 +15,7 @@ import AddHomeImg from "./pages/home/AddHomeImg";
 import Analytics from "./pages/analytics/Analytics";
 import SupportPanel from "./pages/supportPanel/SupportPanel";
 import AdminRestock from "./pages/restock/AdminRestock";
+import ConsultantPhotos from "./pages/consultantPhotos/ConsultantPhotos";
 
 import { AuthProvider } from "./context/AuthContext";
 
@@ -150,6 +151,15 @@ function AdminShell() {
           element={
             <ProtectedRoute>
               <AdminRestock />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="consultant-photos"
+          element={
+            <ProtectedRoute>
+              <ConsultantPhotos />
             </ProtectedRoute>
           }
         />
