@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle, Image as ImageIcon, Loader2, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle, Image as ImageIcon, Loader2, Search, Trash2, X, ZoomIn } from "lucide-react";
 import { cld, IMG } from "../../../utils/cloudinary";
 import {
   deleteConsultantProductPhoto,
@@ -16,6 +16,7 @@ export default function ConsultantPhotos() {
   const [loading, setLoading] = useState(true);
   const [busyKey, setBusyKey] = useState("");
   const [search, setSearch] = useState("");
+  const [preview, setPreview] = useState(null);
   const timerRef = useRef();
 
   const load = useCallback(async (query = search) => {
@@ -38,6 +39,22 @@ export default function ConsultantPhotos() {
     const handle = setInterval(() => load(search), 4000);
     return () => clearInterval(handle);
   }, [products, load, search]);
+
+  useEffect(() => {
+    if (!preview) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setPreview(null);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [preview]);
+
+  const openPreview = (url, alt) => setPreview({ url, alt });
 
   const onSearch = (event) => {
     const value = event.target.value;
@@ -133,7 +150,15 @@ export default function ConsultantPhotos() {
                       return (
                         <div key={item.slot} className={`${styles.photoCard} ${["failed", "rejected"].includes(item.status) ? styles.photoBad : ""}`}>
                           <span className={styles.slot}>#{item.slot}</span>
-                          <img className={styles.cutout} src={cld(item.processed_url || item.original_url, { w: IMG.ADMIN })} alt={`${product.name} ${item.slot}`} />
+                          <button
+                            type="button"
+                            className={styles.photoOpenButton}
+                            onClick={() => openPreview(item.processed_url || item.original_url, `${product.name} — ფოტო #${item.slot}`)}
+                            aria-label={`ფოტო #${item.slot} სრულ ზომაზე გახსნა`}
+                          >
+                            <img className={styles.cutout} src={cld(item.processed_url || item.original_url, { w: IMG.ADMIN })} alt={`${product.name} ${item.slot}`} />
+                            <ZoomIn className={styles.zoomIcon} size={17} />
+                          </button>
                           <small>{item.status}</small>
                           {item.status === "done" && (
                             <button className={styles.rejectBtn} onClick={() => rejectPending(product.job.id, item.slot)} disabled={busyKey === key}>
@@ -165,7 +190,15 @@ export default function ConsultantPhotos() {
                       return (
                         <div key={`${photo.slot}:${photo.url}`} className={styles.photoCard}>
                           <span className={styles.slot}>#{photo.slot}</span>
-                          <img className={styles.cutout} src={cld(photo.url, { w: IMG.ADMIN })} alt={`${product.name} ${photo.slot}`} />
+                          <button
+                            type="button"
+                            className={styles.photoOpenButton}
+                            onClick={() => openPreview(photo.url, `${product.name} — ფოტო #${photo.slot}`)}
+                            aria-label={`ფოტო #${photo.slot} სრულ ზომაზე გახსნა`}
+                          >
+                            <img className={styles.cutout} src={cld(photo.url, { w: IMG.ADMIN })} alt={`${product.name} ${photo.slot}`} />
+                            <ZoomIn className={styles.zoomIcon} size={17} />
+                          </button>
                           <button className={styles.deleteBtn} onClick={() => removePublished(product.product_id, photo.slot)} disabled={busyKey === key}>
                             {busyKey === key ? <Loader2 size={14} className={styles.spinner} /> : <Trash2 size={14} />} წაშლა
                           </button>
@@ -177,6 +210,18 @@ export default function ConsultantPhotos() {
               )}
             </article>
           ))}
+        </div>
+      )}
+
+      {preview && (
+        <div className={styles.lightbox} role="dialog" aria-modal="true" aria-label={preview.alt} onClick={() => setPreview(null)}>
+          <button type="button" className={styles.lightboxClose} onClick={() => setPreview(null)} aria-label="დახურვა">
+            <X size={24} />
+          </button>
+          <div className={styles.lightboxContent} onClick={(event) => event.stopPropagation()}>
+            <img src={preview.url} alt={preview.alt} />
+            <p>{preview.alt}</p>
+          </div>
         </div>
       )}
     </main>

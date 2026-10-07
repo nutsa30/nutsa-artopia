@@ -20,6 +20,10 @@
 .photoCard { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 7px; border: 1px solid #e2e8f0; border-radius: 9px; background: #f8fafc; }
 .photoBad { border-color: #fca5a5; background: #fff7f7; }
 .photoCard img { width: 100%; height: 105px; object-fit: contain; border-radius: 6px; }
+.photoOpenButton { position: relative; display: block; width: 100%; padding: 0; border: 0; border-radius: 6px; background: transparent; cursor: zoom-in; overflow: hidden; }
+.photoOpenButton img { display: block; transition: transform .18s ease; }
+.photoOpenButton:hover img { transform: scale(1.035); }
+.zoomIcon { position: absolute; right: 7px; bottom: 7px; padding: 4px; box-sizing: content-box; border-radius: 7px; color: #fff; background: rgba(15,23,42,.72); pointer-events: none; }
 .cutout { background-color: #fff; background-image: linear-gradient(45deg,#e2e8f0 25%,transparent 25%),linear-gradient(-45deg,#e2e8f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e2e8f0 75%),linear-gradient(-45deg,transparent 75%,#e2e8f0 75%); background-size: 14px 14px; background-position: 0 0,0 7px,7px -7px,-7px 0; }
 .slot { position: absolute; top: 10px; left: 10px; z-index: 2; padding: 2px 5px; border-radius: 5px; background: rgba(15,23,42,.78); color: #fff; font-size: .64rem; font-weight: 700; }
 .photoCard small { text-align: center; color: #64748b; }
@@ -29,6 +33,11 @@
 .approveBtn:hover { background: #15803d; }
 .warning { display: flex; align-items: center; gap: 4px; color: #b91c1c; font-size: .63rem; line-height: 1.25; }
 .loading, .empty { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 220px; color: #94a3b8; }
+.lightbox { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 28px; background: rgba(2,6,23,.9); backdrop-filter: blur(5px); }
+.lightboxClose { position: fixed; top: 18px; right: 18px; z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; background: rgba(15,23,42,.8); color: #fff; cursor: pointer; }
+.lightboxContent { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 94vw; max-height: 94vh; }
+.lightboxContent img { max-width: 90vw; max-height: 84vh; object-fit: contain; border-radius: 10px; box-shadow: 0 20px 70px rgba(0,0,0,.45); background-color: #fff; background-image: linear-gradient(45deg,#e2e8f0 25%,transparent 25%),linear-gradient(-45deg,#e2e8f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e2e8f0 75%),linear-gradient(-45deg,transparent 75%,#e2e8f0 75%); background-size: 18px 18px; background-position: 0 0,0 9px,9px -9px,-9px 0; }
+.lightboxContent p { margin: 0; max-width: 80vw; color: #fff; font-size: .84rem; text-align: center; }
 .spinner { animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (max-width: 640px) { .page { padding: 18px 12px 40px; } .heading { flex-direction: column; } .grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .page { padding: 18px 12px 40px; } .heading { flex-direction: column; } .grid { grid-template-columns: 1fr; } .lightbox { padding: 14px; } .lightboxContent img { max-width: 96vw; max-height: 80vh; } }
