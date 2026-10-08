@@ -128,7 +128,7 @@
   border-color: #0f172a;
 }
 
-.refreshBtn {
+.refreshBtn, .downloadBtn {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -139,6 +139,27 @@
   align-items: center;
   justify-content: center;
   color: #64748b;
+}
+
+.downloadBtn {
+  min-height: 42px;
+  gap: 7px;
+  padding: 0 16px;
+  background: #0f172a;
+  color: white;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.downloadBtn:hover:not(:disabled) {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+
+.downloadBtn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
 }
 
 .refreshBtn:hover {
@@ -394,6 +415,9 @@
   
   .filterBar { flex-direction: column; gap: 12px; }
   .searchWrapper, .selectGroup { width: 100%; }
+  .selectGroup { flex-wrap: wrap; }
+  .selectGroup select { flex: 1; }
+  .downloadBtn { flex: 1 1 190px; }
   
   .productRow {
     grid-template-columns: 1fr;

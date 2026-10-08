@@ -3,6 +3,7 @@ import styles from "./Menu.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
 import { useNavigate } from "react-router-dom";
 import EdgePager from "../../../components/pagination/EdgePager";
+import { exportFilteredProducts } from "../../api";
 import { 
   Search, 
   RefreshCw, 
@@ -14,7 +15,9 @@ import {
   EyeOff,
   CheckCircle2,
   XCircle,
-  Tag
+  Tag,
+  Download,
+  Loader2
 } from "lucide-react";
 
 const ACTIVE_PRODUCT_KEY = "admin_active_product";
@@ -42,7 +45,9 @@ const productImages = (p) => {
           else if (it && typeof it.url === "string") out.push(it.url);
         }
       }
-    } catch { }
+    } catch {
+      // Ignore malformed legacy image JSON and continue with explicit image fields.
+    }
   }
   for (let i = 1; i <= 6; i += 1) {
     out.push(p?.[`image_url${i}`]);
@@ -58,6 +63,7 @@ const normalizeProduct = (p) => {
   const hasValidQty = Number.isFinite(quantity) && quantity > 0;
   return {
     id: p.id,
+    barcode: String(p?.barcode || "").trim(),
     name: String(p?.name || "").trim(),
     description: String(p?.description || "").trim(),
     price: Number(p?.price ?? 0),
@@ -82,7 +88,6 @@ const getSavedFilters = () => {
 
 const Menu = () => {
   const navigate = useNavigate();
-  const containerRef = useRef(null);
   const abortRef = useRef(null);
   const savedFilters = getSavedFilters();
 
@@ -96,6 +101,7 @@ const Menu = () => {
   const [selectedNew, setSelectedNew] = useState(savedFilters.selectedNew || "all");
   const [categories, setCategories] = useState(["ყველა"]);
   const [currentPage, setCurrentPage] = useState(Number(localStorage.getItem(PAGE_KEY)) || 1);
+  const [exporting, setExporting] = useState(false);
 
   const fetchProductsOnce = async () => {
     setLoading(true);
@@ -133,10 +139,16 @@ const Menu = () => {
   const filtered = useMemo(() => {
     const needle = (searchTerm || "").toLowerCase().trim();
     return allProducts.filter((p) => {
-      const haystack = [p.name, p.description, p.category].filter(Boolean).join(" ").toLowerCase();
+      const haystack = [p.name, p.barcode, p.description, p.category].filter(Boolean).join(" ").toLowerCase();
       const matchesSearch = !needle || haystack.includes(needle);
       const matchesCategory = selectedCategory === "ყველა" || p.category === selectedCategory;
-      const matchesStock = selectedStock === "all" || (selectedStock === "in" && p.in_stock && !p.hide) || (selectedStock === "out" && !p.in_stock && !p.hide) || (selectedStock === "hidden" && p.hide);
+      const hasNoPhotos = p.images.length === 0;
+      const matchesStock = selectedStock === "all"
+        || (selectedStock === "in" && p.in_stock && !p.hide)
+        || (selectedStock === "out" && !p.in_stock && !p.hide)
+        || (selectedStock === "hidden" && p.hide)
+        || (selectedStock === "no_photo_in" && hasNoPhotos && p.in_stock)
+        || (selectedStock === "no_photo_out" && hasNoPhotos && !p.in_stock);
       const hasSale = typeof p.sale === "number" && Number.isFinite(p.sale) && p.sale > 0 && p.sale <= 100;
       const matchesSale = selectedSale === "all" || (selectedSale === "discounted" && hasSale) || (selectedSale === "nodiscount" && !hasSale);
       const matchesNew = selectedNew === "all" || (selectedNew === "new" && p.is_new) || (selectedNew === "old" && !p.is_new);
@@ -176,7 +188,30 @@ const Menu = () => {
       const res = await fetch(`${API_BASE}/products/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setAllProducts((prev) => prev.filter((p) => p.id !== id));
-    } catch (e) { alert("წაშლა ვერ მოხერხდა"); }
+    } catch { alert("წაშლა ვერ მოხერხდა"); }
+  };
+
+  const handleExport = async () => {
+    if (filtered.length === 0 || exporting) return;
+    const stockLabels = {
+      all: "ყველა პროდუქტი",
+      in: "მარაგში არსებული პროდუქტები",
+      out: "მარაგში არარსებული პროდუქტები",
+      hidden: "დამალული პროდუქტები",
+      no_photo_in: "ფოტოების გარეშე — მარაგში",
+      no_photo_out: "ფოტოების გარეშე — არ არის მარაგში",
+    };
+    const parts = [stockLabels[selectedStock] || "გაფილტრული პროდუქტები"];
+    if (selectedCategory !== "ყველა") parts.push(`კატეგორია: ${selectedCategory}`);
+    if (searchTerm.trim()) parts.push(`ძიება: ${searchTerm.trim()}`);
+    setExporting(true);
+    try {
+      await exportFilteredProducts(filtered.map((product) => product.id), parts.join(" · "));
+    } catch (exportError) {
+      alert(exportError.message || "სიის გადმოწერა ვერ მოხერხდა");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const visible = useMemo(() => {
@@ -219,7 +254,13 @@ const Menu = () => {
               <option value="in">მარაგშია</option>
               <option value="out">ამოწურულია</option>
               <option value="hidden">დამალული</option>
+              <option value="no_photo_in">ფოტოების გარეშე + მარაგში</option>
+              <option value="no_photo_out">ფოტოების გარეშე + არ არის მარაგში</option>
             </select>
+            <button onClick={handleExport} className={styles.downloadBtn} disabled={filtered.length === 0 || exporting} title="გაფილტრული სიის Excel-ში გადმოწერა">
+              {exporting ? <Loader2 size={18} className={styles.spin} /> : <Download size={18} />}
+              <span>სიის გადმოწერა</span>
+            </button>
             <button onClick={handleRefresh} className={styles.refreshBtn} title="განახლება">
               <RefreshCw size={18} className={loading ? styles.spin : ""} />
             </button>

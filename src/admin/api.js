@@ -445,3 +445,33 @@ export const uploadStockExcel = (file) => {
     return data;
   });
 };
+
+export const exportFilteredProducts = async (productIds, filterLabel = "") => {
+  const token = (getAdminToken() || "").trim();
+  const res = await fetch(`${BASE}/admin/products/export`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ product_ids: productIds, filter_label: filterLabel }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || data.error || `${res.status}`);
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get("Content-Disposition") || "";
+  const utf8Name = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  const plainName = disposition.match(/filename="?([^";]+)"?/i)?.[1];
+  const filename = utf8Name ? decodeURIComponent(utf8Name) : (plainName || "products.xlsx");
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+};
