@@ -6,7 +6,7 @@ import CartDropdown from "../CartContext/CartDropdown";
 import { Home, ShoppingBag, LetterText, MessagesSquare, PenTool } from "lucide-react";
 import geFlag from "../../assets/georgiaflag.webp";
 import enFlag from "../../assets/britishflag.webp";
-import { changeLanguage } from "../../utils/googleTranslate";
+import { changeLanguage, loadGoogleTranslate } from "../../utils/googleTranslate";
 /* ---------- Tabs ---------- */
 const tabs = [
   { id: "home", path: "/", icon: <Home size={18} /> },
@@ -72,9 +72,17 @@ CartIcon.displayName = "CartIcon";
 
 /* ---------- Navbar ---------- */
 const Navbar = () => {
-  // Google Translate მხოლოდ დაჭერისას იტვირთება (იხ. utils/googleTranslate.js)
+  // Google Translate მხოლოდ საჭიროებისას იტვირთება (იხ. utils/googleTranslate.js):
+  // დროშაზე მიახლოებისას/შეხებისას წინასწარ, დაჭერისას კი ენა იცვლება.
+  const [langBusy, setLangBusy] = useState(false);
+  const warmUpTranslate = () => {
+    loadGoogleTranslate().catch(() => {});
+  };
   const changeLang = (lang) => {
-    changeLanguage(lang).catch((err) => console.error(err));
+    setLangBusy(true);
+    changeLanguage(lang)
+      .catch((err) => console.error(err))
+      .finally(() => setLangBusy(false));
   };
   const location = useLocation();
   const [showCartOpen, setShowCartOpen] = useState(false);
@@ -100,7 +108,13 @@ const Navbar = () => {
   </div>
 
   {/* Language */}
-  <div className={styles.langSwitcher}>
+  <div
+    className={styles.langSwitcher}
+    aria-busy={langBusy}
+    style={langBusy ? { opacity: 0.6, cursor: "progress" } : undefined}
+    onPointerEnter={warmUpTranslate}
+    onTouchStart={warmUpTranslate}
+  >
     <button onClick={() => changeLang("ka")} aria-label="ქართული">
       <img src={geFlag} alt="ქართული" width="45" height="30" />
     </button>
