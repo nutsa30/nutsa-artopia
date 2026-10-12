@@ -79,14 +79,14 @@ Checkout shows the rule rather than applying it silently:
 
 QuickShipper was removed (2026-09) — no more third-party courier lookup, map
 picker, or per-provider selection. Delivery is flat and city-based; the shared
-math lives in `src/utils/pricing.js` (`courierDeliveryInfo`, `meetsMinOrder`,
-`pickupReadyLabel`, `MIN_ORDER_SUBTOTAL`) and mirrors the backend's
+math lives in `src/utils/pricing.js` (`courierDeliveryInfo`,
+`pickupReadyLabel`) and mirrors the backend's
 `app/delivery.py` — that backend file is authoritative, this is only for the
 instant UI preview.
 
 | Rule | Value |
 |---|---|
-| Minimum order (site-wide) | 20₾ |
+| Minimum order amount | No store-wide minimum; the cart must be nonempty |
 | Courier — Tbilisi | 5₾, free at ≥50₾ |
 | Courier — region | 7₾, free at ≥70₾ |
 | Pickup | Always free. Ready today by 20:30 if ordered before 18:00 (Asia/Tbilisi), else next business day. |

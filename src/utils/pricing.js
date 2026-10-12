@@ -104,8 +104,6 @@ export const couponDiscountFor = (eligibleSubtotal, percent) => {
  * დამოკიდებული ტარიფი). ავტორიტეტული გამოთვლა ბექენდშია (`app/delivery.py`),
  * აქაური კი მხოლოდ მყისიერი UI-პრევიუსთვისაა.
  */
-export const MIN_ORDER_SUBTOTAL = 20;
-
 export const TBILISI_COURIER_FEE = 5;
 export const TBILISI_FREE_THRESHOLD = 50;
 export const REGION_COURIER_FEE = 7;
@@ -138,10 +136,6 @@ export const courierDeliveryInfo = (city, subtotal, hasEngraving = false) => {
     etaLabel,
   };
 };
-
-/** მინიმალური შეკვეთის წესი გრავირებიან კალათაზე არ მოქმედებს */
-export const meetsMinOrder = (subtotal, hasEngraving = false) =>
-  hasEngraving || (Number(subtotal) || 0) >= MIN_ORDER_SUBTOTAL;
 
 /** 'დღესვე, 20:30 საათამდე' თუ ახლა 18:00-მდეა თბილისის დროით, თორემ 'მომდევნო სამუშაო დღეს' */
 export const pickupReadyLabel = (now = new Date()) => {

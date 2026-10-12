@@ -14,9 +14,7 @@ import {
   isPromoEligible,
   PROMO_MESSAGES,
   courierDeliveryInfo,
-  meetsMinOrder,
   pickupReadyLabel,
-  MIN_ORDER_SUBTOTAL,
 } from "../../utils/pricing";
 import {
   isEngravingItem,
@@ -85,8 +83,6 @@ const LBL = {
   proceed: "გაგრძელება",
   errOrderCreate: "შეკვეთის შექმნა ვერ მოხერხდა",
   errChooseProduct: "გთხოვთ ჯერ აირჩიოთ პროდუქტი",
-  errMinOrder: `მინიმალური შეკვეთაა ${MIN_ORDER_SUBTOTAL}₾`,
-  minOrderHint: `მინიმალური შეკვეთაა ${MIN_ORDER_SUBTOTAL}₾`,
   close: "დახურვა",
   delete: "წაშლა",
   engravingPromoChip: "პრომო არ ვრცელდება — გრავირებული ნივთი",
@@ -396,11 +392,8 @@ const Checkout = () => {
     }
   }, [cartItems, preview.subtotal]);
 
-  const minOrderOk = meetsMinOrder(subtotal, hasEngraving);
-
   const canSubmit = useMemo(() => {
     if (cartItems.length === 0) return false;
-    if (!minOrderOk) return false;
     if (!formData.first_name?.trim() || !formData.last_name?.trim()) return false;
     if (!formData.email?.trim() || !formData.phone?.trim()) return false;
     if (!formData.deliveryOption) return false;
@@ -409,11 +402,10 @@ const Checkout = () => {
       if (!delivery.city) return false;
     }
     return true;
-  }, [cartItems, formData, delivery, minOrderOk]);
+  }, [cartItems, formData, delivery]);
 
   const submitHint = useMemo(() => {
     if (cartItems.length === 0) return "კალათა ცარიელია";
-    if (!minOrderOk) return T.minOrderHint;
     if (!formData.deliveryOption) return "აირჩიეთ მიტანის ვარიანტი";
     if (formData.deliveryOption === "courierDelivery" && !delivery.address?.trim()) {
       return "შეიყვანეთ მიტანის მისამართი";
@@ -423,7 +415,7 @@ const Checkout = () => {
       return "შეავსეთ ყველა სავალდებულო ველი";
     }
     return "";
-  }, [cartItems, formData, delivery, minOrderOk, T.minOrderHint]);
+  }, [cartItems, formData, delivery]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -437,11 +429,6 @@ const Checkout = () => {
       setError(T.errChooseProduct);
       return;
     }
-    if (!minOrderOk) {
-      setError(T.errMinOrder);
-      return;
-    }
-
     if (submissionInFlightRef.current) return;
     submissionInFlightRef.current = true;
     setError("");
@@ -763,12 +750,6 @@ const Checkout = () => {
 
             {engrUnits >= MAX_ENGRAVED_UNITS && (
               <div className={styles.promoScopeNote}>{T.engravingLimit}</div>
-            )}
-
-            {!minOrderOk && (
-              <div className={styles.promoScopeNote} style={{ color: "#fca5a5", borderColor: "rgba(248,113,113,.4)", background: "rgba(248,113,113,.08)" }}>
-                <WarningIcon /> {T.minOrderHint} — კიდევ დაამატეთ {fmt(MIN_ORDER_SUBTOTAL - subtotal)} ₾-ის ღირებულების პროდუქტი.
-              </div>
             )}
 
             <div className={styles.totalPrice}>

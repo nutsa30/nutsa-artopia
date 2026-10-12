@@ -75,13 +75,13 @@ const DATA = {
 
   answers: {
     tbilisi_delivery: {
-      ka: "თბილისში კურიერული მიწოდება 5₾ ღირს. 50₾ და მეტი ღირებულების შეკვეთაზე მიწოდება უფასოა. მიტანის ვადაა 1-3 სამუშაო დღე. კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.\n\nმინიმალური შეკვეთაა 20₾.\n\nასევე შეგიძლიათ ადგილზე აღება მაღაზიიდან, უფასოდ.",
-      en: "Courier delivery in Tbilisi costs 5₾. Orders of 50₾ or more get free delivery. Delivery takes 1-3 business days. Courier orders are paid by card online only, in advance.\n\nMinimum order is 20₾.\n\nYou can also pick up your order from the store for free.",
+      ka: "თბილისში კურიერული მიწოდება 5₾ ღირს. 50₾ და მეტი ღირებულების შეკვეთაზე მიწოდება უფასოა. მიტანის ვადაა 1-3 სამუშაო დღე. კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.\n\nშეკვეთის მინიმალური თანხა განსაზღვრული არ არის.\n\nასევე შეგიძლიათ ადგილზე აღება მაღაზიიდან, უფასოდ.",
+      en: "Courier delivery in Tbilisi costs 5₾. Orders of 50₾ or more get free delivery. Delivery takes 1-3 business days. Courier orders are paid by card online only, in advance.\n\nThere is no minimum order amount.\n\nYou can also pick up your order from the store for free.",
     },
 
     regions_delivery: {
-      ka: "რეგიონში კურიერული მიწოდება 7₾ ღირს. 70₾ და მეტი ღირებულების შეკვეთაზე მიწოდება უფასოა. მიტანის ვადაა 2-4 სამუშაო დღე. კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.\n\nმინიმალური შეკვეთაა 20₾.",
-      en: "Courier delivery to regions costs 7₾. Orders of 70₾ or more get free delivery. Delivery takes 2-4 business days. Courier orders are paid by card online only, in advance.\n\nMinimum order is 20₾.",
+      ka: "რეგიონში კურიერული მიწოდება 7₾ ღირს. 70₾ და მეტი ღირებულების შეკვეთაზე მიწოდება უფასოა. მიტანის ვადაა 2-4 სამუშაო დღე. კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.\n\nშეკვეთის მინიმალური თანხა განსაზღვრული არ არის.",
+      en: "Courier delivery to regions costs 7₾. Orders of 70₾ or more get free delivery. Delivery takes 2-4 business days. Courier orders are paid by card online only, in advance.\n\nThere is no minimum order amount.",
     },
 
     pickup: {

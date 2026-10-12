@@ -164,6 +164,51 @@ test("checkout still starts one bank payment for two rapid submits", async () =>
   } finally { await cleanup(); }
 });
 
+for (const price of [0.01, 1, 19.99]) {
+  for (const deliveryOption of ["storePickup", "courierDelivery"]) {
+    test(`checkout accepts ${price} GEL with ${deliveryOption}`, async () => {
+      setupPayment("pending");
+      localStorage.setItem("artopia.cart.v1", JSON.stringify([{ ...cart[0], price }]));
+      const calls = [];
+      window.gtag = (_op, _id, key, receive) => { if (receive) receive(key === "client_id" ? "123.456" : "123456"); };
+      globalThis.fetch = async (url, init) => {
+        if (url.includes("/payments/bog/create")) {
+          calls.push(JSON.parse(init.body));
+          return Response.json({ state: "fixture-state", order_id: "fixture-order", redirect_url: "https://bank.example.invalid/pay", purchase_source: "server" });
+        }
+        if (url.includes("/products/101")) return Response.json({ quantity: 100 });
+        throw Error(`Unexpected fixture request: ${url}`);
+      };
+      const cleanup = await render(React.createElement(MemoryRouter, { initialEntries: ["/checkout"], future: { v7_startTransition: true, v7_relativeSplatPath: true } }, React.createElement(CartProvider, null, React.createElement(Checkout))));
+      try {
+        for (const [name, value] of Object.entries({ first_name: "Test", last_name: "Fixture", email: "fixture@example.invalid", phone: "000", deliveryOption })) {
+          await React.act(async () => { Simulate.change(document.querySelector(`[name="${name}"]`), { target: { name, value } }); });
+        }
+        if (deliveryOption === "courierDelivery") {
+          await React.act(async () => { Simulate.change(document.querySelector('input[placeholder="მისამართი (ქუჩა, ნომერი)"]'), { target: { value: "Fixture address" } }); });
+        }
+        assert.equal(document.querySelector('button[type="submit"]').disabled, false);
+        await React.act(async () => { Simulate.submit(document.querySelector("form")); await new Promise(resolve => setTimeout(resolve, 20)); });
+        assert.equal(calls.length, 1);
+        assert.equal(calls[0].totals.subtotal, price);
+        assert.equal(calls[0].totals.total, +(price + (deliveryOption === "courierDelivery" ? 5 : 0)).toFixed(2));
+      } finally { await cleanup(); }
+    });
+  }
+}
+
+test("checkout still blocks an empty cart", async () => {
+  setupPayment("pending"); localStorage.setItem("artopia.cart.v1", "[]");
+  let bankCalls = 0;
+  globalThis.fetch = async url => { if (url.includes("/payments/bog/create")) bankCalls++; throw Error(`Unexpected fixture request: ${url}`); };
+  const cleanup = await render(React.createElement(MemoryRouter, { initialEntries: ["/checkout"], future: { v7_startTransition: true, v7_relativeSplatPath: true } }, React.createElement(CartProvider, null, React.createElement(Checkout))));
+  try {
+    assert.equal(document.querySelector('button[type="submit"]').disabled, true);
+    await React.act(async () => { Simulate.submit(document.querySelector("form")); });
+    assert.equal(bankCalls, 0);
+  } finally { await cleanup(); }
+});
+
 test("catalog browsing, search and add-to-cart still work with fixture products", async () => {
   sessionStorage.clear(); localStorage.clear();
   const events = []; window.gtag = (...args) => events.push(args);
