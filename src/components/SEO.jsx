@@ -22,7 +22,8 @@ const SEO = ({
 }) => {
   const cleanTitle = clean(title);
   const cleanDescription = clean(description);
-  const cleanUrl = canonicalUrl(clean(url) || "/");
+  // არარსებული/noindex გვერდი canonical-ს და og:url-ს არ აცხადებს
+  const cleanUrl = noIndex ? "" : canonicalUrl(clean(url) || "/");
   // og:image-ს სოციალური ქსელების და საძიებოების crawler-ები იწევენ, ხშირად
   // განმეორებით. ორიგინალის ნაცვლად 1200px-იან ვერსიას ვაწვდით — crawler-ები,
   // რომლებიც AVIF/WebP-ს არ უჭერენ მხარს, `f_auto`-ს წყალობით ისევ თავიანთ
@@ -70,8 +71,8 @@ const SEO = ({
 
       <meta name="theme-color" content="#ffffff" />
 
-      <link rel="alternate" hrefLang="ka-GE" href={cleanUrl || SITE_URL} />
-      <link rel="alternate" hrefLang="x-default" href={cleanUrl || SITE_URL} />
+      {cleanUrl && <link rel="alternate" hrefLang="ka-GE" href={cleanUrl} />}
+      {cleanUrl && <link rel="alternate" hrefLang="x-default" href={cleanUrl} />}
     </Helmet>
   );
 };

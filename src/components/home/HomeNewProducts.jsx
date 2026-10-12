@@ -97,6 +97,7 @@ const newProducts = items.slice(0, limit);
             >
               <ProductCard
                 product={product}
+                href={product?.slug ? `/products/${product.slug}` : null}
                 onAddToCart={(e, quantity) => {
                   e.stopPropagation();
                   handleAddToCart(product, quantity);

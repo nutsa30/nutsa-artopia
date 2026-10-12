@@ -3,20 +3,22 @@ const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 /* =========================================================
    Auth helpers
    ========================================================= */
+// ტოკენი = შესვლისას სერვერის მიერ გაცემული JWT. build-ში ჩაშენებული „ტოკენი" არ არსებობს.
 const getAdminToken = () => {
   try {
     return (
       (typeof window !== "undefined" &&
         (localStorage.getItem("ADMIN_TOKEN") ||
           sessionStorage.getItem("ADMIN_TOKEN"))) ||
-      (import.meta?.env?.VITE_ADMIN_TOKEN || "")
+      ""
     );
   } catch {
-    return import.meta?.env?.VITE_ADMIN_TOKEN || "";
+    return "";
   }
 };
 
-const authHeaders = (extra = {}) => {
+// ადმინის JWT ყველა ადმინისტრაციულ მოთხოვნაზე — სერვერი write მარშრუტებს მის გარეშე უარყოფს
+export const authHeaders = (extra = {}) => {
   const token = (getAdminToken() || "").trim();
   return token
     ? { "Authorization": `Bearer ${token}`, ...extra }
@@ -182,10 +184,12 @@ export async function deleteProductImage(productId, imageFieldOrOptions) {
 /* =========================================================
    Sync Helper
    ========================================================= */
-export const syncOptimo = () => {
+// confirmDelete — წასაშლელი პროდუქტების ზუსტი რაოდენობა, რომელიც ადმინმა დაადასტურა
+// (სერვერი მასობრივ წაშლას მხოლოდ ამ რიცხვის დამთხვევისას ასრულებს).
+export const syncOptimo = (confirmDelete) => {
   return jfetch(`${BASE}/api/optimo/sync`, {
     method: "POST",
-    body: JSON.stringify({}),
+    body: JSON.stringify(confirmDelete == null ? {} : { confirm_delete: confirmDelete }),
   });
 };
 

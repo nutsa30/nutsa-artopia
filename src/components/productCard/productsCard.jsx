@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import styles from "./ProductsCard.module.css";
 import { useFlyToCart } from "../useFlyToCart";
 import { useCartUiRefs } from "../Navbar/Navbar";
@@ -16,7 +17,7 @@ const LBL = {
   category: "კატეგორია",
 };
 
-export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
+export default function ProductsCard({ product, onAddToCart, onBuyNow, href, linkState }) {
   const { cartRef } = useCartUiRefs();
   const flyToCart = useFlyToCart(cartRef);
   const imgRef = useRef(null);
@@ -144,7 +145,17 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow }) {
   itemProp="image"
 />
 
-{title ? <h3 title={title} itemProp="name">{title}</h3> : <h3>—</h3>}
+{/* სათაური ნამდვილი <a href>-ია (crawler-ისთვის და კლავიატურისთვის); ბარათის
+    დანარჩენ ნაწილზე დაჭერას მშობელი wrapper ამუშავებს, ამიტომ კლიკი ზემოთ არ ადის. */}
+{title ? (
+  <h3 title={title} itemProp="name">
+    {href ? (
+      <Link to={href} state={linkState} className={styles.titleLink} onClick={(e) => e.stopPropagation()}>
+        {title}
+      </Link>
+    ) : title}
+  </h3>
+) : <h3>—</h3>}
         {category ? (
           <p className={styles.category}>
             {T.category}: {category}

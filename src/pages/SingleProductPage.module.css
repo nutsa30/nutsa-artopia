@@ -587,6 +587,11 @@
   cursor: pointer;
   text-align: left;
   color: inherit;
+  /* ბარათი ახლა <a>-ია: ვინარჩუნებთ იმ იერს, რაც <button>-ს ჰქონდა */
+  display: block;
+  text-decoration: none;
+  font-size: 13.3333px;
+  line-height: normal;
 }
 
 .relatedImage {

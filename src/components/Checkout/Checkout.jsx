@@ -216,69 +216,17 @@ const Checkout = () => {
           appliesToAll: !!data.applies_to_all,
         });
       } catch (err) {
-        console.error("promo validate failed, falling back:", err);
+        // კოდს მხოლოდ სერვერი ამოწმებს (კოდების სია საჯარო აღარ არის). შეცდომისას
+        // ფასდაკლება არ გამოიყენება — მომხმარებელი ხედავს, რომ შემოწმება ვერ მოხერხდა.
+        console.error("promo validate failed:", err);
         if (cancelled) return;
-
-        try {
-          const res = await fetch(`${API_BASE}/promo-codes?per_page=200`);
-          const json = await res.json();
-          if (cancelled) return;
-
-          const found = (json.items || []).find(
-            (c) => String(c.code || "").toUpperCase() === code && c.is_active
-          );
-
-          if (!found) {
-            setPromo({
-              ...IDLE_PROMO,
-              status: "invalid",
-              code,
-              reason: "not_found",
-              message: PROMO_MESSAGES.not_found,
-            });
-            return;
-          }
-          if (promoEligibleSubtotal <= 0) {
-            const engrCount = cartItems.filter(isEngravingItem).length;
-            const reason =
-              engrCount === 0
-                ? "all_items_on_sale"
-                : engrCount === cartItems.length
-                ? "engraving_only"
-                : "no_eligible_items";
-            setPromo({
-              ...IDLE_PROMO,
-              status: "invalid",
-              code,
-              reason,
-              message: PROMO_MESSAGES[reason],
-              excludedSubtotal: promoExcludedSubtotal,
-            });
-            return;
-          }
-
-          setPromo({
-            status: "valid",
-            code,
-            percent: Number(found.percent || 0),
-            discount: couponDiscountFor(promoEligibleSubtotal, found.percent),
-            reason: "ok",
-            message: PROMO_MESSAGES.ok,
-            eligibleSubtotal: promoEligibleSubtotal,
-            excludedSubtotal: promoExcludedSubtotal,
-            appliesToAll: promoExcludedSubtotal <= 0,
-          });
-        } catch (err2) {
-          console.error(err2);
-          if (cancelled) return;
-          setPromo({
-            ...IDLE_PROMO,
-            status: "invalid",
-            code,
-            reason: "not_found",
-            message: PROMO_MESSAGES.not_found,
-          });
-        }
+        setPromo({
+          ...IDLE_PROMO,
+          status: "invalid",
+          code,
+          reason: "unavailable",
+          message: PROMO_MESSAGES.unavailable,
+        });
       }
     }, 450);
 

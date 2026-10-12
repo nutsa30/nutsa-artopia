@@ -12,6 +12,9 @@ import AlsoBuyModal from "../components/AlsoBuy/AlsoBuyModal";
 import { trackViewItem } from "../utils/analytics";
 import CategoryIcon from "../utils/categoryIcons";
 import { cld, IMG } from "../utils/cloudinary";
+import NotFound from "../components/NotFound";
+import { productJsonLd, breadcrumbJsonLd, productBreadcrumbs } from "../utils/catalogMeta";
+import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const NO_IMAGE = "/noimage.jpeg";
@@ -115,11 +118,19 @@ useEffect(() => {
 
 const res = await fetch(`${API_BASE}/products/full/${slug}`);
 if (!res.ok) {
-  if (!ignore) setStatus("not_found");
+  // 404 = არ არსებობს / ადმინმა დამალა; 410 = გაყიდვიდან სამუდამოდ ამოღებული.
+  // სხვა ყველაფერი (5xx, timeout) სერვერის დროებითი პრობლემაა და არა „ვერ მოიძებნა".
+  if (!ignore) setStatus(res.status === 410 ? "gone" : res.status === 404 ? "not_found" : "error");
   return;
 }
 
 const data = await res.json();
+
+// ძველი მისამართი, რომელსაც ზუსტი შემცვლელი აქვს (API-ის 301): გადავდივართ ახალ URL-ზე
+if (!ignore && data?.product?.slug && data.product.slug !== slug) {
+  navigate(`/products/${data.product.slug}`, { replace: true, state: location.state });
+  return;
+}
 
 if (!ignore) {
   setProduct(normalizeProduct(data.product));
@@ -130,7 +141,7 @@ if (!ignore) {
 }
       } catch (err) {
         console.error("Failed to fetch product by slug", err);
-        if (!ignore) setStatus("not_found");
+        if (!ignore) setStatus("error");
       }
     };
 
@@ -217,15 +228,6 @@ const handleAddToCart = () => {
     navigate("/checkout");
   };
 
-const handleRelatedProductClick = (nextProduct) => {
-  if (!nextProduct?.slug) return;
-
-  navigate(`/products/${nextProduct.slug}`, {
-    state: {
-      from: location.state?.from || "/products",
-    },
-  });
-};
 const maxRelatedStart = Math.max(
   0,
   relatedProducts.length - relatedVisibleCount
@@ -242,8 +244,13 @@ if (status === "loading") {
   return <AppLoader />;
 }
 
-  if (status === "not_found" || !product) {
-    return <div className={styles.loader}>პროდუქტი ვერ მოიძებნა.</div>;
+  if (status === "not_found" || status === "gone") {
+    return <NotFound what="პროდუქტი" gone={status === "gone"} />;
+  }
+
+  // დროებითი შეცდომა: noindex-ის გარეშე — მოქმედი პროდუქტი ინდექსიდან არ უნდა ამოვარდეს
+  if (status === "error" || !product) {
+    return <div className={styles.loader}>პროდუქტის ჩატვირთვა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.</div>;
   }
 
   const hasSale =
@@ -267,48 +274,20 @@ if (status === "loading") {
       : description || "ნახე ეს პროდუქტი Artopia-ზე.";
 
   const seoImage = images[0] || "https://artopia.ge/social-preview.png";
-const productSchema = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  name: title,
-  image: images,
-  description: description,
-  sku: String(product.id ?? slug),
-  ...(category ? { category } : {}),
-  brand: {
-    "@type": "Brand",
-    name: "Artopia",
-  },
-  offers: {
-    "@type": "Offer",
-    url: `https://artopia.ge/products/${slug}`,
-    price: String(hasSale ? discounted : product.price),
-    priceCurrency: "GEL",
-    availability: inStock
-      ? "https://schema.org/InStock"
-      : "https://schema.org/OutOfStock",
-    itemCondition: "https://schema.org/NewCondition",
-    seller: { "@type": "Organization", name: "Artopia" },
-  },
-};
-
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "მთავარი", item: "https://artopia.ge/" },
-    { "@type": "ListItem", position: 2, name: "პროდუქტები", item: "https://artopia.ge/products" },
-    ...(category
-      ? [{ "@type": "ListItem", position: 3, name: category, item: `https://artopia.ge/products/category/${encodeURIComponent(category)}` }]
-      : []),
-    {
-      "@type": "ListItem",
-      position: category ? 4 : 3,
-      name: title,
-      item: `https://artopia.ge/products/${slug}`,
-    },
-  ],
-};
+  // Product + BreadcrumbList schema-ს edge function წერს საწყის HTML-ში (იგივე
+  // აგებით — src/utils/catalogMeta.js). აქ ვამატებთ მხოლოდ მაშინ, როცა edge-ის
+  // ვერსია არ არის (SPA-ში გადასვლა ან API-ის დროებითი ჩავარდნა edge-ზე), რომ
+  // გვერდზე ორი, ერთმანეთის გამეორებული Product არ აღმოჩნდეს.
+  const pageUrl = `https://artopia.ge/products/${slug}`;
+  const ownJsonLd = hasEdgeJsonLd(location.pathname)
+    ? null
+    : {
+        "@context": "https://schema.org",
+        "@graph": [
+          productJsonLd(product, { url: pageUrl, images: images.filter((u) => u && u !== NO_IMAGE) }),
+          breadcrumbJsonLd(productBreadcrumbs(product, pageUrl)),
+        ],
+      };
   return (
     <>
       <SEO
@@ -318,14 +297,13 @@ const breadcrumbSchema = {
         image={seoImage}
         type="product"
       />
-<Helmet>
-  <script type="application/ld+json">
-    {JSON.stringify(productSchema)}
-  </script>
-  <script type="application/ld+json">
-    {JSON.stringify(breadcrumbSchema)}
-  </script>
-</Helmet>
+{ownJsonLd && (
+  <Helmet>
+    <script type="application/ld+json">
+      {JSON.stringify(ownJsonLd).replace(/</g, "\\u003c")}
+    </script>
+  </Helmet>
+)}
       <div className={styles.page}>
         <div className={styles.topBar}>
           <button
@@ -611,11 +589,11 @@ alt={`${title} ${category} დეტალური ფოტო - Artopia`}
           : null;
 
         return (
-          <button
+          <Link
             key={item.id}
-            type="button"
+            to={`/products/${item.slug}`}
+            state={{ from: location.state?.from || "/products" }}
             className={styles.relatedCard}
-            onClick={() => handleRelatedProductClick(item)}
           >
         <img
   src={cld(item.image_url1, { w: IMG.CARD }) || NO_IMAGE}
@@ -634,7 +612,7 @@ alt={`${title} ${category} დეტალური ფოტო - Artopia`}
             ) : (
               <div className={styles.relatedPrice}>{item.price} ₾</div>
             )}
-          </button>
+          </Link>
         );
       })}
     </div>

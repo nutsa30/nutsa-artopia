@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Contacts.module.css";
 import { useNavigate } from "react-router-dom";
+import { authHeaders } from "../../api";
 
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/contacts";
 
@@ -57,7 +58,7 @@ const Contacts = () => {
     try {
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });
 
@@ -107,7 +108,8 @@ const Contacts = () => {
     if (!window.confirm("დარწმუნებული ხარ?")) return;
 
     try {
-      await fetch(`${BASE}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${BASE}/${id}`, { method: "DELETE", headers: authHeaders() });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setContacts((prev) => prev.filter((c) => c.id !== id));
       alert("წაშლილია");
     } catch (err) {

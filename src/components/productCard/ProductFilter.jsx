@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { catalogPath } from "../../utils/canonical";
 import { LayoutGrid } from "lucide-react";
 import CategoryIcon from "../../utils/categoryIcons";
 import styles from "./ProductFilter.module.css";
@@ -58,10 +60,14 @@ const filteredLabels = useMemo(() => {
         return;
       }
       setOpen(false);
+      setCatSearch("");
     };
 
     const onEsc = (e) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        setCatSearch("");
+      }
     };
 
     document.addEventListener("mousedown", onDoc);
@@ -128,8 +134,10 @@ const handlePickCategory = (label) => {
 )}
         </div>
 
-{open && (
-  <div className={styles.darkDropdown} ref={dropdownRef}>
+{/* სია ყოველთვის DOM-შია (დახურულზე უბრალოდ დამალული), რომ კატეგორიების
+    <a href> ბმულები crawler-ს მენიუს გახსნის გარეშეც დახვდეს. */}
+{(
+  <div className={styles.darkDropdown} ref={dropdownRef} style={open ? undefined : { display: "none" }}>
 
 
     <ul className={styles.darkList}>
@@ -143,8 +151,6 @@ const handlePickCategory = (label) => {
                       isSelected ? styles.darkActive : ""
                     }`}
                     onClick={() => handlePickCategory(label)}
-                    role="option"
-                    aria-selected={isSelected ? "true" : "false"}
                     title={label}
                   >
                     {label === L.all ? (
@@ -152,7 +158,19 @@ const handlePickCategory = (label) => {
                     ) : (
                       <CategoryIcon name={label} size={18} className={styles.catIcon} />
                     )}
-                    <span className={styles.catText}>{label}</span>
+                    <Link
+                      to={catalogPath({ category: label === L.all ? null : label })}
+                      className={styles.catLink}
+                      aria-current={isSelected ? "page" : undefined}
+                      onClick={(e) => {
+                        // ნავიგაციას თვითონ ბმული აკეთებს; <li>-ის onClick აღარ უნდა გაეშვას
+                        e.stopPropagation();
+                        setCatSearch("");
+                        setOpen(false);
+                      }}
+                    >
+                      {label}
+                    </Link>
                   </li>
                 );
               })}

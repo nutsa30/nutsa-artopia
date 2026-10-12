@@ -153,6 +153,7 @@ export const pickupReadyLabel = (now = new Date()) => {
 
 /** ბექენდის REASON_* კოდების ქართული შესატყვისები (ოფლაინ fallback-ისთვის) */
 export const PROMO_MESSAGES = {
+  unavailable: "პრომო კოდის შემოწმება ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.",
   ok: "პრომო კოდი გააქტიურდა",
   empty_code: "შეიყვანეთ პრომო კოდი",
   not_found: "ასეთი პრომო კოდი არ არსებობს",

@@ -35,6 +35,8 @@ import ReturnsPage from "./pages/ReturnsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import ScrollToTop from "./components/ScrollToTop";
+import NotFound from "./components/NotFound";
+import { dropStaleEdgeJsonLd } from "./utils/edgeJsonLd";
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 // 3D (three.js) მხოლოდ ამ გვერდს სჭირდება — ცალკე ჩანქად იტვირთება
 const EngravingPage = React.lazy(() => import("./pages/EngravingPage"));
@@ -46,7 +48,10 @@ const CartToastWrapper = () => {
 
 const RouteLoader = () => {
   const location = useLocation();
-  useEffect(() => {}, [location]);
+  // SPA-ში გადასვლისას წინა გვერდის edge JSON-LD (მაგ. სხვა პროდუქტის schema) იშლება
+  useEffect(() => {
+    dropStaleEdgeJsonLd(location.pathname);
+  }, [location.pathname]);
   return null;
 };
 
@@ -143,7 +148,11 @@ const ChatMountIfNotAdmin = () => {
 
 <Route path="/products" element={<ProductsPage />} />
 
+<Route path="/products/page/:page" element={<ProductsPage />} />
+
 <Route path="/products/category/:slug" element={<ProductsPage />} />
+
+<Route path="/products/category/:slug/page/:page" element={<ProductsPage />} />
 
 <Route path="/products/:slug" element={<SingleProductPage />} />
 
@@ -189,6 +198,10 @@ const ChatMountIfNotAdmin = () => {
         </React.Suspense>
       }
     />
+
+    {/* არარსებული მისამართი — HTTP 404-ს edge function აბრუნებს (netlify/edge-functions/meta.js);
+        ახალი მარშრუტის დამატებისას იქაური სიაც (STATIC_ROUTES / ROUTE_PATTERNS) უნდა განახლდეს */}
+    <Route path="*" element={<NotFound />} />
 
   </Routes>
 </Chrome>
