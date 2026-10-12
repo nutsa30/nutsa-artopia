@@ -193,6 +193,30 @@ compiled out of production builds.
 - Local check of the real edge runtime: `npx netlify dev` (Deno). `ARTOPIA_API_BASE` in
   `.env.development.local` points the edge function at a local backend.
 
+### Performance rules (2026-10)
+
+Measured problems that were fixed — do not reintroduce them:
+
+- **No heavy static images.** The footer "Made by" logo was a 2 MB PNG on every page. Static images
+  are small WebP files with explicit `width`/`height` (`public/*.webp`, `src/assets/*.webp`).
+- **Google Translate is loaded on demand** (`src/utils/googleTranslate.js`): on hover/touch of the
+  flags, on click, or after load when the visitor already chose English (`googtrans` cookie). Never
+  put its `<script>` back into `index.html` — it blocked rendering for ~1 s on every page. The combo
+  box appears before Google listens to it, so `changeLanguage()` repeats the change until the cookie
+  shows the new language. In headless/automation it only works with a normal user agent.
+- **Images**: use `responsiveImage(url, "card" | "detail" | "hero")` from `src/utils/cloudinary.js`
+  for `src` + `srcSet` + `sizes`. First-screen images are `loading="eager"` (the first one also
+  `fetchpriority="high"`), everything below is lazy. The edge function preloads the page's main photo
+  with the **same** helper; a preload that does not match the `<img>` exactly downloads twice.
+- **Reserve space** for content that arrives later (product page loader `minHeight: 100vh`, home
+  carousel placeholder 16:9) — otherwise the footer/sections jump (CLS was 0.78 / 0.29).
+- **Product cards make no API call of their own**: stock comes with the list (`quantity` is the
+  orderable amount). Only the cart and checkout call `/products/<id>`.
+- `/assets/*` is cached immutably (`public/_headers`); never give HTML a long cache.
+- The deploy-preview origin is **not** in the backend CORS list, so data does not load in a browser on
+  `deploy-preview-N--…netlify.app` (the edge function still works there). For a browser check with real
+  data run `npm run build && npx vite preview --port 5173 --strictPort` (localhost:5173 is allowed).
+
 ### Admin navbar (mobile)
 
 `src/admin/components/AdminNavbar.jsx` renders a single dropdown menu (`AdminNavbar.module.css` → `.dropdownMenu`). The dropdown has `max-height: calc(100vh - 110px)` + `overflow-y: auto` so it **scrolls** when the link list is taller than the viewport (it previously had `overflow: hidden` with no height cap, making the bottom items unreachable on mobile). On `max-width: 768px` it also narrows to `min(320px, calc(100vw - 40px))`. Keep these constraints if you add more menu items.
