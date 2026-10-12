@@ -1,4 +1,7 @@
-import { canonicalHtml, canonicalUrl } from "../../src/utils/canonical.js";
+import { canonicalHtml, canonicalUrl, catalogPath, parseCatalogPath } from "../../src/utils/canonical.js";
+import {
+  PRODUCTS_PER_PAGE, catalogMeta, productJsonLd, breadcrumbJsonLd, productBreadcrumbs,
+} from "../../src/utils/catalogMeta.js";
 
 // Netlify Edge Function — bakes correct per-page SEO into the SPA's index.html
 // for all visitors and crawlers so
@@ -10,10 +13,21 @@ import { canonicalHtml, canonicalUrl } from "../../src/utils/canonical.js";
 //
 // SAFETY: everything is wrapped in try/catch — on ANY error we return the
 // original response untouched (passthrough). Netlify atomic deploys mean a bad
-// build never takes the site down, and this function can only ever ADD meta.
+// build never takes the site down.
 // Not cloaking: bots receive the same title/description the SPA itself renders.
+//
+// HTTP STATUS: the SPA fallback answers every path with 200. This function turns
+// that into a real 404 / 410 / 301, but ONLY on positive evidence:
+//   - the path matches no route of the app (see isKnownRoute), or
+//   - the API itself answered with a JSON 404 / 410 / 301 for that product,
+//     category page or blog article.
+// An API timeout, network error, 5xx or any unexpected answer is NEVER treated as
+// "not found": the page is served with 200 exactly as before, so an outage cannot
+// drop live products from Google.
 
-const API = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+// ARTOPIA_API_BASE (Netlify env) lets `netlify dev` / a deploy preview run this
+// function against a non-production backend. Unset in production → the live API.
+const API = (globalThis.Netlify?.env?.get?.("ARTOPIA_API_BASE") || "https://artopia-backend-2024-54872c79acdd.herokuapp.com").replace(/\/+$/, "");
 const SITE = "https://artopia.ge";
 const DEFAULT_IMAGE = "https://artopia.ge/social-preview.png";
 const LOGO = "https://artopia.ge/favicon-144x144.png";
@@ -36,7 +50,55 @@ function setTag(html, regex, replacement) {
   return regex.test(html) ? html.replace(regex, replacement) : html;
 }
 
-function applyMeta(html, { title, description, url, image, type, jsonLd, keywords }) {
+// Client-side routes (src/App.jsx). Anything else is a real 404.
+const STATIC_ROUTES = new Set([
+  "/", "/index.html", "/products", "/engraving", "/blogs", "/login", "/checkout",
+  "/payment/result", "/contacts", "/terms", "/returns", "/privacy", "/reviews",
+  // legacy admin shortcuts that App.jsx redirects into /admin/*
+  "/admin", "/menu", "/addProducts", "/order_history", "/blog", "/promo-codes", "/home-images",
+]);
+const ROUTE_PATTERNS = [
+  /^\/admin\/.+$/,
+  /^\/addProducts\/[^/]+$/,
+  /^\/products\/[^/]+$/,
+  /^\/products\/page\/[^/]+$/,
+  /^\/products\/category\/[^/]+(?:\/page\/[^/]+)?$/,
+  /^\/blog\/[^/]+$/,
+];
+export const isKnownRoute = (path) =>
+  STATIC_ROUTES.has(path) || ROUTE_PATTERNS.some((rx) => rx.test(path));
+
+// The API said "this does not exist" — only a JSON answer from our own backend counts.
+const isApiVerdict = (r, status) =>
+  r.status === status && (r.headers.get("content-type") || "").includes("application/json");
+
+const apiFetch = (path, init = {}) =>
+  fetch(`${API}${path}`, { signal: AbortSignal.timeout(2500), ...init });
+
+const NOT_FOUND = {
+  404: ["გვერდი ვერ მოიძებნა | Artopia", "სამწუხაროდ, ეს გვერდი არ არსებობს."],
+  410: ["პროდუქტი აღარ იყიდება | Artopia", "ეს პროდუქტი გაყიდვიდან ამოღებულია."],
+};
+
+// Same SPA shell (the app renders its own "not found" view), but with the real
+// status and noindex — never a 200 + index,follow for a page that does not exist.
+function notFoundResponse(html, source, status = 404) {
+  const [title, description] = NOT_FOUND[status] || NOT_FOUND[404];
+  let out = html;
+  out = setTag(out, /<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
+  out = setTag(out, /<meta\s+name="description"[^>]*>/, `<meta name="description" content="${esc(description)}" />`);
+  out = setTag(out, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex, follow" />`);
+  out = out.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*>\s*/gi, "");
+  out = out.replace(/<meta\s+property="og:(?:url|title|description)"[^>]*>\s*/g, "");
+  const headers = new Headers(source.headers);
+  headers.set("content-type", "text/html; charset=utf-8");
+  headers.set("cache-control", "public, max-age=0, must-revalidate");
+  headers.set("x-robots-tag", "noindex");
+  for (const name of ["content-length", "content-encoding", "etag", "last-modified"]) headers.delete(name);
+  return new Response(out, { status, headers });
+}
+
+function applyMeta(html, { title, description, url, image, type, jsonLd, keywords, headExtra }) {
   let out = html;
   out = setTag(out, /<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
   out = setTag(
@@ -64,10 +126,14 @@ function applyMeta(html, { title, description, url, image, type, jsonLd, keyword
   out = setTag(out, /<meta\s+name="twitter:title"[^>]*>/, `<meta name="twitter:title" content="${esc(title)}" />`);
   out = setTag(out, /<meta\s+name="twitter:description"[^>]*>/, `<meta name="twitter:description" content="${esc(description)}" />`);
   out = setTag(out, /<meta\s+name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${esc(image)}" />`);
+  if (headExtra) out = out.replace("</head>", `${headExtra}\n</head>`);
   if (jsonLd) {
+    // data-ld-edge: the SPA sees that this page already carries its JSON-LD and
+    // does not emit a second, competing copy (see src/utils/edgeJsonLd.js).
+    const path = new URL(url).pathname;
     out = out.replace(
       "</head>",
-      `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>\n</head>`
+      `<script type="application/ld+json" data-ld-edge="${esc(path)}">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>\n</head>`
     );
   }
   return out;
@@ -81,39 +147,41 @@ const htmlResponse = (out, source) => {
   return new Response(out, { status: source.status, statusText: source.statusText, headers });
 };
 
-const breadcrumb = (items) => ({
-  "@type": "BreadcrumbList",
-  itemListElement: items.map((it, i) => ({
-    "@type": "ListItem",
-    position: i + 1,
-    name: it.name,
-    item: it.item,
-  })),
-});
+const breadcrumb = breadcrumbJsonLd;
 
 export default async (request, context) => {
-  let res = await context.next();
+  const source = await context.next();
+  // The untouched page with the right canonical: what every visitor gets when
+  // nothing below applies, the API is slow/down, or anything throws.
+  let page = () => source;
 
   try {
-    const ctype = res.headers.get("content-type") || "";
-    if (!ctype.includes("text/html")) return res;
+    const ctype = source.headers.get("content-type") || "";
+    if (!ctype.includes("text/html")) return source;
 
-    if (res.status !== 200) return res;
+    if (source.status !== 200) return source;
     const url = new URL(request.url);
     const pageCanonical = canonicalUrl(url.href);
     // All user agents get the same page-specific canonical, even if the API fails.
-    res = htmlResponse(canonicalHtml(await res.clone().text(), pageCanonical), res);
+    const shell = canonicalHtml(await source.text(), pageCanonical);
+    page = () => htmlResponse(shell, source);
+    // Routing is decided on the path the visitor asked for (not the canonical one).
+    let rawPath = url.pathname.replace(/\/+$/, "") || "/";
+    try { rawPath = decodeURIComponent(rawPath); } catch { /* keep as is */ }
+    if (!isKnownRoute(rawPath)) return notFoundResponse(shell, source, 404);
+
     const path = decodeURIComponent(new URL(pageCanonical).pathname);
 
     /* ===================== BLOG ARTICLE: /blog/<slug> ===================== */
     const blogMatch = path.match(/^\/blog\/([^/]+)$/);
     if (blogMatch) {
       const slug = blogMatch[1];
-      const r = await fetch(`${API}/blogs/slug/${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(2500) });
-      if (!r.ok) return res;
+      const r = await apiFetch(`/blogs/slug/${encodeURIComponent(slug)}`);
+      if (isApiVerdict(r, 404)) return notFoundResponse(shell, source, 404);
+      if (!r.ok) return page();
       const b = await r.json();
       const post = b && (b.product ? b.product : b);
-      if (!post || !(post.title || post.meta_title)) return res;
+      if (!post || !(post.title || post.meta_title)) return page();
 
       // Always use the real SPA route (/blog/<slug>). The backend's
       // canonical_url field uses /blogs/<slug> which is NOT a real route.
@@ -121,7 +189,7 @@ export default async (request, context) => {
       const title = clip(post.meta_title || post.title, 65);
       const description = clip(post.meta_description || post.og_description || post.description, 160);
       const image = post.og_image || post.cover_image || DEFAULT_IMAGE;
-      const html = await res.text();
+      const html = shell;
       const out = applyMeta(html, {
         title: `${title} | Artopia`,
         description,
@@ -158,12 +226,12 @@ export default async (request, context) => {
           ],
         },
       });
-      return htmlResponse(out, res);
+      return htmlResponse(out, source);
     }
 
     /* ===================== BLOG INDEX: /blogs ===================== */
     if (path === "/blogs") {
-      const html = await res.text();
+      const html = shell;
       const out = applyMeta(html, {
         title: "არტ ბლოგი — Artopia | სამხატვრო რჩევები, გიდები და სიახლეები",
         description:
@@ -180,12 +248,12 @@ export default async (request, context) => {
           publisher: { "@id": ORG_ID },
         },
       });
-      return htmlResponse(out, res);
+      return htmlResponse(out, source);
     }
 
     /* ===================== REVIEWS: /reviews ===================== */
     if (path === "/reviews") {
-      const html = await res.text();
+      const html = shell;
       let agg = null;
       try {
         const rr = await fetch(`${API}/google-reviews`, { signal: AbortSignal.timeout(2500) });
@@ -222,12 +290,12 @@ export default async (request, context) => {
           ...(agg ? { aggregateRating: agg } : {}),
         },
       });
-      return htmlResponse(out, res);
+      return htmlResponse(out, source);
     }
 
     /* ===================== CONTACTS: /contacts ===================== */
     if (path === "/contacts") {
-      const html = await res.text();
+      const html = shell;
       const out = applyMeta(html, {
         title: "კონტაქტი — Artopia | სამხატვრო მაღაზია თბილისში",
         description:
@@ -243,12 +311,12 @@ export default async (request, context) => {
           about: { "@id": ORG_ID },
         },
       });
-      return htmlResponse(out, res);
+      return htmlResponse(out, source);
     }
 
     /* ===================== ENGRAVING: /engraving ===================== */
     if (path === "/engraving") {
-      const html = await res.text();
+      const html = shell;
       const faq = [
         ["რა ღირს გრავირება?", "გრავირებული კალამი — 16-დან 32 ₾-მდე, ბრელოკი — 13 ₾ ერთ მხარეს და 20 ₾ ორივე მხარეს, თქვენს ნივთზე გრავირება — 10 ₾."],
         ["რამდენ ხანში მზადდება გრავირებული ნივთი?", "2-3 სამუშაო დღე. აღება მაღაზიიდან ან კურიერით — დამზადების შემდეგ."],
@@ -334,7 +402,7 @@ export default async (request, context) => {
           ],
         },
       });
-      return htmlResponse(out, res);
+      return htmlResponse(out, source);
     }
 
     /* ===================== POLICY PAGES ===================== */
@@ -345,7 +413,7 @@ export default async (request, context) => {
     };
     if (policy[path]) {
       const [t, d] = policy[path];
-      const html = await res.text();
+      const html = shell;
       const out = applyMeta(html, {
         title: `${t} — Artopia`,
         description: d,
@@ -353,103 +421,99 @@ export default async (request, context) => {
         image: DEFAULT_IMAGE,
         type: "website",
       });
-      return htmlResponse(out, res);
+      return htmlResponse(out, source);
     }
 
-    /* ===================== CATEGORY: /products/category/<name> ===================== */
-    const catMatch = path.match(/^\/products\/category\/([^/]+)$/);
-    if (catMatch) {
-      const name = catMatch[1];
-      const pageUrl = `${SITE}/products/category/${encodeURIComponent(name)}`;
-      const html = await res.text();
-      const out = applyMeta(html, {
-        title: `${name} — Artopia | სამხატვრო მაღაზია`,
-        description: `იყიდე ${name} Artopia-ში — სამხატვრო მაღაზია თბილისში. ხარისხიანი ${name}, ფართო არჩევანი და მიტანა მთელ საქართველოში.`,
-        url: pageUrl,
+    /* ============ CATALOG: /products[/category/<name>][/page/<N>] ============ */
+    const rawCatalog = parseCatalogPath(rawPath);
+    if (rawCatalog) {
+      if (!rawCatalog.valid) return notFoundResponse(shell, source, 404);   // /page/abc, /page/0
+      // The canonical path also folds in the legacy ?category= / ?page= forms.
+      const catalog = parseCatalogPath(path) || rawCatalog;
+      const { category, page } = catalog;
+      let total = null;
+      // Page 1 of the full catalogue always exists; everything else is checked
+      // against the API so a mistyped category or a page past the end is a 404.
+      if (category || page > 1) {
+        const qs = new URLSearchParams({ page: String(page), limit: String(PRODUCTS_PER_PAGE) });
+        if (category) qs.set("category", category);
+        const r = await apiFetch(`/products/list?${qs}`);
+        if (r.ok && (r.headers.get("content-type") || "").includes("application/json")) {
+          const data = await r.json();
+          const items = Array.isArray(data?.items) ? data.items : null;
+          if (data?.category_exists === false) return notFoundResponse(shell, source, 404);
+          if (items && page > 1 && items.length === 0) return notFoundResponse(shell, source, 404);
+          if (Number.isFinite(Number(data?.total))) total = Number(data.total);
+        }
+        // not ok / not JSON → unknown; fall through and serve the page as 200
+      }
+
+      const meta = catalogMeta({ category, page });
+      const crumbs = [
+        { name: "მთავარი", item: `${SITE}/` },
+        { name: "პროდუქტები", item: `${SITE}/products` },
+      ];
+      if (category) crumbs.push({ name: category, item: `${SITE}${catalogPath({ category })}` });
+
+      // rel prev/next: plain crawlable hints to the neighbouring listing pages
+      const links = [];
+      if (page > 1) links.push(`<link rel="prev" href="${esc(`${SITE}${catalogPath({ category, page: page - 1 })}`)}" />`);
+      if (total != null && page * PRODUCTS_PER_PAGE < total) {
+        links.push(`<link rel="next" href="${esc(`${SITE}${catalogPath({ category, page: page + 1 })}`)}" />`);
+      }
+
+      const out = applyMeta(shell, {
+        title: meta.title,
+        description: meta.description,
+        url: meta.url,
         image: DEFAULT_IMAGE,
         type: "website",
+        headExtra: links.join("\n"),
         jsonLd: {
           "@context": "https://schema.org",
           "@graph": [
             {
               "@type": "CollectionPage",
-              name: `${name} — Artopia`,
-              url: pageUrl,
+              name: meta.title,
+              url: meta.url,
               inLanguage: "ka-GE",
               isPartOf: { "@id": `${SITE}/#website` },
             },
-            breadcrumb([
-              { name: "მთავარი", item: `${SITE}/` },
-              { name: "პროდუქტები", item: `${SITE}/products` },
-              { name, item: pageUrl },
-            ]),
+            breadcrumb(crumbs),
           ],
         },
       });
-      return htmlResponse(out, res);
-    }
-
-    /* ===================== PRODUCTS LISTING: /products ===================== */
-    if (path === "/products") {
-      const html = await res.text();
-      const out = applyMeta(html, {
-        title: "პროდუქტები — Artopia | სამხატვრო და საკანცელარიო ნივთები ონლაინ",
-        description:
-          "Artopia-ს სრული კატალოგი — სამხატვრო მასალა (აკვარელი, აკრილის და ზეთის საღებავი, ფუნჯები, ტილო, მოლბერტი, პასტელი), საკანცელარიო, სასკოლო და საოფისე ნივთები. მიტანა მთელ საქართველოში.",
-        url: `${SITE}/products`,
-        image: DEFAULT_IMAGE,
-        type: "website",
-        jsonLd: {
-          "@context": "https://schema.org",
-          "@graph": [
-            {
-              "@type": "CollectionPage",
-              name: "პროდუქტები — Artopia",
-              url: `${SITE}/products`,
-              inLanguage: "ka-GE",
-              isPartOf: { "@id": `${SITE}/#website` },
-            },
-            breadcrumb([
-              { name: "მთავარი", item: `${SITE}/` },
-              { name: "პროდუქტები", item: `${SITE}/products` },
-            ]),
-          ],
-        },
-      });
-      return htmlResponse(out, res);
+      return htmlResponse(out, source);
     }
 
     /* ===================== PRODUCT DETAIL: /products/<slug> ===================== */
-    const prodMatch = path.match(/^\/products\/([^/]+)$/);
-    if (!prodMatch || prodMatch[1] === "category") return res;
+    const prodMatch = rawPath.match(/^\/products\/([^/]+)$/);
+    if (!prodMatch) return page();
     const slug = prodMatch[1];
 
-    const apiRes = await fetch(`${API}/products/full/${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(2500) });
-    if (!apiRes.ok) return res;
+    // redirect: "manual" — a 301 from the API is an explicit, human-made
+    // "this product was replaced by that one" record and becomes a real 301.
+    const apiRes = await apiFetch(`/products/full/${encodeURIComponent(slug)}`, { redirect: "manual" });
+    if (isApiVerdict(apiRes, 404)) return notFoundResponse(shell, source, 404);
+    if (isApiVerdict(apiRes, 410)) return notFoundResponse(shell, source, 410);
+    if (isApiVerdict(apiRes, 301)) {
+      const target = (await apiRes.json())?.moved_to;
+      if (typeof target === "string" && /^[a-z0-9-]+$/.test(target) && target !== slug) {
+        return new Response(null, { status: 301, headers: { location: `${SITE}/products/${target}` } });
+      }
+      return page();
+    }
+    if (!apiRes.ok) return page();       // timeout / 5xx / anything unexpected → untouched 200
     const data = await apiRes.json();
     const p = data && data.product;
-    if (!p || !p.name) return res;
+    if (!p || !p.name) return page();
 
     const name = String(p.name).trim();
-    const category = String(p.category_name || p.category || "").trim();
-    const price = Number(p.price || 0);
-    const sale = Number(p.sale || 0);
-    const finalPrice = sale > 0 && sale <= 100 ? +(price * (1 - sale / 100)).toFixed(2) : price;
-    const inStock = Number(p.quantity || 0) > 0;
     const image = p.image_url1 || DEFAULT_IMAGE;
     const pageUrl = `${SITE}/products/${slug}`;
     const description = clip(p.description || `${name} — იყიდე Artopia-ში, სამხატვრო და საკანცელარიო მაღაზია. მიტანა მთელ საქართველოში.`, 160);
 
-    const crumbs = [
-      { name: "მთავარი", item: `${SITE}/` },
-      { name: "პროდუქტები", item: `${SITE}/products` },
-    ];
-    if (category) {
-      crumbs.push({ name: category, item: `${SITE}/products/category/${encodeURIComponent(category)}` });
-    }
-    crumbs.push({ name, item: pageUrl });
-
-    const html = await res.text();
+    const html = shell;
     const out = applyMeta(html, {
       title: `${name} | Artopia`,
       description,
@@ -459,47 +523,23 @@ export default async (request, context) => {
       jsonLd: {
         "@context": "https://schema.org",
         "@graph": [
-          {
-            "@type": "Product",
-            name,
-            image: [image],
-            description: String(p.description || "").trim(),
-            sku: String(p.id ?? slug),
-            ...(category ? { category } : {}),
-            brand: { "@type": "Brand", name: "Artopia" },
-            offers: {
-              "@type": "Offer",
-              url: pageUrl,
-              price: String(finalPrice),
-              priceCurrency: "GEL",
-              availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-              itemCondition: "https://schema.org/NewCondition",
-              seller: { "@id": ORG_ID },
-            },
-          },
-          breadcrumb(crumbs),
+          productJsonLd(p, { url: pageUrl, images: p.image_url1 ? [p.image_url1] : [], sellerId: ORG_ID }),
+          breadcrumb(productBreadcrumbs(p, pageUrl)),
         ],
       },
     });
 
-    return htmlResponse(out, res);
+    return htmlResponse(out, source);
   } catch {
-    return res; // fail-safe: never break the page
+    return page(); // fail-safe: never break the page, never invent a 404
   }
 };
 
+// Runs for every page URL so that unknown paths get a real 404. Static asset
+// folders are excluded (and any non-HTML response is passed through untouched).
 export const config = {
-  path: [
-    "/",
-    "/products",
-    "/products/*",
-    "/blogs",
-    "/blog/*",
-    "/reviews",
-    "/contacts",
-    "/engraving",
-    "/terms",
-    "/returns",
-    "/privacy",
-  ],
+  path: "/*",
+  // /sitemap.xml is a rewrite to a function and /robots.txt a static file: neither
+  // is a page, and neither may ever be turned into a 404 by the route table.
+  excludedPath: ["/assets/*", "/models/*", "/fonts/*", "/images/*", "/.netlify/*", "/sitemap.xml", "/robots.txt"],
 };

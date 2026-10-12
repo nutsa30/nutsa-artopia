@@ -53,10 +53,28 @@ const onSyncOptimo = async () => {
   setLoading(true);
   try {
     // აქ ვიყენებთ ახალ ფუნქციას, რომელიც გარანტირებულად POST-ს აგზავნის
-    const response = await syncOptimo(); 
-    
+    let response = await syncOptimo();
+
+    // საეჭვოდ ბევრი წაშლა: სერვერმა პროდუქტები არ წაშალა და ზუსტ რაოდენობაზე დასტურს ითხოვს
+    if (response.status === "needs_confirmation") {
+      const n = response.would_delete;
+      const sure = window.confirm(
+        `${response.message}\n\nწაიშალოს ეს ${n} პროდუქტი საიტიდან? ` +
+        "ფოტოები და აღწერები დაიკარგება. თუ დარწმუნებული არ ხართ, დააჭირეთ გაუქმებას და მოგვიანებით სცადეთ თავიდან."
+      );
+      if (!sure) {
+        alert("მარაგი და ფასები განახლდა. პროდუქტები არ წაშლილა.");
+        return;
+      }
+      response = await syncOptimo(n);
+      if (response.status === "needs_confirmation") {
+        alert("Optimo-ს პასუხი შეიცვალა — წაშლა არ შესრულდა. სცადეთ სინქრონიზაცია თავიდან.");
+        return;
+      }
+    }
+
     if (response.status === "success") {
-      alert("სინქრონიზაცია წარმატებით დასრულდა");
+      alert("სინქრონიზაცია წარმატებით დასრულდა" + (response.deleted ? ` (წაიშალა ${response.deleted} პროდუქტი)` : ""));
     } else {
       alert("შეცდომა: " + (response.message || "უცნობი შეცდომა"));
     }

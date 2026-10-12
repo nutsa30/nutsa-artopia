@@ -5,7 +5,6 @@ import { Eye, EyeOff, Lock, Mail, Loader2 } from "lucide-react";
 import logo from "../../assets/IMG_4970.JPG";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
-const ADMIN_SECRET = "ARTOPIA_SUPERADMIN_2024";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -28,10 +27,8 @@ const LoginPage = () => {
     try {
       const res = await fetch(`${API_BASE}/admin-auth/admin-login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Admin-Token": ADMIN_SECRET,
-        },
+        // ავტორიზაცია მხოლოდ ელფოსტით და პაროლით: frontend-ის კოდში საიდუმლო არ ინახება
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: form.username.trim().toLowerCase(),
           password: form.password,

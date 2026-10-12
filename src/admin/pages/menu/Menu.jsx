@@ -3,7 +3,7 @@ import styles from "./Menu.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
 import { useNavigate } from "react-router-dom";
 import EdgePager from "../../../components/pagination/EdgePager";
-import { exportFilteredProducts } from "../../api";
+import { exportFilteredProducts, authHeaders } from "../../api";
 import { 
   Search, 
   RefreshCw, 
@@ -74,6 +74,7 @@ const normalizeProduct = (p) => {
     category_id: p?.category_id ?? "",
     is_new: !!p?.is_new,
     hide: !!p?.hide,
+    manually_hidden: !!p?.manually_hidden,
     slug: p?.slug || "",
     images: imgs,
     weight: p?.weight != null ? Number(p.weight) : null,
@@ -110,7 +111,7 @@ const Menu = () => {
     const ctl = new AbortController();
     abortRef.current = ctl;
     try {
-      const res = await fetch(API, { signal: ctl.signal });
+      const res = await fetch(API, { signal: ctl.signal, headers: authHeaders() });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const list = Array.isArray(data) ? data : [];
@@ -185,7 +186,7 @@ const Menu = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("დარწმუნებული ხარ, რომ პროდუქტის წაშლა გინდა?")) return;
     try {
-      const res = await fetch(`${API_BASE}/products/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/products/${id}`, { method: "DELETE", headers: authHeaders() });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setAllProducts((prev) => prev.filter((p) => p.id !== id));
     } catch { alert("წაშლა ვერ მოხერხდა"); }

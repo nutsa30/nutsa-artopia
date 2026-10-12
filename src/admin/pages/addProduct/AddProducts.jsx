@@ -40,10 +40,10 @@ async function uploadToCloudinary(file) {
 const getAdminToken = () =>
   ((typeof window !== "undefined") &&
     (localStorage.getItem("ADMIN_TOKEN") || sessionStorage.getItem("ADMIN_TOKEN"))) ||
-  (import.meta?.env?.VITE_ADMIN_TOKEN || "");
+  "";
 const adminHeaders = (extra = {}) => {
   const t = (getAdminToken() || "").trim();
-  return t ? { "X-Admin-Token": t, ...extra } : { ...extra };
+  return t ? { Authorization: `Bearer ${t}`, ...extra } : { ...extra };
 };
 
 /* ------------------------ helpers ------------------------ */
@@ -113,7 +113,10 @@ useEffect(() => {
     sale: editingProduct.sale ?? "",
     weight: editingProduct.weight != null ? String(editingProduct.weight) : "",
     is_new: !!editingProduct.is_new,
-    hide: !!editingProduct.hide,
+    // ჩექბოქსი = ადმინის გადაწყვეტილება (manually_hidden). `hide` მარაგგარეშე
+    // პროდუქტზეც true-ა: მისგან ჩატვირთვისას ნებისმიერი შენახვა (მაგ. ფოტოს
+    // დამატება) პროდუქტს სამუდამოდ ხელით დამალულად აქცევდა.
+    hide: !!(editingProduct.manually_hidden ?? editingProduct.hide),
   }));
 
   const loaded = [];
@@ -172,7 +175,7 @@ useEffect(() => {
         sale: det.sale ?? "",
         weight: det.weight != null ? String(det.weight) : "",
         is_new: !!det.is_new,
-        hide: !!det.hide,
+        hide: !!(det.manually_hidden ?? det.hide),
       }));
 
       const loaded = [];

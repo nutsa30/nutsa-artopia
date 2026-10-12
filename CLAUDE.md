@@ -162,6 +162,37 @@ compiled out of production builds.
 
 `src/components/SEO.jsx` wraps `react-helmet-async`'s `<Helmet>`. Use it in every page with `title`, `description`, and `url` props. The component auto-appends `| Artopia` to titles and sets Georgian locale (`ka_GE`) by default.
 
+### Catalogue URLs, pagination, real 404s (2026-10)
+
+- **One URL scheme**: `/products[/category/<name>][/page/<N>]` — build it with `catalogPath()` and
+  parse it with `parseCatalogPath()` (`src/utils/canonical.js`). Pagination lives in the path, so
+  `robots.txt` keeps `Disallow: /*?*` (search, filters, tracking stay blocked). Page 2+ has its own
+  canonical; page 1 and the old `?page=` / `?category=` links canonicalise to the clean path.
+- **Titles/descriptions and Product JSON-LD have one source** for React and the edge function:
+  `src/utils/catalogMeta.js`. Brand and GTIN come from the API (`brand`, `gtin`); never hard-code
+  "Artopia" as a brand.
+- **Links must be real `<a href>`**: product card title (`href` prop of `ProductsCard`), category
+  list (`ProductFilter`, always in the DOM), pager (`EdgePager` with `hrefFor`), related products.
+  Do not go back to `div`/`button` + `navigate()` for navigation, and never nest `<a>`/`<button>`.
+- **HTTP status** is decided in `netlify/edge-functions/meta.js` (runs on `/*`): unknown path → 404;
+  product/category page/blog → 404, 410 or 301 **only** when the API answers so in JSON. API timeout,
+  5xx or network error always serves the normal 200 page. **When you add a route to `src/App.jsx`, add
+  it to `STATIC_ROUTES` / `ROUTE_PATTERNS` there too** — `tests/seo.test.mjs` fails if you forget.
+- The edge function marks its JSON-LD with `data-ld-edge`; pages emit their own Product schema only
+  when that marker is absent (`src/utils/edgeJsonLd.js`), so a page never carries two Product blocks.
+- `src/components/NotFound.jsx` is the not-found view (noindex, no canonical). An API outage is
+  **not** "not found": show an error without noindex.
+- Admin pages must send the admin JWT on every write (`authHeaders()` from `src/admin/api.js`); the
+  "დამალვა" checkbox reads `manually_hidden`, not `hide`.
+- **No secret may live in this repo or bundle** (the repo is public): admin login is email +
+  password only; there is no `VITE_ADMIN_TOKEN` / shared header. `.env` holds public values only.
+- Promo codes are checked only by `POST /promo-codes/validate`; the code list is admin-only, so the
+  checkout has no client-side fallback.
+- The Optimo sync button handles `status: "needs_confirmation"` (mass delete) with an explicit dialog
+  and resends `confirm_delete`.
+- Local check of the real edge runtime: `npx netlify dev` (Deno). `ARTOPIA_API_BASE` in
+  `.env.development.local` points the edge function at a local backend.
+
 ### Admin navbar (mobile)
 
 `src/admin/components/AdminNavbar.jsx` renders a single dropdown menu (`AdminNavbar.module.css` → `.dropdownMenu`). The dropdown has `max-height: calc(100vh - 110px)` + `overflow-y: auto` so it **scrolls** when the link list is taller than the viewport (it previously had `overflow: hidden` with no height cap, making the bottom items unreachable on mobile). On `max-width: 768px` it also narrows to `min(320px, calc(100vw - 40px))`. Keep these constraints if you add more menu items.

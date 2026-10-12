@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./BlogsDetailPage.module.css";
 import { cld, IMG } from "../utils/cloudinary";
 import SEO from "../components/SEO";
+import NotFound from "../components/NotFound";
 import AppLoader from "../components/loaders/AppLoader";
 
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
@@ -45,6 +46,7 @@ const [previewPos, setPreviewPos] = useState({ x: 0, y: 0 });
 const cacheRef = useRef({});
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -58,9 +60,14 @@ const cacheRef = useRef({});
       try {
         setLoading(true);
         setErr("");
+        setNotFound(false);
 
         const res = await fetch(`${BASE}/slug/${slug}`);
 
+        if (res.status === 404) {
+          if (alive) setNotFound(true);     // არარსებული სტატია (და არა ქსელის შეცდომა)
+          return;
+        }
         if (!res.ok) {
           const text = await res.text();
           throw new Error(`GET ${BASE}/slug/${slug} -> ${res.status} ${text}`);
@@ -235,6 +242,8 @@ document.addEventListener("mouseout", handleMouseOut);
 if (loading) {
   return <AppLoader />;
 }
+
+  if (notFound) return <NotFound what="სტატია" />;
 
   if (err) {
     return (

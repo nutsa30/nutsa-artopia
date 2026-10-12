@@ -43,9 +43,16 @@
 
   cursor: pointer;
   transition: all 0.2s ease;
+  text-decoration: none; /* <a> ვერსია ღილაკს უნდა ჰგავდეს */
 }
 
-.pgBtn:hover:not(:disabled):not(.isActive) {
+/* <a>/<span> ვერსიის გათიშული ისარი = button:disabled */
+.isDisabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pgBtn:hover:not(:disabled):not(.isActive):not(.isDisabled) {
   background: var(--pg-hover-bg);
 }
 

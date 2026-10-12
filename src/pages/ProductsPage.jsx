@@ -1,16 +1,18 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ProductCard from "../components/productCard/productsCard";
 import ProductFilter from "../components/productCard/ProductFilter";
 import styles from "./ProductsPage.module.css";
 import { useCart } from "../components/CartContext/CartContext";
-import { useNavigate, useLocation, useSearchParams, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams, useParams, Navigate } from "react-router-dom";
 import EdgePager from "../components/pagination/EdgePager";
 import SEO from "../components/SEO";
 import AppLoader from "../components/loaders/AppLoader";
+import NotFound from "../components/NotFound";
+import { catalogPath, pageNumber } from "../utils/canonical";
+import { catalogMeta, PRODUCTS_PER_PAGE } from "../utils/catalogMeta";
 
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
-const PRODUCTS_PER_PAGE = 20;
 const NO_IMAGE = "/noimage.jpeg";
 
 const normalizeQuantity = (value) => {
@@ -98,48 +100,59 @@ const compareProducts = (a, b) => {
   return 0;
 };
 
+// ვიზუალურად დამალული, მაგრამ crawler-ისთვის ხილული (display:none არა)
+const srOnly = {
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  padding: 0,
+  margin: "-1px",
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  border: 0,
+};
+
+const ALL = "ყველა";
+
 const ProductsPage = () => {
-  const [total, setTotal] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
   const topRef = useRef(null);
 
-  // Clean category URL: /products/category/<name>. React Router decodes the
-  // param, so categoryFromPath is the exact Georgian category name (or null).
-  const { slug: categorySlug } = useParams();
-  const categoryFromPath = categorySlug || null;
+  // მისამართი არის სიმართლის ერთადერთი წყარო:
+  //   /products[/category/<სახელი>][/page/<N>]
+  // React Router პარამეტრს უკვე დეკოდირებულს აბრუნებს (ზუსტი ქართული სახელი).
+  const { slug: categorySlug, page: pageParam } = useParams();
 
+  // ძველი ?category= / ?page= ბმულები (სანიშნები, გარე საიტები) — იგივე გვერდის სუფთა მისამართზე გადადის
+  const legacyCategory = searchParams.get("category");
+  const legacyPage = searchParams.get("page");
+  const hasLegacyQuery = legacyCategory != null || legacyPage != null;
 
+  const selectedCategory =
+    categorySlug || (legacyCategory && legacyCategory !== ALL ? legacyCategory : "") || ALL;
 
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // pageParam: undefined → 1; "1" → 1; "2".. → N; სხვა ყველაფერი → არასწორი მისამართი
+  const pathPage = pageParam == null || pageParam === "1" ? 1 : pageNumber(pageParam);
+  const invalidPage = pathPage == null;
+  const currentPage = pathPage || 1;
 
-  const [currentPage, setCurrentPage] = useState(
-    Number(searchParams.get("page")) || 1
-  );
-  const [selectedCategory, setSelectedCategory] = useState(
-    categoryFromPath || searchParams.get("category") || "ყველა"
-  );
-  const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-const productsTitle =
-  selectedCategory && selectedCategory !== "ყველა"
-    ? `${selectedCategory} - პროდუქცია | Artopia`
-    : "პროდუქცია | Artopia";
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  // ბოლო წარმატებული პასუხი + რომელ მოთხოვნას ეკუთვნის (key)
+  const [result, setResult] = useState({ key: "", items: [], total: 0, categoryExists: true });
 
-const productsDescription =
-  selectedCategory && selectedCategory !== "ყველა"
-    ? `აღმოაჩინე ${selectedCategory.toLowerCase()} Artopia-ზე. შეკვეთა ონლაინ, მრავალფეროვანი არჩევანი და ხარისხიანი პროდუქცია ერთ სივრცეში.`
-    : "Brendi Artopia გთავაზობთ სამხატვრო, საკანცელარიო, სასკოლო და საბავშვო პროდუქციას. შეარჩიე ფანქრები, საღებავები, რვეულები, ჩანთები, სათამაშოები და სხვა ნივთები ერთ ონლაინ მაღაზიაში.";
+  const requestKey = `${selectedCategory}|${currentPage}|${searchTerm.trim()}`;
+  const products = result.items;
+  const total = result.total;
+  const loaded = result.key === requestKey;
 
-const productsUrl =
-  selectedCategory && selectedCategory !== "ყველა"
-    ? `https://artopia.ge/products/category/${encodeURIComponent(selectedCategory)}`
-    : "https://artopia.ge/products";
-  // idle | loading | success | not_found
+  const meta = catalogMeta({ category: selectedCategory, page: currentPage });
+  const hrefFor = (page) => catalogPath({ category: selectedCategory, page });
 
   const scrollToTop = () => {
     const scroller =
@@ -194,260 +207,189 @@ const productsUrl =
   }, [currentPage]);
 
   useEffect(() => {
-    const pageFromUrl = Number(searchParams.get("page")) || 1;
-    setCurrentPage(pageFromUrl);
-  }, [searchParams]);
+    if (invalidPage || hasLegacyQuery) return;
+    let mounted = true;
 
-useEffect(() => {
-  let mounted = true;
+    const params = new URLSearchParams();
+    params.set("page", currentPage);
+    params.set("limit", PRODUCTS_PER_PAGE);
+    if (selectedCategory !== ALL) params.set("category", selectedCategory);
+    if (searchTerm.trim()) params.set("search", searchTerm.trim());
 
-const params = new URLSearchParams();
+    fetch(`${API_BASE}/products/list?${params.toString()}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!mounted) return;
+        const list = Array.isArray(data.items) ? data.items : [];
+        setResult({
+          key: requestKey,
+          items: list.map(normalizeProduct),
+          total: Number(data.total) || 0,
+          // ძველი backend ამ ველს არ აბრუნებს → კატეგორია არსებულად ითვლება
+          categoryExists: data.category_exists !== false,
+        });
+      })
+      .catch(() => {
+        // ქსელის/სერვერის შეცდომა „ვერ მოიძებნა" არ არის — უბრალოდ ცარიელი სია
+        if (mounted) setResult({ key: "", items: [], total: 0, categoryExists: true });
+      })
+      .finally(() => {
+        if (mounted) setIsLoading(false);
+      });
 
-params.set("page", currentPage);
-params.set("limit", PRODUCTS_PER_PAGE);
-
-if (selectedCategory && selectedCategory !== "ყველა") {
-  params.set("category", selectedCategory);
-}
-
-if (searchTerm.trim()) {
-  params.set("search", searchTerm.trim());
-}
-
-const url = `${API_BASE}/products/list?${params.toString()}`;
-
-  fetch(url)
-    .then((res) => {
-      if (!res.ok) throw new Error(`${res.status}`);
-      return res.json();
-    })
-    .then((data) => {
-      if (!mounted) return;
-
-      const list = Array.isArray(data.items) ? data.items : [];
-      const normalized = list.map(normalizeProduct);
-
-      setProducts(normalized);
-setTotal(data.total);
-      // categories მაინც დავტოვოთ (ერთჯერადი)
-      const uniqueCategories = [
-        ...new Set(
-          normalized
-            .map((p) => String(p?.category_name || "").trim())
-            .filter(Boolean)
-        ),
-      ];
-
-    })
-    .catch(() => {
-      if (mounted) {
-        setProducts([]);
-        setCategories([]);
-      }
-    })
-   .finally(() => {
-  if (mounted) {
-    setIsLoading(false);
-  }
-});
-  return () => {
-    mounted = false;
-  };
-}, [currentPage, selectedCategory, searchTerm]);
-
-useEffect(() => {
-  fetch(`${API_BASE}/products/categories`)
-    .then(res => res.json())
-    .then(data => {
-      if (!Array.isArray(data)) return;
-
-      const cleaned = data
-        .map(c => String(c).trim())
-        .filter(Boolean);
-
-      const unique = [...new Set(cleaned)];
-
-      // გამოვყოთ "სხვა"
-      const withoutOther = unique.filter(c => c !== "სხვა");
-
-      // დავალაგოთ ანბანურად (ქართული)
-      const sorted = withoutOther.sort((a, b) =>
-        a.localeCompare(b, "ka")
-      );
-
-      // საბოლოო სია
- const finalCategories = [
-  ...sorted,
-  ...(unique.includes("სხვა") ? ["სხვა"] : [])
-];
-
-      setCategories(finalCategories);
-    });
-}, []);
+    return () => {
+      mounted = false;
+    };
+    // requestKey = selectedCategory + currentPage + searchTerm
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestKey, invalidPage, hasLegacyQuery]);
 
   useEffect(() => {
-    const cat = categoryFromPath || searchParams.get("category") || "ყველა";
-    setSelectedCategory(cat);
-  }, [categoryFromPath, searchParams]);
+    fetch(`${API_BASE}/products/categories`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!Array.isArray(data)) return;
 
+        const unique = [...new Set(data.map((c) => String(c).trim()).filter(Boolean))];
 
-  const handlePageClick = ({ selected }) => {
-    const newPage = selected + 1;
-    setCurrentPage(newPage);
+        // „სხვა" ბოლოში, დანარჩენი ანბანურად (ქართული)
+        const sorted = unique.filter((c) => c !== "სხვა").sort((a, b) => a.localeCompare(b, "ka"));
 
-    const params = new URLSearchParams(searchParams);
-    params.set("page", newPage);
-
-    setSearchParams(params);
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(scrollToTop);
-    });
-  };
+        setCategories([...sorted, ...(unique.includes("სხვა") ? ["სხვა"] : [])]);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleCategoryChange = (newCategory) => {
-    setSelectedCategory(newCategory);
-    setCurrentPage(1);
-
-    // Clean, indexable category URL (no query string → not robots-blocked).
-    if (newCategory && newCategory !== "ყველა") {
-      navigate(`/products/category/${encodeURIComponent(newCategory)}`);
-    } else {
-      navigate("/products");
-    }
+    // სუფთა, ინდექსირებადი მისამართი (query string-ის გარეშე → robots არ ბლოკავს)
+    navigate(catalogPath({ category: newCategory || null }));
   };
-const handleProductClick = (product) => {
-  const slug = product?.slug;
-  if (!slug) return;
 
-  navigate(`/products/${slug}`, {
-    state: {
-      from: location.pathname + location.search
-    }
-  });
-};
-const filteredProducts = products;
-const collectionSchema = {
-  "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  name: productsTitle,
-  description: productsDescription,
-  url: productsUrl,
-  mainEntity: {
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    // ძიების შედეგი ყოველთვის პირველი გვერდიდან იწყება
+    if (currentPage !== 1) navigate(hrefFor(1), { replace: true });
+  };
+
+  const productHref = (product) => (product?.slug ? `/products/${product.slug}` : null);
+  const linkState = { from: location.pathname + location.search };
+
+  const handleProductClick = (product) => {
+    const href = productHref(product);
+    if (href) navigate(href, { state: linkState });
+  };
+
+  if (hasLegacyQuery && !invalidPage) {
+    return (
+      <Navigate
+        replace
+        to={catalogPath({ category: selectedCategory, page: currentPage > 1 ? currentPage : legacyPage })}
+      />
+    );
+  }
+
+  // არარსებული კატეგორია, არასწორი /page/<...> ან ბოლო გვერდს გაცდენილი ნომერი.
+  // (ძიებისას ცარიელი შედეგი „ვერ მოიძებნა" არ არის.)
+  const pastTheEnd = loaded && currentPage > 1 && products.length === 0 && !searchTerm.trim();
+  if (invalidPage || (loaded && !result.categoryExists) || pastTheEnd) {
+    return <NotFound what={selectedCategory !== ALL && !pastTheEnd ? "კატეგორია" : "გვერდი"} />;
+  }
+
+  const totalPages = Math.ceil(total / PRODUCTS_PER_PAGE);
+
+  // CollectionPage + BreadcrumbList-ს edge function წერს საწყის HTML-ში; აქ მხოლოდ
+  // ამ გვერდის პროდუქტების სიაა (ItemList), რომ ორი კონკურენტი CollectionPage არ გამოვიდეს.
+  const itemListSchema = {
+    "@context": "https://schema.org",
     "@type": "ItemList",
-    numberOfItems: filteredProducts.length,
-    itemListElement: filteredProducts.map((product, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      url: product?.slug ? `https://artopia.ge/products/${product.slug}` : undefined,
-      name: product?.name || "",
-    })),
-  },
-};
+    name: meta.title,
+    url: meta.url,
+    numberOfItems: products.length,
+    itemListElement: products
+      .filter((product) => product?.slug)
+      .map((product, index) => ({
+        "@type": "ListItem",
+        position: (currentPage - 1) * PRODUCTS_PER_PAGE + index + 1,
+        url: `https://artopia.ge/products/${product.slug}`,
+        name: product?.name || "",
+      })),
+  };
+
   return (
     <>
-    {isLoading && <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
-  <AppLoader />
-</div>}
- <SEO
-  title={productsTitle}
-  description={productsDescription}
-  url={productsUrl}
-/>
-<script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
-/>
-    
+      {isLoading && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+          <AppLoader />
+        </div>
+      )}
+      <SEO
+        title={meta.title}
+        description={meta.description}
+        url={meta.url}
+        // ცარიელი კატეგორია (პროდუქტი დროებით არ აქვს) ინდექსში არ უნდა მოხვდეს
+        noIndex={loaded && products.length === 0 && !searchTerm.trim()}
+      />
+      {products.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema).replace(/</g, "\\u003c") }}
+        />
+      )}
 
       <div ref={topRef} className={styles.pageWrapper}>
-        <h1 style={{ display: "none" }}>{productsTitle}</h1>
+        <h1 style={srOnly}>
+          {meta.heading}
+          {currentPage > 1 ? ` — გვერდი ${currentPage}` : ""}
+        </h1>
         <div className={styles.filterBar}>
           <div className={styles.selectDecor}>
-       <ProductFilter
-  categories={categories}
-  selectedCategory={selectedCategory}
-  onCategoryChange={handleCategoryChange}
-  searchTerm={searchTerm}
-  onSearchChange={(value) => {
-    setSearchTerm(value);
-    setCurrentPage(1);
-
-    const params = new URLSearchParams(searchParams);
-
-    if (value.trim()) {
-      params.set("page", 1)
-    } else {
-      params.set("page", 1)
-    }
-
-    setSearchParams(params);
-  }}
-/>
+            <ProductFilter
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onCategoryChange={handleCategoryChange}
+              searchTerm={searchTerm}
+              onSearchChange={handleSearchChange}
+            />
           </div>
         </div>
 
         {!isLoading && (
           <>
             <div className={`${styles.productsGrid} ${styles.catalogGrid}`}>
-{filteredProducts.length > 0 ?(
-filteredProducts.map((product, index) => {
-                  
-
-                  return (
-                 <div
-  key={product._id || product.id}
-  onClick={() => handleProductClick(product)}
-  className={styles.cardWrap}
-  role="link"
-  tabIndex={0}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      handleProductClick(product);
-    }
-  }}
->
-                      <ProductCard
-                        product={product}
-                        onAddToCart={(e, quantity, sourceProduct = product) => {
-                          e.stopPropagation();
-                          handleAddToCart(sourceProduct, quantity);
-                        }}
-                        onBuyNow={(e, quantity, sourceProduct = product) => {
-                          e.stopPropagation();
-                          handleBuyNow(sourceProduct, quantity);
-                        }}
-                      />
-                    </div>
-                  );
-                })
+              {products.length > 0 ? (
+                products.map((product) => (
+                  // ბარათის ნებისმიერ ადგილზე დაჭერა ხსნის პროდუქტს; კლავიატურისთვის
+                  // და crawler-ისთვის ბარათის სათაური ნამდვილი <a href>-ია.
+                  <div
+                    key={product._id || product.id}
+                    onClick={() => handleProductClick(product)}
+                    className={styles.cardWrap}
+                  >
+                    <ProductCard
+                      product={product}
+                      href={productHref(product)}
+                      linkState={linkState}
+                      onAddToCart={(e, quantity, sourceProduct = product) => {
+                        e.stopPropagation();
+                        handleAddToCart(sourceProduct, quantity);
+                      }}
+                      onBuyNow={(e, quantity, sourceProduct = product) => {
+                        e.stopPropagation();
+                        handleBuyNow(sourceProduct, quantity);
+                      }}
+                    />
+                  </div>
+                ))
               ) : (
-                <div className={styles.emptyState}>
-                  პროდუქტები ვერ მოიძებნა.
-                </div>
+                <div className={styles.emptyState}>პროდუქტები ვერ მოიძებნა.</div>
               )}
             </div>
 
             {total > PRODUCTS_PER_PAGE && (
-              <EdgePager
-           totalPages={Math.ceil(total / PRODUCTS_PER_PAGE)}
-
-                currentPage={currentPage}
-                onChange={(page) => {
-                  setCurrentPage(page);
-
-                  const params = new URLSearchParams(searchParams);
-                  params.set("page", page);
-
-                  setSearchParams(params);
-
-                  requestAnimationFrame(() => {
-                    requestAnimationFrame(scrollToTop);
-                  });
-                }}
-                onPageChange={handlePageClick}
-              />
+              <EdgePager totalPages={totalPages} currentPage={currentPage} hrefFor={hrefFor} />
             )}
           </>
         )}

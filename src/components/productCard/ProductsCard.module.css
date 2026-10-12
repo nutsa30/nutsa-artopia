@@ -78,6 +78,8 @@ transform-origin: center;
   text-overflow: ellipsis;
 }
 .productCard p { margin: 5px 0; }
+/* სათაურის ბმული ვიზუალურად ტექსტისგან არ განსხვავდება */
+.titleLink { color: inherit; text-decoration: none; }
 
 .category {
   color: #ddd;

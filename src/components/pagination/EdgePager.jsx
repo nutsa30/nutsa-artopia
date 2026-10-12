@@ -1,8 +1,12 @@
 // src/components/pagination/EdgePager.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import styles from "./EdgePager.module.css";
 
-export default function EdgePager({ totalPages, currentPage, onChange }) {
+// hrefFor(page) → მისამართი: გვერდები რენდერდება როგორც ნამდვილი <a href>
+// (crawler-ი მათ მიჰყვება, Ctrl+კლიკი ახალ ჩანართში ხსნის). hrefFor-ის გარეშე
+// (ადმინის სია) კომპონენტი ძველებურად ღილაკებით და onChange-ით მუშაობს.
+export default function EdgePager({ totalPages, currentPage, onChange, hrefFor }) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -63,6 +67,42 @@ export default function EdgePager({ totalPages, currentPage, onChange }) {
     if (p < 1 || p > totalPages || p === currentPage) return;
     onChange(p);
   };
+
+  if (hrefFor) {
+    const cell = (key, page, label, extraClass = "", rel) => {
+      const isCurrent = page === currentPage && !rel;
+      if (page < 1 || page > totalPages || isCurrent) {
+        return (
+          <span
+            key={key}
+            className={`${styles.pgBtn} ${extraClass} ${isCurrent ? styles.isActive : styles.isDisabled}`}
+            aria-current={isCurrent ? "page" : undefined}
+            aria-disabled={isCurrent ? undefined : "true"}
+          >
+            {label}
+          </span>
+        );
+      }
+      return (
+        <Link key={key} to={hrefFor(page)} rel={rel} className={`${styles.pgBtn} ${extraClass}`} onClick={() => onChange?.(page)}>
+          {label}
+        </Link>
+      );
+    };
+    return (
+      <nav className={styles.pagination} aria-label="გვერდების ნავიგაცია">
+        {cell("prev", currentPage - 1, "←", styles.pgPrev, "prev")}
+        {items.map((it, idx) =>
+          it === "…" ? (
+            <span key={`e${idx}`} className={styles.ellipsis}>…</span>
+          ) : (
+            cell(`p${it}`, it, it)
+          )
+        )}
+        {cell("next", currentPage + 1, "→", styles.pgNext, "next")}
+      </nav>
+    );
+  }
 
   return (
     <nav className={styles.pagination} aria-label="გვერდების ნავიგაცია">

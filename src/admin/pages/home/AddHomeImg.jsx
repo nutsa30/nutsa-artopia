@@ -25,14 +25,13 @@ function getAdminToken() {
     (typeof window !== "undefined" &&
       (localStorage.getItem("ADMIN_TOKEN") ||
         sessionStorage.getItem("ADMIN_TOKEN"))) ||
-    import.meta.env?.VITE_ADMIN_TOKEN ||
     ""
   );
 }
 
 function headers(extra = {}) {
   const token = (getAdminToken() || "").trim();
-  return token ? { "X-Admin-Token": token, ...extra } : { ...extra };
+  return token ? { Authorization: `Bearer ${token}`, ...extra } : { ...extra };
 }
 
 export default function AddHomeImg() {

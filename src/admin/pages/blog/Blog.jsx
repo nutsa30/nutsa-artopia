@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "./Blog.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
 import { useNavigate, useLocation } from "react-router-dom";
+import { authHeaders } from "../../api";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 const modules = {
@@ -236,7 +237,8 @@ setManual({
     if (!window.confirm("დარწმუნებული ხარ?")) return;
 
     try {
-      await fetch(`${BASE}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${BASE}/${id}`, { method: "DELETE", headers: authHeaders() });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       fetchBlogs();
 if (editingId === id) {
   setForm(DEFAULT_FORM);
@@ -370,7 +372,7 @@ try {
   const url = editingId ? `${BASE}/${editingId}` : BASE;
   const method = editingId ? "PUT" : "POST";
 
-  const res = await fetch(url, { method, body: fd });
+  const res = await fetch(url, { method, body: fd, headers: authHeaders() });
   const data = await res.json();
 
   if (!res.ok) {

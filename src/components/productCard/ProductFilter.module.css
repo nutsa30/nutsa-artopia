@@ -169,6 +169,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* კატეგორიის ბმული — იგივე იერი, რაც ადრე .catText ტექსტს ჰქონდა */
+.catLink {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: inherit;
+  text-decoration: none;
+}
 .greenDot {
   width: 8px;
   height: 8px;

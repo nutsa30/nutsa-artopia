@@ -236,3 +236,169 @@ test("catalog browsing, search and add-to-cart still work with fixture products"
     assert.equal(events.filter(x => x[1] === "add_to_cart").length, 1);
   } finally { await cleanup(); }
 });
+
+/* ===================== crawlable links, pagination, product visibility ===================== */
+const { default: SingleProductPage } = await server.ssrLoadModule("/src/pages/SingleProductPage.jsx");
+window.matchMedia = window.matchMedia || (() => ({ matches: false, addEventListener() {}, removeEventListener() {} }));   // jsdom has none
+const settle = async (ms = 30) => { await React.act(async () => { await new Promise(resolve => setTimeout(resolve, ms)); }); };
+const future = { v7_startTransition: true, v7_relativeSplatPath: true };
+const fixtureProduct = (extra = {}) => ({ id: 101, slug: "focus-2", name: "Focus 2", price: 41, sale: 0, quantity: 10, category_name: "Fixture",
+  image_url1: "https://res.cloudinary.com/x/image/upload/a.png", description: "Fixture description", brand: "Deli", gtin: "4006381333931", also_buy: [], ...extra });
+const storefront = (entry) => React.createElement(HelmetProvider, null, React.createElement(MemoryRouter, { initialEntries: [entry], future },
+  React.createElement(CartProvider, null, React.createElement(CartUiProvider, null, React.createElement(Routes, null,
+    React.createElement(Route, { path: "/products", element: React.createElement(ProductsPage) }),
+    React.createElement(Route, { path: "/products/page/:page", element: React.createElement(ProductsPage) }),
+    React.createElement(Route, { path: "/products/category/:slug", element: React.createElement(ProductsPage) }),
+    React.createElement(Route, { path: "/products/category/:slug/page/:page", element: React.createElement(ProductsPage) }),
+    React.createElement(Route, { path: "/products/:slug", element: React.createElement(SingleProductPage) }))))));
+const hrefs = () => Array.from(document.querySelectorAll("a[href]")).map(a => a.getAttribute("href"));
+const robotsMeta = () => document.querySelector('meta[name="robots"]')?.content;
+const canonicalHref = () => document.querySelector('link[rel="canonical"]')?.getAttribute("href");
+const clickLink = async (href) => {
+  const link = Array.from(document.querySelectorAll("a[href]")).find(a => a.getAttribute("href") === href);
+  assert.ok(link, `link ${href} not found`);
+  await React.act(async () => { Simulate.click(link, { button: 0 }); });
+  await settle();
+};
+function catalogApi({ total = 45, exists = true, items } = {}) {
+  const calls = [];
+  globalThis.fetch = async url => {
+    calls.push(decodeURIComponent(url));
+    if (url.includes("/products/list?")) {
+      const page = Number(new URL(url).searchParams.get("page"));
+      const list = items ? items(page) : [fixtureProduct({ id: 100 + page, slug: `focus-p${page}`, name: `Focus page ${page}` })];
+      return Response.json({ items: list, total, category_exists: exists });
+    }
+    if (url.includes("/products/categories")) return Response.json(["Fixture", "სხვა"]);
+    if (/\/products\/\d+$/.test(url)) return Response.json(fixtureProduct());
+    throw Error(`Unexpected fixture request: ${url}`);
+  };
+  return calls;
+}
+
+test("catalog: product, category and pagination are real <a href> links and pages are crawlable", async () => {
+  document.head.innerHTML = ""; sessionStorage.clear(); localStorage.clear();
+  const calls = catalogApi();
+  const cleanup = await render(storefront("/products/category/Fixture"));
+  try {
+    const links = hrefs();
+    assert.ok(links.includes("/products/focus-p1"), "product card title is a link");
+    assert.ok(links.includes("/products/category/Fixture") && links.includes("/products/category/%E1%83%A1%E1%83%AE%E1%83%95%E1%83%90") && links.includes("/products"),
+      "category links exist in the DOM without opening the menu");
+    assert.ok(links.includes("/products/category/Fixture/page/2") && links.includes("/products/category/Fixture/page/3"), "pagination links");
+    assert.equal(document.querySelector('a[rel="next"]').getAttribute("href"), "/products/category/Fixture/page/2");
+    assert.equal(document.querySelectorAll("a a, a button, button a").length, 0, "no nested interactive elements");
+    assert.equal(canonicalHref(), "https://artopia.ge/products/category/Fixture");
+    assert.equal(robotsMeta(), "index,follow");
+
+    await clickLink("/products/category/Fixture/page/2");
+    assert.ok(calls.some(url => url.includes("page=2") && url.includes("category=Fixture")));
+    assert.match(document.body.textContent, /Focus page 2/);                       // page 2 shows its own products
+    assert.equal(canonicalHref(), "https://artopia.ge/products/category/Fixture/page/2");
+    assert.match(document.querySelector("h1").textContent, /Fixture — გვერდი 2/);
+    assert.match(document.title, /გვერდი 2/);
+    assert.equal(document.querySelector('nav [aria-current="page"]').textContent, "2");
+    assert.equal(document.querySelector('a[rel="prev"]').getAttribute("href"), "/products/category/Fixture");
+
+    // search keeps working across pages and always restarts from page 1
+    const search = document.querySelector('input[placeholder="საძიებო სიტყვა..."]');
+    await React.act(async () => { Simulate.change(search, { target: { value: "Foc" } }); });
+    await settle();
+    assert.ok(calls.some(url => url.includes("search=Foc") && url.includes("page=1") && url.includes("category=Fixture")));
+    await clickLink("/products/category/Fixture/page/3");
+    assert.ok(calls.some(url => url.includes("search=Foc") && url.includes("page=3")), "search term survives pagination");
+
+    // category filter still works by clicking a category
+    await clickLink("/products");
+    assert.equal(canonicalHref(), "https://artopia.ge/products");
+  } finally { await cleanup(); }
+});
+
+test("catalog: old ?page / ?category links land on the clean page; bad pages and categories are not-found", async () => {
+  document.head.innerHTML = "";
+  let calls = catalogApi();
+  let cleanup = await render(storefront("/products?category=Fixture&page=2"));
+  try {
+    assert.equal(canonicalHref(), "https://artopia.ge/products/category/Fixture/page/2");
+    assert.ok(calls.some(url => url.includes("page=2") && url.includes("category=Fixture")));
+  } finally { await cleanup(); }
+
+  for (const [entry, api] of [["/products/category/Nope", { exists: false, total: 0, items: () => [] }],
+                              ["/products/category/Fixture/page/9", { items: () => [] }],
+                              ["/products/page/abc", {}]]) {
+    document.head.innerHTML = canonicalHtml("<head></head>", entry).replace(/<\/?head>/g, "");
+    catalogApi(api);
+    cleanup = await render(storefront(entry));
+    try {
+      assert.ok(document.querySelector('[data-not-found="404"]'), entry);
+      assert.equal(robotsMeta(), "noindex,nofollow", entry);
+      assert.equal(document.querySelectorAll('link[rel="canonical"]').length, 0, entry);
+    } finally { await cleanup(); }
+  }
+
+  // an API outage is not "not found": no noindex, the page stays indexable
+  document.head.innerHTML = "";
+  globalThis.fetch = async url => { if (url.includes("/products/categories")) return Response.json([]); throw new TypeError("fetch failed"); };
+  cleanup = await render(storefront("/products/category/Fixture/page/2"));
+  try {
+    assert.equal(document.querySelector("[data-not-found]"), null);
+    assert.equal(robotsMeta(), "index,follow");
+  } finally { await cleanup(); }
+});
+
+test("product page: out of stock opens but cannot be bought; 404/410/outage are told apart; one Product schema", async () => {
+  const productApi = (status, body) => { globalThis.fetch = async url => {
+    if (url.includes("/products/full/")) return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+    if (url.includes("/products/also-buy")) return Response.json([]);
+    throw Error(`Unexpected fixture request: ${url}`);
+  }; };
+  const schemas = () => Array.from(document.querySelectorAll('script[type="application/ld+json"]')).map(s => JSON.parse(s.textContent))
+    .flatMap(x => x["@graph"] || [x]).filter(x => x["@type"] === "Product");
+  const buttons = () => Array.from(document.querySelectorAll("button")).map(b => b.textContent);
+
+  // in stock, opened inside the SPA (no edge JSON-LD) → the page writes its own, single Product
+  document.head.innerHTML = ""; localStorage.clear();
+  productApi(200, { product: fixtureProduct({ sale: 10 }), related: [fixtureProduct({ id: 102, slug: "related-1", name: "Related one" })] });
+  let cleanup = await render(storefront("/products/focus-2"));
+  try {
+    assert.ok(buttons().some(t => t.includes("კალათაში დამატება")));
+    assert.ok(hrefs().includes("/products/related-1"), "related products are links");
+    assert.ok(hrefs().includes("/products/category/Fixture"), "category link");
+    assert.equal(document.querySelectorAll("a a, a button, button a").length, 0);
+    const [schema] = schemas();
+    assert.equal(schemas().length, 1);
+    assert.deepEqual(schema.brand, { "@type": "Brand", name: "Deli" });
+    assert.equal(schema.gtin, "4006381333931");
+    assert.equal(schema.offers.price, "36.90");
+    assert.equal(schema.offers.availability, "https://schema.org/InStock");
+  } finally { await cleanup(); }
+
+  // out of stock, first load (edge already wrote the schema) → no second copy, purchase disabled
+  document.head.innerHTML = '<script type="application/ld+json" data-ld-edge="/products/focus-2">{"@type":"Product","name":"edge"}</script>';
+  productApi(200, { product: fixtureProduct({ quantity: 0, brand: null, gtin: null }), related: [] });
+  cleanup = await render(storefront("/products/focus-2"));
+  try {
+    assert.match(document.body.textContent, /არ არის მარაგში/);
+    assert.equal(buttons().some(t => t.includes("კალათაში დამატება") || t.includes("ყიდვა")), false);
+    assert.deepEqual(schemas().map(s => s.name), ["edge"]);
+    assert.equal(robotsMeta(), "index,follow");
+    assert.equal(canonicalHref(), "https://artopia.ge/products/focus-2");
+    assert.equal(localStorage.getItem("artopia.cart.v1") || "[]", "[]");
+  } finally { await cleanup(); }
+
+  for (const [status, marker, noindex] of [[404, "404", true], [410, "410", true]]) {
+    document.head.innerHTML = ""; productApi(status, { message: "x" });
+    cleanup = await render(storefront("/products/focus-2"));
+    try {
+      assert.ok(document.querySelector(`[data-not-found="${marker}"]`), String(status));
+      assert.equal(robotsMeta() === "noindex,nofollow", noindex);
+    } finally { await cleanup(); }
+  }
+  document.head.innerHTML = ""; productApi(500, { message: "boom" });
+  cleanup = await render(storefront("/products/focus-2"));
+  try {
+    assert.equal(document.querySelector("[data-not-found]"), null);
+    assert.notEqual(robotsMeta(), "noindex,nofollow");            // an outage must not deindex a live product
+    assert.match(document.body.textContent, /ჩატვირთვა ვერ მოხერხდა/);
+  } finally { await cleanup(); }
+});
