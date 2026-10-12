@@ -1,8 +1,9 @@
+import { canonicalHtml, canonicalUrl } from "../../src/utils/canonical.js";
+
 // Netlify Edge Function — bakes correct per-page SEO into the SPA's index.html
-// for crawlers (Google, Bing, social, LLMs: GPTBot/ClaudeBot/Perplexity/…) so
+// for all visitors and crawlers so
 // they get the right <title>, description, canonical, Open Graph, Twitter and
-// JSON-LD WITHOUT having to execute client-side JS. Real users still get the
-// untouched fast SPA (react-helmet sets their meta client-side).
+// JSON-LD without executing JS. React Helmet adopts the same canonical tag.
 //
 // Covered routes (see config.path): product detail, category, products listing,
 // blog index, blog articles, reviews, contacts, engraving, policy pages.
@@ -53,7 +54,7 @@ function applyMeta(html, { title, description, url, image, type, jsonLd, keyword
   out = setTag(
     out,
     /<link\s+rel="canonical"[^>]*>/,
-    `<link rel="canonical" href="${esc(url)}" />`
+    `<link rel="canonical" href="${esc(canonicalUrl(url))}" data-rh="true" />`
   );
   out = setTag(out, /<meta\s+property="og:title"[^>]*>/, `<meta property="og:title" content="${esc(title)}" />`);
   out = setTag(out, /<meta\s+property="og:description"[^>]*>/, `<meta property="og:description" content="${esc(description)}" />`);
@@ -72,8 +73,13 @@ function applyMeta(html, { title, description, url, image, type, jsonLd, keyword
   return out;
 }
 
-const htmlResponse = (out) =>
-  new Response(out, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
+const htmlResponse = (out, source) => {
+  const headers = new Headers(source.headers);
+  headers.set("content-type", "text/html; charset=utf-8");
+  // Body transformations invalidate validators and encoded-body size metadata.
+  for (const name of ["content-length", "content-encoding", "etag", "last-modified"]) headers.delete(name);
+  return new Response(out, { status: source.status, statusText: source.statusText, headers });
+};
 
 const breadcrumb = (items) => ({
   "@type": "BreadcrumbList",
@@ -86,28 +92,24 @@ const breadcrumb = (items) => ({
 });
 
 export default async (request, context) => {
-  const res = await context.next();
+  let res = await context.next();
 
   try {
     const ctype = res.headers.get("content-type") || "";
     if (!ctype.includes("text/html")) return res;
 
-    // Crawlers / scrapers / LLM bots only — humans get the untouched SPA.
-    const ua = (request.headers.get("user-agent") || "").toLowerCase();
-    const isBot =
-      /bot|crawl|spider|slurp|googlebot|bingbot|yandex|baiduspider|duckduckbot|applebot|facebookexternalhit|twitterbot|slackbot|linkedinbot|whatsapp|telegram|discordbot|embedly|pinterest|redditbot|gptbot|oai-searchbot|chatgpt|claudebot|anthropic|perplexity|google-extended|bytespider|amazonbot|ccbot|cohere|meta-externalagent/i.test(
-        ua
-      );
-    if (!isBot) return res;
-
+    if (res.status !== 200) return res;
     const url = new URL(request.url);
-    const path = decodeURIComponent(url.pathname).replace(/\/+$/, "") || "/";
+    const pageCanonical = canonicalUrl(url.href);
+    // All user agents get the same page-specific canonical, even if the API fails.
+    res = htmlResponse(canonicalHtml(await res.clone().text(), pageCanonical), res);
+    const path = decodeURIComponent(new URL(pageCanonical).pathname);
 
     /* ===================== BLOG ARTICLE: /blog/<slug> ===================== */
     const blogMatch = path.match(/^\/blog\/([^/]+)$/);
     if (blogMatch) {
       const slug = blogMatch[1];
-      const r = await fetch(`${API}/blogs/slug/${encodeURIComponent(slug)}`);
+      const r = await fetch(`${API}/blogs/slug/${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(2500) });
       if (!r.ok) return res;
       const b = await r.json();
       const post = b && (b.product ? b.product : b);
@@ -156,7 +158,7 @@ export default async (request, context) => {
           ],
         },
       });
-      return htmlResponse(out);
+      return htmlResponse(out, res);
     }
 
     /* ===================== BLOG INDEX: /blogs ===================== */
@@ -178,7 +180,7 @@ export default async (request, context) => {
           publisher: { "@id": ORG_ID },
         },
       });
-      return htmlResponse(out);
+      return htmlResponse(out, res);
     }
 
     /* ===================== REVIEWS: /reviews ===================== */
@@ -186,7 +188,7 @@ export default async (request, context) => {
       const html = await res.text();
       let agg = null;
       try {
-        const rr = await fetch(`${API}/google-reviews`);
+        const rr = await fetch(`${API}/google-reviews`, { signal: AbortSignal.timeout(2500) });
         if (rr.ok) {
           const j = await rr.json();
           const ratingValue = Number(j?.rating || 0);
@@ -201,7 +203,7 @@ export default async (request, context) => {
             };
           }
         }
-      } catch (_) { /* ignore — page still gets correct meta below */ }
+      } catch { /* ignore — page still gets correct meta below */ }
 
       const out = applyMeta(html, {
         title: "მომხმარებელთა შეფასებები — Artopia | სამხატვრო მაღაზია",
@@ -220,7 +222,7 @@ export default async (request, context) => {
           ...(agg ? { aggregateRating: agg } : {}),
         },
       });
-      return htmlResponse(out);
+      return htmlResponse(out, res);
     }
 
     /* ===================== CONTACTS: /contacts ===================== */
@@ -241,7 +243,7 @@ export default async (request, context) => {
           about: { "@id": ORG_ID },
         },
       });
-      return htmlResponse(out);
+      return htmlResponse(out, res);
     }
 
     /* ===================== ENGRAVING: /engraving ===================== */
@@ -332,7 +334,7 @@ export default async (request, context) => {
           ],
         },
       });
-      return htmlResponse(out);
+      return htmlResponse(out, res);
     }
 
     /* ===================== POLICY PAGES ===================== */
@@ -351,7 +353,7 @@ export default async (request, context) => {
         image: DEFAULT_IMAGE,
         type: "website",
       });
-      return htmlResponse(out);
+      return htmlResponse(out, res);
     }
 
     /* ===================== CATEGORY: /products/category/<name> ===================== */
@@ -384,7 +386,7 @@ export default async (request, context) => {
           ],
         },
       });
-      return htmlResponse(out);
+      return htmlResponse(out, res);
     }
 
     /* ===================== PRODUCTS LISTING: /products ===================== */
@@ -414,7 +416,7 @@ export default async (request, context) => {
           ],
         },
       });
-      return htmlResponse(out);
+      return htmlResponse(out, res);
     }
 
     /* ===================== PRODUCT DETAIL: /products/<slug> ===================== */
@@ -422,7 +424,7 @@ export default async (request, context) => {
     if (!prodMatch || prodMatch[1] === "category") return res;
     const slug = prodMatch[1];
 
-    const apiRes = await fetch(`${API}/products/full/${encodeURIComponent(slug)}`);
+    const apiRes = await fetch(`${API}/products/full/${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(2500) });
     if (!apiRes.ok) return res;
     const data = await apiRes.json();
     const p = data && data.product;
@@ -480,14 +482,15 @@ export default async (request, context) => {
       },
     });
 
-    return htmlResponse(out);
-  } catch (_) {
+    return htmlResponse(out, res);
+  } catch {
     return res; // fail-safe: never break the page
   }
 };
 
 export const config = {
   path: [
+    "/",
     "/products",
     "/products/*",
     "/blogs",

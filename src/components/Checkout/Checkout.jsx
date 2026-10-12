@@ -5,7 +5,7 @@ import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
 import DeliverySection from "./DeliverySection";
 import { TruckIcon, StoreIcon, ClockIcon, PinIcon, CardIcon, WarningIcon } from "./icons";
-import { trackBeginCheckout, getGaClientId, CURRENCY } from "../../utils/analytics";
+import { trackBeginCheckout, getGaContext } from "../../utils/analytics";
 import {
   buildCartBreakdown,
   couponDiscountFor,
@@ -126,6 +126,7 @@ const Checkout = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const submissionInFlightRef = useRef(false);
   const [stockById, setStockById] = useState({});
   const [stockMessageById, setStockMessageById] = useState({});
   const beginCheckoutFiredRef = useRef(false);
@@ -441,6 +442,8 @@ const Checkout = () => {
       return;
     }
 
+    if (submissionInFlightRef.current) return;
+    submissionInFlightRef.current = true;
     setError("");
 
     // ── ადგილზე აღება + ადგილზე გადახდა — ბანკის გვერდის გვერდის ავლით ──
@@ -482,6 +485,7 @@ const Checkout = () => {
         console.error(err);
         setError(err.message || T.errOrderCreate);
       } finally {
+        submissionInFlightRef.current = false;
         setSubmitting(false);
       }
       return;
@@ -494,12 +498,16 @@ const Checkout = () => {
       delivery.apartment ? `ბინა ${delivery.apartment}`      : "",
     ].filter(Boolean).join(", ");
 
+    setSubmitting(true);
+    const gaContext = await getGaContext();
     const draft = {
       formData: {
         ...formData,
         coupon_code: promoActive ? promo.code : "",
       },
-      ga_client_id: getGaClientId(),
+      ga_client_id: gaContext.client_id,
+      ga_session_id: gaContext.session_id,
+      ga4_mode: "server",
       items: cartItems.map((it) => ({
         id: it.id,
         name: it.name,
@@ -526,7 +534,6 @@ const Checkout = () => {
       } : null,
     };
 
-    setSubmitting(true);
     try {
       const res = await fetch(`${API_BASE}/payments/bog/create`, {
         method: "POST",
@@ -549,36 +556,25 @@ const Checkout = () => {
           // redirect_url URL-ად ვერ დაიპარსა — orderId ცარიელი დარჩება
         }
       }
-      if (orderId) sessionStorage.setItem("last_bog_order_id", orderId);
-
-      if (data.state) {
-        sessionStorage.setItem("last_bog_state", data.state);
-      }
+      try {
+        if (orderId) sessionStorage.setItem("last_bog_order_id", orderId);
+        if (data.state) sessionStorage.setItem("last_bog_state", data.state);
+      } catch { /* server state remains authoritative */ }
 
       try {
-        const pendingPurchase = {
-          transaction_id: orderId || data.state || "",
-          currency: CURRENCY,
-          value: Number(preview.total),
-          shipping: Number(preview.delivery_fee),
-          has_engraving: hasEngraving,
-          items: cartItems.map((it) => ({
-            id: it.id,
-            name: it.name,
-            price: it.price,
-            sale: it.sale || 0,
-            quantity: it.quantity,
-          })),
-        };
-        sessionStorage.setItem("pending_purchase", JSON.stringify(pendingPurchase));
+        sessionStorage.setItem("payment_reference", JSON.stringify({
+          order_id: orderId, state: data.state, has_engraving: hasEngraving,
+        }));
+        sessionStorage.removeItem("pending_purchase");
       } catch {
-        // sessionStorage მიუწვდომელია (პრივატული ბრაუზერი და მისთ.) — უვნებელია
+        // Durable backend checkout can be resolved from the bank-return state.
       }
 
       window.location.href = data.redirect_url;
     } catch (err) {
       console.error(err);
       setError(err.message || "გადახდის ინიციალიზაცია ვერ მოხერხდა");
+      submissionInFlightRef.current = false;
       setSubmitting(false);
     }
   };

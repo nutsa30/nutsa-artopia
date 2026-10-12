@@ -2,17 +2,11 @@
 // Base tag (G-PRBF4MJ1LT) is loaded in index.html.
 // These helpers fire the GA4 recommended ecommerce events used for Google Ads.
 
+import { unitPrice } from "./pricing.js";
+
 export const CURRENCY = "GEL";
 
 // Actual price the customer pays for one unit (applies sale discount, like the rest of the app).
-const unitPrice = (it) => {
-  const price = Number(it?.price || 0);
-  const sale = Number(it?.sale || 0);
-  if (sale > 0 && sale <= 100) {
-    return +(price * (1 - sale / 100)).toFixed(2);
-  }
-  return +price.toFixed(2);
-};
 
 // Map an app product / cart item to a GA4 `items` entry.
 const ga4Item = (it, index) => {
@@ -75,25 +69,29 @@ export function trackBeginCheckout(cartItems, value) {
 export function getGaClientId() {
   if (typeof document === "undefined") return "";
   try {
-    const m = document.cookie.match(/_ga=GA\d+\.\d+\.(\d+\.\d+)/);
+    const m = document.cookie.match(/(?:^|;\s*)_ga=GA\d+\.\d+\.(\d+\.\d+)/);
     return m ? m[1] : "";
-  } catch (_) {
+  } catch {
     return "";
   }
 }
 
-// purchase — order successfully paid
-export function trackPurchase(order) {
-  if (!order) return;
-  gaEvent("purchase", {
-    transaction_id: String(order.transaction_id ?? ""),
-    currency: order.currency || CURRENCY,
-    value: +Number(order.value || 0).toFixed(2),
-    ...(order.shipping != null
-      ? { shipping: +Number(order.shipping).toFixed(2) }
-      : {}),
-    items: Array.isArray(order.items)
-      ? order.items.map((it, i) => ga4Item(it, i))
-      : [],
+// Purchase belongs to the backend outbox. Browser storage never supplies its amount.
+export async function getGaContext(timeoutMs = 500) {
+  const fallback = { client_id: getGaClientId(), session_id: null };
+  if (typeof window === "undefined" || typeof window.gtag !== "function") return fallback;
+  return new Promise((resolve) => {
+    const result = { ...fallback };
+    let completed = 0;
+    const timer = setTimeout(() => resolve(result), timeoutMs);
+    const receive = (key) => (value) => {
+      if (key === "client_id" && /^\d+\.\d+$/.test(String(value))) result.client_id = String(value);
+      if (key === "session_id" && /^[1-9]\d*$/.test(String(value))) result.session_id = String(value);
+      if (++completed === 2) { clearTimeout(timer); resolve(result); }
+    };
+    try {
+      window.gtag("get", "G-PRBF4MJ1LT", "client_id", receive("client_id"));
+      window.gtag("get", "G-PRBF4MJ1LT", "session_id", receive("session_id"));
+    } catch { clearTimeout(timer); resolve(fallback); }
   });
 }

@@ -59,7 +59,7 @@ return (
     <SEO
       title="კონტაქტი | Artopia"
       description="დაგვიკავშირდი Artopia-ს. ნახე ჩვენი მისამართი, ტელეფონი, ელფოსტა და სოციალური ქსელები."
-      url="https://artopia.ge/contact"
+      url="https://artopia.ge/contacts"
     />
 <script
   type="application/ld+json"

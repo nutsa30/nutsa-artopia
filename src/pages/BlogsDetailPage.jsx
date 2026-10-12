@@ -70,7 +70,7 @@ const cacheRef = useRef({});
         if (!alive) return;
 
         setBlog(data);
-      } catch (error) {
+      } catch {
         if (!alive) return;
         setErr("ბლოგის ჩატვირთვა ვერ მოხერხდა");
         setBlog(null);
@@ -186,7 +186,6 @@ document.addEventListener("mouseout", handleMouseOut);
   const coverImage = getCoverImage(blog);
 
   const canonicalUrl =
-    normalizeText(blog?.canonical_url) ||
     (slug ? `https://artopia.ge/blog/${slug}` : "https://artopia.ge/blogs");
 
   /* ================= SEO STRUCTURED DATA ================= */

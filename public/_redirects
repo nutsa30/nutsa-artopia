@@ -1,3 +1,5 @@
 /sitemap.xml  /.netlify/functions/sitemap  200
+/contact     /contacts                  301!
+/blogs/:slug /blog/:slug                301!
 
 /*    /index.html   200
