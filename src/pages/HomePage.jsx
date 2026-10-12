@@ -73,7 +73,9 @@ export default function HomePage() {
 
       {/* 🔥 HERO / CAROUSEL */}
       <section className={styles.section}>
-        {loading && <div className={styles.info}>იტვირთება...</div>}
+        {/* ჩატვირთვისას იმავე ზომის ადგილი იჯავშნება, რაც carousel-ს აქვს (16:9) —
+            ქვემოთ მდებარე სექციები აღარ „ხტება" (CLS) */}
+        {loading && <div className={styles.carouselPlaceholder} aria-hidden="true" />}
         {error && <div className={styles.error}>{error}</div>}
 
         {!loading && homeImages.length > 0 && (

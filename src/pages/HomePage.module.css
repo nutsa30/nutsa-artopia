@@ -221,3 +221,13 @@
     line-height: 1.65;
   }
 }
+
+/* carousel-ის ადგილი ჩატვირთვამდე: იგივე margin და 16:9, რაც HomeCarousel.module.css-ში */
+.carouselPlaceholder {
+  width: 100%;
+  margin-top: 100px;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  background: #e9eef4;
+}
+

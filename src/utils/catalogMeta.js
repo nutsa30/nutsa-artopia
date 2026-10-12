@@ -77,3 +77,28 @@ export function productBreadcrumbs(p, url) {
     { name: String(p.name || "").trim(), item: url },
   ];
 }
+
+/* ---------- ბლოგი: ერთი წყარო edge function-ისთვის და React-ისთვის ---------- */
+
+const squeeze = (value) => String(value ?? "").replace(/\s+/g, " ").trim();
+const clip = (value, n) => {
+  const t = squeeze(value);
+  return t.length > n ? `${t.slice(0, n - 1)}…` : t;
+};
+
+export const BLOG_INDEX_META = {
+  url: `${SITE_URL}/blogs`,
+  title: "არტ ბლოგი — Artopia | სამხატვრო რჩევები, გიდები და სიახლეები",
+  description:
+    "Artopia-ს არტ ბლოგი — სამხატვრო რჩევები, მასალების გიდები და ხელოვნების სიახლეები. ისწავლე როგორ აირჩიო საღებავი, ფუნჯი, ფანქარი, ტილო და სხვა სამხატვრო მასალა.",
+};
+
+// სტატიის title სრულად იწერება (ხელოვნურად აღარ იჭრება „…"-ით); აღწერა — 160 სიმბოლომდე.
+export function blogArticleMeta(post, slug) {
+  return {
+    url: `${SITE_URL}/blog/${slug}`,
+    title: `${squeeze(post?.meta_title) || squeeze(post?.title)} | Artopia`,
+    description: clip(post?.meta_description || post?.og_description || post?.description, 160),
+  };
+}
+

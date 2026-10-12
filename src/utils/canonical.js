@@ -35,6 +35,7 @@ export function parseCatalogPath(pathname) {
 export function canonicalUrl(input = "/") {
   const url = new URL(input, SITE_URL);
   let path = url.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/index.html") path = "/";
   const catalog = parseCatalogPath(path);
   if (catalog) {
     // ძველი ?category= / ?page= მისამართები იმავე სუფთა გვერდზე მიუთითებს;

@@ -4,8 +4,9 @@ import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../CartContext/CartContext";
 import CartDropdown from "../CartContext/CartDropdown";
 import { Home, ShoppingBag, LetterText, MessagesSquare, PenTool } from "lucide-react";
-import geFlag from "../../assets/georgiaflag.png";
-import enFlag from "../../assets/britishflag.png";
+import geFlag from "../../assets/georgiaflag.webp";
+import enFlag from "../../assets/britishflag.webp";
+import { changeLanguage } from "../../utils/googleTranslate";
 /* ---------- Tabs ---------- */
 const tabs = [
   { id: "home", path: "/", icon: <Home size={18} /> },
@@ -26,7 +27,7 @@ const L = {
   cartAria: "კალათა",
   navAria: "ნავიგაცია",
 };
-const LogoImg = "/Logo.png";
+const LogoImg = "/Logo.webp";
 /* ---------- Cart UI Context ---------- */
 const CartUiContext = createContext(null);
 
@@ -71,20 +72,10 @@ CartIcon.displayName = "CartIcon";
 
 /* ---------- Navbar ---------- */
 const Navbar = () => {
+  // Google Translate მხოლოდ დაჭერისას იტვირთება (იხ. utils/googleTranslate.js)
   const changeLang = (lang) => {
-  const tryChange = () => {
-    const select = document.querySelector(".goog-te-combo");
-
-    if (select) {
-      select.value = lang;
-      select.dispatchEvent(new Event("change"));
-    } else {
-      setTimeout(tryChange, 300);
-    }
+    changeLanguage(lang).catch((err) => console.error(err));
   };
-
-  tryChange();
-};
   const location = useLocation();
   const [showCartOpen, setShowCartOpen] = useState(false);
   const { cartItems } = useCart();
@@ -103,19 +94,19 @@ const Navbar = () => {
   {/* Header */}
   <div className={styles.header}>
     <Link to="/" reloadDocument className={styles.brandLink} aria-label={L.home}>
-      <img className={styles.logo} src={LogoImg} alt={L.brand} />
+      <img className={styles.logo} src={LogoImg} alt={L.brand} width="50" height="50" />
       <h2 className={styles.h2}>{L.brand}</h2>
     </Link>
   </div>
 
   {/* Language */}
   <div className={styles.langSwitcher}>
-    <button onClick={() => changeLang("ka")}>
-      <img src={geFlag} alt="ქართული" />
+    <button onClick={() => changeLang("ka")} aria-label="ქართული">
+      <img src={geFlag} alt="ქართული" width="45" height="30" />
     </button>
 
-    <button onClick={() => changeLang("en")}>
-      <img src={enFlag} alt="English" />
+    <button onClick={() => changeLang("en")} aria-label="English">
+      <img src={enFlag} alt="English" width="45" height="30" />
     </button>
   </div>
 

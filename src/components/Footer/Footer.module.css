@@ -348,3 +348,52 @@ footer a:hover {
     height: 50px;
   }
 }
+
+/* ===================== CATEGORY LINKS ===================== */
+/* ჩაკეცილი სია: footer-ის იერი არ იცვლება, ბმულები კი DOM-შია */
+.categoryNav {
+  margin: 24px auto 0;
+  max-width: 1100px;
+  text-align: center;
+}
+
+.categoryNav summary {
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  color: #bdc3c7;
+  list-style: none;
+  padding: 6px 10px;
+}
+
+.categoryNav summary::-webkit-details-marker {
+  display: none;
+}
+
+.categoryNav summary::after {
+  content: " ▾";
+}
+
+.categoryNav[open] summary::after {
+  content: " ▴";
+}
+
+.categoryLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 16px;
+  margin-top: 10px;
+}
+
+.categoryLinks a {
+  font-size: 13px;
+  color: #bdc3c7;
+  text-decoration: none;
+}
+
+.categoryLinks a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+

@@ -402,3 +402,60 @@ test("product page: out of stock opens but cannot be bought; 404/410/outage are 
     assert.match(document.body.textContent, /ჩატვირთვა ვერ მოხერხდა/);
   } finally { await cleanup(); }
 });
+
+/* ===================== loading priority, fewer requests, related links ===================== */
+const { default: BlogsPage } = await server.ssrLoadModule("/src/pages/BlogsPage.jsx");
+
+test("catalog cards: no request per card, first screen eager with srcset, the rest lazy", async () => {
+  document.head.innerHTML = ""; sessionStorage.clear(); localStorage.clear();
+  const photo = (i) => `https://res.cloudinary.com/x/image/upload/v1/p${i}.png`;
+  const calls = catalogApi({ total: 8, items: () => Array.from({ length: 8 }, (_, i) =>
+    fixtureProduct({ id: 200 + i, slug: `p-${i}`, name: `Product ${i}`, image_url1: photo(i), quantity: i === 7 ? 0 : 5 })) });
+  const cleanup = await render(storefront("/products"));
+  try {
+    assert.equal(calls.filter(url => /\/products\/\d+$/.test(url)).length, 0, "cards must not fetch /products/<id>");
+    assert.equal(calls.filter(url => url.includes("/products/list?")).length, 1);
+    const imgs = Array.from(document.querySelectorAll(".product-card img"));
+    assert.equal(imgs.length, 8);
+    assert.deepEqual(imgs.map(i => i.getAttribute("loading")), ["eager", "eager", "eager", "eager", "lazy", "lazy", "lazy", "lazy"]);
+    assert.deepEqual(imgs.map(i => i.getAttribute("fetchpriority")), ["high", null, null, null, null, null, null, null]);
+    assert.ok(imgs.every(i => i.getAttribute("srcset").split(", ").length === 3 && i.getAttribute("sizes")));
+    assert.ok(imgs.every(i => i.getAttribute("alt")));
+    // stock comes from the list: the sold-out card cannot be bought
+    const cards = Array.from(document.querySelectorAll(".product-card"));
+    assert.match(cards[7].textContent, /არ არის მარაგში/);
+    assert.equal(cards[7].querySelectorAll("button").length, 0);
+    assert.equal(cards[0].querySelectorAll("button").length, 2);
+  } finally { await cleanup(); }
+});
+
+test("product page: every related product is a link in the DOM; main photo is responsive and prioritised", async () => {
+  document.head.innerHTML = ""; localStorage.clear();
+  const related = Array.from({ length: 7 }, (_, i) => fixtureProduct({ id: 300 + i, slug: `rel-${i}`, name: `Related ${i}` }));
+  globalThis.fetch = async url => {
+    if (url.includes("/products/full/")) return Response.json({ product: fixtureProduct(), related });
+    if (url.includes("/products/also-buy")) return Response.json([]);
+    throw Error(`Unexpected fixture request: ${url}`);
+  };
+  const cleanup = await render(storefront("/products/focus-2"));
+  try {
+    const links = hrefs().filter(h => h.startsWith("/products/rel-"));
+    assert.equal(links.length, 7);
+    const shown = Array.from(document.querySelectorAll('a[href^="/products/rel-"]')).filter(a => a.style.display !== "none");
+    assert.ok(shown.length >= 1 && shown.length < 7, "the carousel still shows only a window of them");
+    const main = Array.from(document.querySelectorAll("img")).find(i => i.getAttribute("fetchpriority") === "high");
+    assert.ok(main && main.getAttribute("loading") === "eager" && main.getAttribute("srcset").includes("1200w"));
+    assert.equal(document.querySelectorAll("a a, a button, button a").length, 0);
+  } finally { await cleanup(); }
+});
+
+test("one robots meta after React takes over; blog index keeps the server title", async () => {
+  document.head.innerHTML = '<meta name="robots" content="index,follow" data-rh="true">';
+  globalThis.fetch = async () => Response.json([]);
+  const cleanup = await render(React.createElement(HelmetProvider, null, React.createElement(MemoryRouter, { initialEntries: ["/blogs"], future },
+    React.createElement(BlogsPage))));
+  try {
+    assert.equal(document.querySelectorAll('meta[name="robots"]').length, 1);
+    assert.match(document.title, /^არტ ბლოგი — Artopia/);
+  } finally { await cleanup(); }
+});

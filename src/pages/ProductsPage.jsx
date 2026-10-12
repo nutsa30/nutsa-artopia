@@ -230,6 +230,7 @@ const ProductsPage = () => {
           total: Number(data.total) || 0,
           // ძველი backend ამ ველს არ აბრუნებს → კატეგორია არსებულად ითვლება
           categoryExists: data.category_exists !== false,
+          categoryMovedTo: typeof data.category_moved_to === "string" ? data.category_moved_to : null,
         });
       })
       .catch(() => {
@@ -289,6 +290,11 @@ const ProductsPage = () => {
         to={catalogPath({ category: selectedCategory, page: currentPage > 1 ? currentPage : legacyPage })}
       />
     );
+  }
+
+  // გადარქმეული კატეგორიის ძველი მისამართი → ახალი (HTTP 301-ს edge function აბრუნებს)
+  if (loaded && result.categoryMovedTo) {
+    return <Navigate replace to={catalogPath({ category: result.categoryMovedTo })} />;
   }
 
   // არარსებული კატეგორია, არასწორი /page/<...> ან ბოლო გვერდს გაცდენილი ნომერი.
@@ -360,7 +366,7 @@ const ProductsPage = () => {
           <>
             <div className={`${styles.productsGrid} ${styles.catalogGrid}`}>
               {products.length > 0 ? (
-                products.map((product) => (
+                products.map((product, index) => (
                   // ბარათის ნებისმიერ ადგილზე დაჭერა ხსნის პროდუქტს; კლავიატურისთვის
                   // და crawler-ისთვის ბარათის სათაური ნამდვილი <a href>-ია.
                   <div
@@ -372,6 +378,8 @@ const ProductsPage = () => {
                       product={product}
                       href={productHref(product)}
                       linkState={linkState}
+                      eager={index < 4}
+                      priority={index === 0}
                       onAddToCart={(e, quantity, sourceProduct = product) => {
                         e.stopPropagation();
                         handleAddToCart(sourceProduct, quantity);

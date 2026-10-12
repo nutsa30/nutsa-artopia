@@ -11,3 +11,9 @@
 
 /images/engraving/*
   Cache-Control: public, max-age=2592000
+
+# Vite-ის build-ის ფაილებს სახელში შიგთავსის hash აქვთ (index-AbC123.js): შიგთავსის
+# შეცვლისას სახელიც იცვლება, ამიტომ უსაფრთხოა ერთი წლით ქეშირება. HTML ამ წესში
+# არ შედის — ის ყოველთვის ახლად მოწმდება.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

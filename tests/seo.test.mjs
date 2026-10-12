@@ -132,7 +132,7 @@ test("a product is 404/410/301 only when the API says so; outages never remove a
   for (const [label, answer] of Object.entries(outages)) {
     const r = await visit("/products/tikha-deli", api(answer));
     assert.equal(r.status, 200, label);
-    assert.equal(robots(r.body), "index, follow", label);
+    assert.equal(robots(r.body), "index,follow", label);
     assert.deepEqual(canonical(r.body), ["https://artopia.ge/products/tikha-deli"], label);
   }
 });
@@ -153,7 +153,7 @@ test("product structured data: one Product, real brand, valid GTIN, sale price, 
 
   // out of stock: the page still exists (200, indexable) and says OutOfStock
   const oos = await visit("/products/tikha-deli", async (url) => json({ product: product({ quantity: 0, sale: null, brand: null, gtin: null }), related: [] }));
-  assert.equal(oos.status, 200); assert.equal(robots(oos.body), "index, follow");
+  assert.equal(oos.status, 200); assert.equal(robots(oos.body), "index,follow");
   [schema] = nodes(oos.body, "Product");
   assert.equal(schema.offers.availability, "https://schema.org/OutOfStock");
   assert.equal(schema.offers.price, "10.00");
@@ -180,7 +180,7 @@ test("catalog pagination: self canonical per page, prev/next, 404 past the end o
   assert.match(second.body, new RegExp(`<link rel="prev" href="${base}" />`));
   assert.match(second.body, new RegExp(`<link rel="next" href="${base}/page/3" />`));
   assert.ok(second.calls.some(url => url.includes("page=2") && url.includes("limit=20")));
-  assert.equal(robots(second.body), "index, follow");
+  assert.equal(robots(second.body), "index,follow");
 
   const last = await visit(`/products/category/${encodeURIComponent(category)}/page/3`, list([product()]));
   assert.doesNotMatch(last.body, /rel="next"/);
@@ -224,4 +224,77 @@ test("no admin secret ships with the storefront and promo codes are only checked
   const checkout = await read("../src/components/Checkout/Checkout.jsx");
   assert.match(checkout, /\/promo-codes\/validate/);
   assert.doesNotMatch(checkout, /promo-codes\?|promo-codes`\s*\)/);      // the public code list is never fetched
+});
+
+/* ===================== performance hints, renamed categories, alias hosts ===================== */
+import { responsiveImage } from "../src/utils/cloudinary.js";
+import { BLOG_INDEX_META, blogArticleMeta } from "../src/utils/catalogMeta.js";
+
+test("LCP image preload matches the real <img> exactly and exists only for a real photo", async () => {
+  const photo = "https://res.cloudinary.com/x/image/upload/v1/photo.png";
+  const page = async (p) => (await visit("/products/tikha-deli", async (url) => (url.includes("/products/full/") ? json({ product: p, related: [] }) : noNetwork(url)))).body;
+  const withPhoto = await page(product({ image_url1: photo }));
+  const expected = responsiveImage(photo, "detail");
+  const link = withPhoto.match(/<link rel="preload" as="image"[^>]*>/)[0];
+  assert.ok(link.includes(`href="${expected.src}"`));
+  assert.ok(link.includes(`imagesrcset="${expected.srcSet}"`));
+  assert.ok(link.includes(`imagesizes="${expected.sizes}"`));
+  assert.equal(withPhoto.match(/rel="preload" as="image"/g).length, 1);
+  assert.equal(expected.srcSet.split(", ").length, 3);
+  for (const p of [product({ image_url1: null }), product({ image_url1: "" }), product({ image_url1: "/noimage.jpeg" })]) {
+    assert.doesNotMatch(await page(p), /rel="preload" as="image"/);          // no photo → no preload
+  }
+  // category page: the first card of the list the API returned
+  const list = await visit("/products/category/x", async (url) => json({ items: [product({ image_url1: photo })], total: 1, category_exists: true }));
+  assert.ok(list.body.includes(`imagesrcset="${responsiveImage(photo, "card").srcSet}"`));
+  // /products page 1 makes no API call, so nothing is guessed
+  assert.doesNotMatch((await visit("/products", noNetwork)).body, /rel="preload" as="image"/);
+});
+
+test("a renamed category redirects permanently; alias hostnames are never indexable", async () => {
+  const moved = await visit("/products/category/old-name", async () => json({ items: [], total: 0, category_exists: false, category_moved_to: "ახალი სახელი" }));
+  assert.equal(moved.status, 301);
+  assert.equal(moved.response.headers.get("location"), "https://artopia.ge/products/category/%E1%83%90%E1%83%AE%E1%83%90%E1%83%9A%E1%83%98%20%E1%83%A1%E1%83%90%E1%83%AE%E1%83%94%E1%83%9A%E1%83%98");
+  assert.equal((await visit("/products/category/gone", async () => json({ items: [], total: 0, category_exists: false, category_moved_to: null }))).status, 404);
+
+  const next = async () => new Response(html, { headers: { "content-type": "text/html" } });
+  const old = globalThis.fetch; globalThis.fetch = noNetwork;
+  try {
+    for (const host of ["calm-tanuki-5f5e83.netlify.app", "main--calm-tanuki-5f5e83.netlify.app", "deploy-preview-2--calm-tanuki-5f5e83.netlify.app"]) {
+      const r = await edge(new Request(`https://${host}/`), { next });
+      assert.equal(r.headers.get("x-robots-tag"), "noindex", host);
+      assert.deepEqual(canonical(await r.text()), ["https://artopia.ge/"]);
+    }
+    const live = await edge(new Request("https://artopia.ge/"), { next });
+    assert.equal(live.headers.get("x-robots-tag"), null);
+  } finally { globalThis.fetch = old; }
+});
+
+test("static shell: one robots tag, no render-blocking translate script, valid schema, long-lived hashed assets", async () => {
+  assert.equal(html.match(/<meta\s+name="robots"/g).length, 1);
+  assert.match(html, /<meta name="robots" content="index,follow" data-rh="true" \/>/);
+  assert.doesNotMatch(html, /translate_a\/element\.js|googleTranslateElementInit/);
+  assert.match(html, /id="google_translate_element"/);                      // the mount point stays for on-demand loading
+  assert.doesNotMatch(html, /SearchAction|potentialAction/);
+  const graph = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])["@graph"];
+  assert.deepEqual(graph.map(n => n["@type"]), ["Organization", "WebSite", "Store"]);
+  assert.equal(canonicalUrl("/index.html"), "https://artopia.ge/");
+  const headers = await readFile(new URL("../public/_headers", import.meta.url), "utf8");
+  assert.match(headers, /\/assets\/\*\s+Cache-Control: public, max-age=31536000, immutable/);
+  assert.doesNotMatch(headers, /^\/\*\s/m);                                   // HTML itself is never given a long cache
+  const notFound = await visit("/nope/nope", noNetwork);
+  assert.equal(notFound.body.match(/<meta\s+name="robots"/g).length, 1);
+});
+
+test("blog metadata is identical before and after JavaScript", async () => {
+  const post = { title: "საღებავების არჩევა დამწყებთათვის: ზეთი, აკრილი, აკვარელი თუ გუაში?", description: "აღწერა", created_at: "2026-01-01" };
+  const article = await visit("/blog/fixture", async () => json(post));
+  assert.ok(article.body.includes(`<title>${blogArticleMeta(post, "fixture").title}</title>`));
+  assert.doesNotMatch(article.body.match(/<title>[^<]*<\/title>/)[0], /…/);           // the title is no longer cut
+  assert.equal(nodes(article.body, "BlogPosting").length, 1);
+  assert.equal(nodes(article.body, "BreadcrumbList").length, 1);
+  const index = await visit("/blogs", noNetwork);
+  assert.ok(index.body.includes(`<title>${BLOG_INDEX_META.title}</title>`));
+  const page = await readFile(new URL("../src/pages/BlogsPage.jsx", import.meta.url), "utf8");
+  assert.match(page, /BLOG_INDEX_META\.title/);
 });

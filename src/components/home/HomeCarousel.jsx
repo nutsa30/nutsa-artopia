@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./HomeCarousel.module.css";
-import { cld, IMG } from "../../utils/cloudinary";
+import { responsiveImage } from "../../utils/cloudinary";
 
 /* API BASE — იგივე ლოგიკა, რაც სხვაგან გაქვს */
 const API_BASE =
@@ -93,14 +93,16 @@ export default function HomeCarousel({ autoPlayMs = 5000 }) {
           className={styles.track}
           style={{ transform: `translateX(-${idx * 100}%)` }}
         >
-          {items.map((it) => (
+          {items.map((it, slideIndex) => (
             <div key={it.id} className={styles.slide}>
               {/* თუ გინდა კლიკზე გაიხსნას სრული სურათი */}
               {/* <a href={it.image_url} target="_blank" rel="noreferrer"> */}
                 <img
-                  src={cld(it.image_url, { w: IMG.HERO })}
-                  alt={it.alt_text || it.title || "home image"}
-                  loading="eager"
+                  {...responsiveImage(it.image_url, "hero")}
+                  alt={it.alt_text || it.title || "Artopia"}
+                  // პირველი სლაიდი გვერდის მთავარი ფოტოა (LCP); დანარჩენი საჭიროებისას იტვირთება
+                  loading={slideIndex === 0 ? "eager" : "lazy"}
+                  {...(slideIndex === 0 ? { fetchpriority: "high" } : {})}
                   decoding="async"
                 />
               {/* </a> */}

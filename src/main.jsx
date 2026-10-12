@@ -3,6 +3,7 @@ import "../index.css";
 import App from "./App.jsx";
 import { LoadingProvider } from "./loaders/LoadingProvider.jsx";
 import { HelmetProvider } from "react-helmet-async";
+import { loadGoogleTranslate, translationRequested } from "./utils/googleTranslate.js";
 
 // ლოკალური ტესტი: `.env.development.local`-ში VITE_API_OVERRIDE=http://localhost:5055
 // ჰეროკუს მისამართზე წასულ fetch-ებს ლოკალურ ბექზე გადაამისამართებს (ჰეროკუს
@@ -18,6 +19,14 @@ if (import.meta.env.DEV && import.meta.env.VITE_API_OVERRIDE) {
     }
     return nativeFetch(input, init);
   };
+}
+
+// ვიზიტორმა წინა გვერდზე ინგლისური აირჩია → თარგმანს ვაგრძელებთ, ოღონდ გვერდის
+// ჩატვირთვის შემდეგ, რომ საწყის რენდერს არ შეაფერხოს.
+if (translationRequested()) {
+  const start = () => loadGoogleTranslate().catch(() => {});
+  if (document.readyState === "complete") start();
+  else window.addEventListener("load", start, { once: true });
 }
 
 createRoot(document.getElementById("root")).render(

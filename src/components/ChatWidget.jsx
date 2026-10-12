@@ -131,7 +131,7 @@ const DATA = {
             ))}
           </p>
           <div className="chat-circle">
-            <img src="/Logo.png" className="chat-logo" />
+            <img src="/Logo.webp" className="chat-logo" alt="" width="40" height="40" />
           </div>
         </button>
       )}

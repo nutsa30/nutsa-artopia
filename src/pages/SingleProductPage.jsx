@@ -11,7 +11,7 @@ import { Helmet } from "react-helmet-async";
 import AlsoBuyModal from "../components/AlsoBuy/AlsoBuyModal";
 import { trackViewItem } from "../utils/analytics";
 import CategoryIcon from "../utils/categoryIcons";
-import { cld, IMG } from "../utils/cloudinary";
+import { cld, IMG, responsiveImage } from "../utils/cloudinary";
 import NotFound from "../components/NotFound";
 import { productJsonLd, breadcrumbJsonLd, productBreadcrumbs } from "../utils/catalogMeta";
 import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
@@ -236,12 +236,13 @@ const maxRelatedStart = Math.max(
 const canGoRelatedPrev = relatedStartIndex > 0;
 const canGoRelatedNext = relatedStartIndex < maxRelatedStart;
 
-const visibleRelatedProducts = relatedProducts.slice(
-  relatedStartIndex,
-  relatedStartIndex + relatedVisibleCount
-);
 if (status === "loading") {
-  return <AppLoader />;
+  // სიმაღლე დაჯავშნილია: footer არ „ხტება", როცა პროდუქტი ჩაიტვირთება (CLS)
+  return (
+    <div style={{ minHeight: "100vh" }}>
+      <AppLoader />
+    </div>
+  );
 }
 
   if (status === "not_found" || status === "gone") {
@@ -274,6 +275,7 @@ if (status === "loading") {
       : description || "ნახე ეს პროდუქტი Artopia-ზე.";
 
   const seoImage = images[0] || "https://artopia.ge/social-preview.png";
+  const mainPicture = responsiveImage(images[currentImageIndex], "detail");
   // Product + BreadcrumbList schema-ს edge function წერს საწყის HTML-ში (იგივე
   // აგებით — src/utils/catalogMeta.js). აქ ვამატებთ მხოლოდ მაშინ, როცა edge-ის
   // ვერსია არ არის (SPA-ში გადასვლა ან API-ის დროებითი ჩავარდნა edge-ზე), რომ
@@ -354,10 +356,13 @@ navigate(-1);
               )}
 
 <img
-  src={images.length > 0 ? cld(images[currentImageIndex], { w: IMG.DETAIL }) : NO_IMAGE}
+  src={images.length > 0 ? mainPicture.src : NO_IMAGE}
+  srcSet={images.length > 0 ? mainPicture.srcSet : undefined}
+  sizes={images.length > 0 ? mainPicture.sizes : undefined}
   alt={`${title} - ${category} Artopia`}
   className={styles.productImage}
   loading="eager"
+  {...{ fetchpriority: "high" }}
   decoding="async"
   onClick={() => setIsModalOpen(true)}
   style={{ cursor: "zoom-in" }}
@@ -578,7 +583,11 @@ alt={`${title} ${category} დეტალური ფოტო - Artopia`}
         gridTemplateColumns: `repeat(${relatedVisibleCount}, minmax(0, 1fr))`,
       }}
     >
-      {visibleRelatedProducts.map((item) => {
+      {/* ყველა მსგავსი პროდუქტის ბმული DOM-შია (crawler-ისთვის); ისრები მხოლოდ იმას
+          ცვლის, რომელი ბარათები ჩანს */}
+      {relatedProducts.map((item, relatedIndex) => {
+        const relatedVisible =
+          relatedIndex >= relatedStartIndex && relatedIndex < relatedStartIndex + relatedVisibleCount;
         const itemHasSale =
           typeof item?.sale === "number" &&
           item.sale > 0 &&
@@ -594,6 +603,7 @@ alt={`${title} ${category} დეტალური ფოტო - Artopia`}
             to={`/products/${item.slug}`}
             state={{ from: location.state?.from || "/products" }}
             className={styles.relatedCard}
+            style={relatedVisible ? undefined : { display: "none" }}
           >
         <img
   src={cld(item.image_url1, { w: IMG.CARD }) || NO_IMAGE}

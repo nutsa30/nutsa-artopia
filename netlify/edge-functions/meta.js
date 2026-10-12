@@ -1,7 +1,9 @@
 import { canonicalHtml, canonicalUrl, catalogPath, parseCatalogPath } from "../../src/utils/canonical.js";
 import {
   PRODUCTS_PER_PAGE, catalogMeta, productJsonLd, breadcrumbJsonLd, productBreadcrumbs,
+  BLOG_INDEX_META, blogArticleMeta,
 } from "../../src/utils/catalogMeta.js";
+import { responsiveImage } from "../../src/utils/cloudinary.js";
 
 // Netlify Edge Function — bakes correct per-page SEO into the SPA's index.html
 // for all visitors and crawlers so
@@ -87,7 +89,7 @@ function notFoundResponse(html, source, status = 404) {
   let out = html;
   out = setTag(out, /<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
   out = setTag(out, /<meta\s+name="description"[^>]*>/, `<meta name="description" content="${esc(description)}" />`);
-  out = setTag(out, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex, follow" />`);
+  out = setTag(out, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex, follow" data-rh="true" />`);
   out = out.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*>\s*/gi, "");
   out = out.replace(/<meta\s+property="og:(?:url|title|description)"[^>]*>\s*/g, "");
   const headers = new Headers(source.headers);
@@ -96,6 +98,16 @@ function notFoundResponse(html, source, status = 404) {
   headers.set("x-robots-tag", "noindex");
   for (const name of ["content-length", "content-encoding", "etag", "last-modified"]) headers.delete(name);
   return new Response(out, { status, headers });
+}
+
+// <link rel="preload"> for the LCP image. Only for a real Cloudinary photo, and
+// built by the same helper as the <img> itself — a preload that does not match
+// the image exactly would download a second, wasted file.
+function imagePreload(url, kind) {
+  if (typeof url !== "string" || !url.trim()) return "";
+  const picture = responsiveImage(url, kind);
+  if (!picture.srcSet) return "";
+  return `<link rel="preload" as="image" href="${esc(picture.src)}" imagesrcset="${esc(picture.srcSet)}" imagesizes="${esc(picture.sizes)}" fetchpriority="high" />`;
 }
 
 function applyMeta(html, { title, description, url, image, type, jsonLd, keywords, headExtra }) {
@@ -149,7 +161,22 @@ const htmlResponse = (out, source) => {
 
 const breadcrumb = breadcrumbJsonLd;
 
+// The production site also answers on Netlify's own hostnames
+// (<site>.netlify.app, main--<site>.netlify.app). They are copies of artopia.ge
+// and must never be indexed themselves.
 export default async (request, context) => {
+  const response = await handle(request, context);
+  try {
+    if (new URL(request.url).hostname.endsWith(".netlify.app")) {
+      const headers = new Headers(response.headers);
+      headers.set("x-robots-tag", "noindex");
+      return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+    }
+  } catch { /* keep the response as it is */ }
+  return response;
+};
+
+async function handle(request, context) {
   const source = await context.next();
   // The untouched page with the right canonical: what every visitor gets when
   // nothing below applies, the API is slow/down, or anything throws.
@@ -185,13 +212,13 @@ export default async (request, context) => {
 
       // Always use the real SPA route (/blog/<slug>). The backend's
       // canonical_url field uses /blogs/<slug> which is NOT a real route.
-      const pageUrl = `${SITE}/blog/${slug}`;
-      const title = clip(post.meta_title || post.title, 65);
-      const description = clip(post.meta_description || post.og_description || post.description, 160);
+      const articleMeta = blogArticleMeta(post, slug);
+      const pageUrl = articleMeta.url;
+      const description = articleMeta.description;
       const image = post.og_image || post.cover_image || DEFAULT_IMAGE;
       const html = shell;
       const out = applyMeta(html, {
-        title: `${title} | Artopia`,
+        title: articleMeta.title,
         description,
         url: pageUrl,
         image,
@@ -233,10 +260,9 @@ export default async (request, context) => {
     if (path === "/blogs") {
       const html = shell;
       const out = applyMeta(html, {
-        title: "არტ ბლოგი — Artopia | სამხატვრო რჩევები, გიდები და სიახლეები",
-        description:
-          "Artopia-ს არტ ბლოგი — სამხატვრო რჩევები, მასალების გიდები და ხელოვნების სიახლეები. ისწავლე როგორ აირჩიო საღებავი, ფუნჯი, ფანქარი, ტილო და სხვა სამხატვრო მასალა.",
-        url: `${SITE}/blogs`,
+        title: BLOG_INDEX_META.title,
+        description: BLOG_INDEX_META.description,
+        url: BLOG_INDEX_META.url,
         image: DEFAULT_IMAGE,
         type: "website",
         jsonLd: {
@@ -432,6 +458,7 @@ export default async (request, context) => {
       const catalog = parseCatalogPath(path) || rawCatalog;
       const { category, page } = catalog;
       let total = null;
+      let firstImage = null;
       // Page 1 of the full catalogue always exists; everything else is checked
       // against the API so a mistyped category or a page past the end is a 404.
       if (category || page > 1) {
@@ -441,7 +468,13 @@ export default async (request, context) => {
         if (r.ok && (r.headers.get("content-type") || "").includes("application/json")) {
           const data = await r.json();
           const items = Array.isArray(data?.items) ? data.items : null;
+          // a renamed category: its old address moves permanently to the new name
+          const movedTo = data?.category_exists === false ? data?.category_moved_to : null;
+          if (typeof movedTo === "string" && movedTo.trim() && movedTo !== category) {
+            return new Response(null, { status: 301, headers: { location: `${SITE}${catalogPath({ category: movedTo })}` } });
+          }
           if (data?.category_exists === false) return notFoundResponse(shell, source, 404);
+          if (items && items.length) firstImage = items[0]?.image_url1 || null;
           if (items && page > 1 && items.length === 0) return notFoundResponse(shell, source, 404);
           if (Number.isFinite(Number(data?.total))) total = Number(data.total);
         }
@@ -468,7 +501,7 @@ export default async (request, context) => {
         url: meta.url,
         image: DEFAULT_IMAGE,
         type: "website",
-        headExtra: links.join("\n"),
+        headExtra: [...links, imagePreload(firstImage, "card")].filter(Boolean).join("\n"),
         jsonLd: {
           "@context": "https://schema.org",
           "@graph": [
@@ -520,6 +553,7 @@ export default async (request, context) => {
       url: pageUrl,
       image,
       type: "product",
+      headExtra: imagePreload(p.image_url1, "detail"),
       jsonLd: {
         "@context": "https://schema.org",
         "@graph": [
@@ -533,7 +567,7 @@ export default async (request, context) => {
   } catch {
     return page(); // fail-safe: never break the page, never invent a 404
   }
-};
+}
 
 // Runs for every page URL so that unknown paths get a real 404. Static asset
 // folders are excluded (and any non-HTML response is passed through untouched).
