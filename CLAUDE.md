@@ -24,7 +24,7 @@ No test suite exists in this project.
 | File | Purpose | Auth |
 |---|---|---|
 | `src/api.js` | Public-facing API calls | None (uses `loadingBus` for global loading state) |
-| `src/admin/api.js` | Admin CRUD calls | `X-Admin-Token` header from `localStorage.getItem("ADMIN_TOKEN")` |
+| `src/admin/api.js` | Admin CRUD calls | `Authorization: Bearer <JWT>` from `ADMIN_TOKEN` in storage (`authHeaders()`) |
 
 Both files expose `jfetch` (JSON) and `ffetch` (FormData/multipart) helpers. Don't mix them — the admin version adds the auth header automatically.
 
@@ -54,7 +54,7 @@ On login (`pages/logIn/LoginPage.jsx`), the backend returns `{ token, role }`. B
 
 ### Support panel
 
-The support panel (`pages/supportPanel/`) is reached at `/admin/support-panel/:tab` (`products` | `no-photo`). Its API calls live in `src/admin/api.js` under the "Support" sections and use `bearerHeaders()` (Authorization: Bearer), **not** the `X-Admin-Token` `jfetch` path.
+The support panel (`pages/supportPanel/`) is reached at `/admin/support-panel/:tab` (`products` | `no-photo`). Its API calls live in `src/admin/api.js` under the "Support" sections and use `bearerHeaders()` (Authorization: Bearer).
 
 ### Discount rule: promo codes vs. product sale (IMPORTANT)
 
@@ -158,64 +158,42 @@ the customer.
 and `src/main.jsx` rewrites Heroku URLs to that backend — dev server only, it is
 compiled out of production builds.
 
-### SEO
+### SEO, catalogue URLs and performance (live since 2026-10-13)
 
-`src/components/SEO.jsx` wraps `react-helmet-async`'s `<Helmet>`. Use it in every page with `title`, `description`, and `url` props. The component auto-appends `| Artopia` to titles and sets Georgian locale (`ka_GE`) by default.
-
-### Catalogue URLs, pagination, real 404s (2026-10)
-
-- **One URL scheme**: `/products[/category/<name>][/page/<N>]` — build it with `catalogPath()` and
-  parse it with `parseCatalogPath()` (`src/utils/canonical.js`). Pagination lives in the path, so
-  `robots.txt` keeps `Disallow: /*?*` (search, filters, tracking stay blocked). Page 2+ has its own
-  canonical; page 1 and the old `?page=` / `?category=` links canonicalise to the clean path.
-- **Titles/descriptions and Product JSON-LD have one source** for React and the edge function:
-  `src/utils/catalogMeta.js`. Brand and GTIN come from the API (`brand`, `gtin`); never hard-code
-  "Artopia" as a brand.
-- **Links must be real `<a href>`**: product card title (`href` prop of `ProductsCard`), category
-  list (`ProductFilter`, always in the DOM), pager (`EdgePager` with `hrefFor`), related products.
-  Do not go back to `div`/`button` + `navigate()` for navigation, and never nest `<a>`/`<button>`.
+- `src/components/SEO.jsx` (react-helmet-async) on every page; `noIndex` drops the canonical.
+  `src/components/NotFound.jsx` is the not-found view. An API outage is **not** "not found".
+- **URLs**: `/products[/category/<name>][/page/<N>]` — build with `catalogPath()`, parse with
+  `parseCatalogPath()` (`src/utils/canonical.js`). Pagination is in the path; `robots.txt` keeps
+  `Disallow: /*?*`. Page 2+ has its own canonical.
+- **One source for meta and JSON-LD**, shared by React and the edge function: `src/utils/catalogMeta.js`.
+  Brand and GTIN come from the API; never hard-code "Artopia" as a brand.
 - **HTTP status** is decided in `netlify/edge-functions/meta.js` (runs on `/*`): unknown path → 404;
-  product/category page/blog → 404, 410 or 301 **only** when the API answers so in JSON. API timeout,
-  5xx or network error always serves the normal 200 page. **When you add a route to `src/App.jsx`, add
-  it to `STATIC_ROUTES` / `ROUTE_PATTERNS` there too** — `tests/seo.test.mjs` fails if you forget.
-- The edge function marks its JSON-LD with `data-ld-edge`; pages emit their own Product schema only
-  when that marker is absent (`src/utils/edgeJsonLd.js`), so a page never carries two Product blocks.
-- `src/components/NotFound.jsx` is the not-found view (noindex, no canonical). An API outage is
-  **not** "not found": show an error without noindex.
-- Admin pages must send the admin JWT on every write (`authHeaders()` from `src/admin/api.js`); the
-  "დამალვა" checkbox reads `manually_hidden`, not `hide`.
-- **No secret may live in this repo or bundle** (the repo is public): admin login is email +
-  password only; there is no `VITE_ADMIN_TOKEN` / shared header. `.env` holds public values only.
-- Promo codes are checked only by `POST /promo-codes/validate`; the code list is admin-only, so the
-  checkout has no client-side fallback.
-- The Optimo sync button handles `status: "needs_confirmation"` (mass delete) with an explicit dialog
-  and resends `confirm_delete`.
-- Local check of the real edge runtime: `npx netlify dev` (Deno). `ARTOPIA_API_BASE` in
-  `.env.development.local` points the edge function at a local backend.
+  product / category page / blog → 404, 410 or 301 only when the API says so in JSON. Timeouts and 5xx
+  serve the normal 200 page. **A new route in `src/App.jsx` must also go into `STATIC_ROUTES` /
+  `ROUTE_PATTERNS` there** (`tests/seo.test.mjs` fails otherwise). The function marks its JSON-LD with
+  `data-ld-edge`; pages add their own only when it is absent (`src/utils/edgeJsonLd.js`).
+- **Navigation is real `<a href>`** (card title, category list, pager, related products, footer
+  categories). No `div`/`button` + `navigate()`, no nested `<a>`/`<button>`.
+- **Out-of-stock pages stay indexable** (owner's rule). Admin-hidden → 404, removed → 410.
+- **Images**: `responsiveImage(url, "card" | "detail" | "hero")` from `src/utils/cloudinary.js`; first
+  screen `loading="eager"` (first one `fetchpriority="high"`), the rest lazy. The edge function preloads
+  the main photo with the same helper. Static images are small WebP with `width`/`height`.
+- **Reserve space** for late content (product loader, home carousel) — CLS was 0.78 / 0.29.
+- **Google Translate loads on demand** (`src/utils/googleTranslate.js`); never put its `<script>` back
+  into `index.html`.
+- **Product cards make no API call**; stock comes with the list. Only cart and checkout call `/products/<id>`.
+- `/assets/*` is cached immutably (`public/_headers`); HTML never is.
+- **Admin**: every write sends the admin JWT (`authHeaders()` in `src/admin/api.js`); the "დამალვა"
+  checkbox reads `manually_hidden`. **The repo is public — no secret in code or `.env`.**
+- Promo codes are checked only by `POST /promo-codes/validate`.
 
-### Performance rules (2026-10)
+**Checking a change**: `npm test` (66). Deploy previews cannot load API data in a browser (CORS); for real
+data run `npm run build && npx vite preview --port 5173 --strictPort`. The real edge runtime runs locally
+with `npx netlify dev`. Deploy: branch → PR → Netlify preview → merge to `main`.
 
-Measured problems that were fixed — do not reintroduce them:
-
-- **No heavy static images.** The footer "Made by" logo was a 2 MB PNG on every page. Static images
-  are small WebP files with explicit `width`/`height` (`public/*.webp`, `src/assets/*.webp`).
-- **Google Translate is loaded on demand** (`src/utils/googleTranslate.js`): on hover/touch of the
-  flags, on click, or after load when the visitor already chose English (`googtrans` cookie). Never
-  put its `<script>` back into `index.html` — it blocked rendering for ~1 s on every page. The combo
-  box appears before Google listens to it, so `changeLanguage()` repeats the change until the cookie
-  shows the new language. In headless/automation it only works with a normal user agent.
-- **Images**: use `responsiveImage(url, "card" | "detail" | "hero")` from `src/utils/cloudinary.js`
-  for `src` + `srcSet` + `sizes`. First-screen images are `loading="eager"` (the first one also
-  `fetchpriority="high"`), everything below is lazy. The edge function preloads the page's main photo
-  with the **same** helper; a preload that does not match the `<img>` exactly downloads twice.
-- **Reserve space** for content that arrives later (product page loader `minHeight: 100vh`, home
-  carousel placeholder 16:9) — otherwise the footer/sections jump (CLS was 0.78 / 0.29).
-- **Product cards make no API call of their own**: stock comes with the list (`quantity` is the
-  orderable amount). Only the cart and checkout call `/products/<id>`.
-- `/assets/*` is cached immutably (`public/_headers`); never give HTML a long cache.
-- The deploy-preview origin is **not** in the backend CORS list, so data does not load in a browser on
-  `deploy-preview-N--…netlify.app` (the edge function still works there). For a browser check with real
-  data run `npm run build && npx vite preview --port 5173 --strictPort` (localhost:5173 is allowed).
+**Still open (not code)**: Search Console data (page indexing, sitemaps, Core Web Vitals, crawl stats,
+URL inspection) to confirm what Google really indexes; 228 in-stock products without a photo; mobile LCP
+is 3.7–6.1 s in the lab — the rest is the SPA itself (prerender only if Search Console shows a problem).
 
 ### Admin navbar (mobile)
 
