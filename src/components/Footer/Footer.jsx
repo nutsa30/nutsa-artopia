@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { catalogPath } from "../../utils/canonical";
 import styles from "./Footer.module.css";
 import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaEnvelope } from "react-icons/fa";
 
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/contacts";
+const API_ROOT = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 /* ---------- ერთენოვანი ლეიბლები ---------- */
 const L = {
@@ -20,10 +23,28 @@ const L = {
   copyright: "2024 © არტოპია",
   noEmail: "ელ. ფოსტა არ არის",
 };
-const LogoImg = "/Logo.png";
+const LogoImg = "/Logo.webp";
 const Footer = () => {
   const [contacts, setContacts] = useState([]);
   const [error, setError] = useState("");
+  const [categories, setCategories] = useState([]);
+
+  // კატეგორიების ბმულები ყველა გვერდის ბოლოს — მომხმარებელს სწრაფი გზა აქვს,
+  // crawler-ს კი ყველა კატეგორია ნებისმიერი გვერდიდან ერთი ნაბიჯით ხვდება.
+  useEffect(() => {
+    let alive = true;
+    fetch(`${API_ROOT}/products/categories`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (!alive || !Array.isArray(data)) return;
+        const names = [...new Set(data.map((c) => String(c).trim()).filter(Boolean))];
+        setCategories(names.sort((a, b) => a.localeCompare(b, "ka")));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     const fetchContacts = async () => {
@@ -47,7 +68,7 @@ const Footer = () => {
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <div className={styles.companyInfo}>
-<img src={LogoImg} alt="Company Logo" className={styles.logo} />
+<img src={LogoImg} alt="Artopia" className={styles.logo} width="50" height="50" loading="lazy" decoding="async" />
             <p className={styles.companyName}>{L.brand}</p>
 
             <p className={styles.contact}>
@@ -123,6 +144,19 @@ const Footer = () => {
             </div>
           </div>
 
+          {categories.length > 0 && (
+            <details className={styles.categoryNav}>
+              <summary>პროდუქციის კატეგორიები</summary>
+              <nav aria-label="კატეგორიები" className={styles.categoryLinks}>
+                {categories.map((name) => (
+                  <Link key={name} to={catalogPath({ category: name })}>
+                    {name}
+                  </Link>
+                ))}
+              </nav>
+            </details>
+          )}
+
           <div className={styles.footerLinks}>
   <div className={styles.policyLinks}>
     <a href="/engraving" className={styles.policyBtn}>გრავირება</a>
@@ -144,9 +178,13 @@ const Footer = () => {
           >
             <span className={styles.madeBy}>Made by</span>
             <img
-              src="/kemsilab-fordark.png"
+              src="/kemsilab-fordark.webp"
               alt="KemsiLab"
               className={styles.kemsilabLogo}
+              width="90"
+              height="60"
+              loading="lazy"
+              decoding="async"
             />
           </a>
         </div>

@@ -1,13 +1,11 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import styles from "./ProductsCard.module.css";
 import { useFlyToCart } from "../useFlyToCart";
 import { useCartUiRefs } from "../Navbar/Navbar";
 import { playSound } from "../../utils/playSound";
-import { cld, IMG } from "../../utils/cloudinary";
+import { responsiveImage } from "../../utils/cloudinary";
 import popSfx from "../../assets/pop.mp3";
-
-const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
 
 const LBL = {
   new: "ახალი",
@@ -17,16 +15,15 @@ const LBL = {
   category: "კატეგორია",
 };
 
-export default function ProductsCard({ product, onAddToCart, onBuyNow, href, linkState }) {
+export default function ProductsCard({ product, onAddToCart, onBuyNow, href, linkState, eager = false, priority = false }) {
   const { cartRef } = useCartUiRefs();
   const flyToCart = useFlyToCart(cartRef);
   const imgRef = useRef(null);
 
   const T = LBL;
 
-  const [details, setDetails] = useState(null);
-  const pid = product?.id ?? product?._id;
-
+  // მარაგი და სახელი სიის პასუხიდან მოდის (სერვერი იქვე აბრუნებს ახლა
+  // შესაკვეთ რაოდენობას) — თითო ბარათი ცალკე მოთხოვნას აღარ აგზავნის.
   const hasSale = useMemo(() => {
     const s = Number(product?.sale);
     return Number.isFinite(s) && s > 0 && s <= 100;
@@ -37,46 +34,17 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow, href, lin
     ? +(price * (1 - Number(product.sale) / 100)).toFixed(2)
     : price;
 
-  useEffect(() => {
-    let ignore = false;
-    if (!pid) return;
+  const title = String(product?.name ?? "").trim();
 
-    (async () => {
-      try {
-        const r = await fetch(`${API_BASE}/products/${pid}`);
-        if (!r.ok) return;
-
-        const data = await r.json();
-        if (!ignore) setDetails(data || {});
-      } catch {
-        /* ignore */
-      }
-    })();
-
-    return () => {
-      ignore = true;
-    };
-  }, [pid]);
-
-  const title = String(
-    product?.name ?? details?.name ?? ""
-  ).trim();
-
-  const category = String(
-    product?.category_name ??
-      details?.category_name ??
-      product?.category ??
-      details?.category ??
-      ""
-  ).trim();
+  const category = String(product?.category_name ?? product?.category ?? "").trim();
 
   const quantity = useMemo(() => {
-    const raw = details?.quantity ?? product?.quantity ?? 0;
-    const num = Number(raw);
+    const num = Number(product?.quantity ?? 0);
     return Number.isFinite(num) && num > 0 ? Math.floor(num) : 0;
-  }, [details?.quantity, product?.quantity]);
+  }, [product?.quantity]);
 
   const inStock = quantity > 0;
+  const picture = responsiveImage(product?.image_url1, "card");
 
   const addOne = (e) => {
     e.stopPropagation();
@@ -138,9 +106,13 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow, href, lin
 <img
   ref={imgRef}
   className={styles.image}
-  src={cld(product.image_url1, { w: IMG.CARD }) || "/noimage.jpeg"}
+  src={picture.src || "/noimage.jpeg"}
+  srcSet={picture.srcSet}
+  sizes={picture.sizes}
   alt={`${title} - ${category} Artopia`}
-  loading="lazy"
+  // პირველი ეკრანის ბარათები მაშინვე იტვირთება (LCP), დანარჩენი — გადახვევისას
+  loading={eager ? "eager" : "lazy"}
+  {...(priority ? { fetchpriority: "high" } : {})}
   decoding="async"
   itemProp="image"
 />

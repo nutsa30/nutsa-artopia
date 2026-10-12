@@ -4,6 +4,7 @@ import styles from "./BlogsPage.module.css";
 import { cld, IMG } from "../utils/cloudinary";
 import SEO from "../components/SEO";
 import AppLoader from "../components/loaders/AppLoader";
+import { BLOG_INDEX_META } from "../utils/catalogMeta";
 
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
 const FALLBACK_IMAGE = "/noimage.jpeg";
@@ -39,10 +40,10 @@ export default function BlogsPage() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const pageTitle = "ბლოგი – სტატიები და სიახლეები | Artopia";
-  const pageDescription =
-    "აღმოაჩინე Artopia-ს ბლოგი — იდეები, რჩევები, შთაგონება და პრაქტიკული სტატიები ხელოვნების, შემოქმედებისა და სასკოლო მასალების შესახებ.";
-  const pageUrl = "https://artopia.ge/blogs";
+  // იგივე ტექსტი, რაც საწყის HTML-შია (edge function) — Google-მა JS-მდე და JS-ის შემდეგ ერთი და იგივე ნახოს
+  const pageTitle = BLOG_INDEX_META.title;
+  const pageDescription = BLOG_INDEX_META.description;
+  const pageUrl = BLOG_INDEX_META.url;
 
   useEffect(() => {
     let alive = true;

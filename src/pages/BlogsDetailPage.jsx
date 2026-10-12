@@ -4,6 +4,8 @@ import styles from "./BlogsDetailPage.module.css";
 import { cld, IMG } from "../utils/cloudinary";
 import SEO from "../components/SEO";
 import NotFound from "../components/NotFound";
+import { blogArticleMeta } from "../utils/catalogMeta";
+import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
 import AppLoader from "../components/loaders/AppLoader";
 
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
@@ -189,7 +191,11 @@ document.addEventListener("mouseout", handleMouseOut);
   }, [blog]);
 
   const title = normalizeText(blog?.meta_title) || normalizeText(blog?.title);
-  const description = getBlogDescription(blog);
+  // იგივე წესი, რაც საწყის HTML-შია (edge function): JS-მდე და JS-ის შემდეგ metadata ემთხვევა
+  const description = blogArticleMeta(blog, slug).description || getBlogDescription(blog);
+  // BlogPosting + BreadcrumbList-ს edge function წერს; აქ ვამატებთ მხოლოდ მაშინ, როცა ის არ არის,
+  // რომ გვერდზე ორი Article და ორი BreadcrumbList არ აღმოჩნდეს
+  const edgeProvidesSchema = hasEdgeJsonLd(`/blog/${slug}`);
   const coverImage = getCoverImage(blog);
 
   const canonicalUrl =
@@ -199,7 +205,7 @@ document.addEventListener("mouseout", handleMouseOut);
 
   const articleSchema = blog && {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     headline: title,
     description: description,
     image: coverImage,
@@ -271,14 +277,18 @@ if (loading) {
       />
 
       {/* STRUCTURED DATA */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      {!edgeProvidesSchema && (
+        <>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+          />
+        </>
+      )}
 
       <div className={styles.page}>
         <div className={styles.container}>
@@ -385,6 +395,8 @@ if (loading) {
         >
    <img
   src={cld(b.cover_image, { w: IMG.BLOG_CARD }) || "/noimage.jpeg"}
+  alt={b.title || "ბლოგი"}
+  loading="lazy"
   style={{
     width: "100%",
     height: "180px",
@@ -426,6 +438,7 @@ if (loading) {
       <>
         <img
           src={cld(preview.data.image_url1, { w: IMG.CARD })}
+          alt={preview.data.name || ""}
           style={{ width: "100%", borderRadius: "8px" }}
         />
         <p style={{ marginTop: "8px", color: "white" }}>
@@ -438,6 +451,7 @@ if (loading) {
       <>
         <img
           src={cld(preview.data.cover_image, { w: IMG.CARD })}
+          alt={preview.data.title || ""}
           style={{ width: "100%", borderRadius: "8px" }}
         />
         <p style={{ marginTop: "8px", color: "white" }}>

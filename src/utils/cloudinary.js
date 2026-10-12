@@ -83,4 +83,34 @@ export const IMG = {
   ZOOM: 1600, // გადიდების მოდალი (მობილურზე pinch-zoom-ია)
 };
 
+/**
+ * `srcset` Cloudinary-ს იმავე სურათის რამდენიმე სიგანისთვის. არა-Cloudinary URL-ზე
+ * (ლოკალური placeholder და სხვ.) აბრუნებს undefined-ს — ატრიბუტი უბრალოდ არ იწერება.
+ */
+export function cldSrcSet(url, widths) {
+  if (typeof url !== "string" || !CLOUDINARY_UPLOAD_RE.test(url.trim())) return undefined;
+  const first = cld(url, { w: widths[0] });
+  if (first === url) return undefined; // უკვე ტრანსფორმირებული URL — ხელს არ ვახლებთ
+  return widths.map((w) => `${cld(url, { w })} ${w}w`).join(", ");
+}
+
+/**
+ * ერთი წყარო `<img>`-ისთვის და edge function-ის `<link rel="preload">`-ისთვის:
+ * preload მხოლოდ მაშინ მუშაობს, თუ src/srcset/sizes ზუსტად ემთხვევა სურათს.
+ */
+const RESPONSIVE = {
+  // პროდუქტის ბარათი: მობილურზე 2 სვეტი, დიდ ეკრანზე ~260–300px
+  card: { w: IMG.CARD, widths: [300, 450, 600], sizes: "(max-width: 640px) 46vw, (max-width: 1100px) 30vw, 300px" },
+  // პროდუქტის მთავარი ფოტო (max-width 560px)
+  detail: { w: IMG.DETAIL, widths: [600, 900, 1200], sizes: "(max-width: 700px) 92vw, 560px" },
+  // მთავარი გვერდის carousel (გვერდის სიგანეზე, მაქს. 1600px)
+  hero: { w: IMG.HERO, widths: [800, 1200, 1600], sizes: "(max-width: 1600px) 100vw, 1600px" },
+};
+
+export function responsiveImage(url, kind) {
+  const spec = RESPONSIVE[kind];
+  const srcSet = cldSrcSet(url, spec.widths);
+  return { src: cld(url, { w: spec.w }), srcSet, sizes: srcSet ? spec.sizes : undefined };
+}
+
 export default cld;
