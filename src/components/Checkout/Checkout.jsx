@@ -604,7 +604,8 @@ const Checkout = () => {
                     )}
 
                     {!isEngr &&
-                      (stockMessageById[item.id] || item.quantity >= normalizeQuantity(stockById[item.id])) && (
+                      // მარაგის პასუხამდე „მარაგში მხოლოდ 0 ცალია" არ ვაჩვენებთ
+                      (stockMessageById[item.id] || (item.id in stockById && item.quantity >= normalizeQuantity(stockById[item.id]))) && (
                       <div className={styles.stockWarning}>
                         {stockMessageById[item.id] ||
                           `მარაგში მხოლოდ ${normalizeQuantity(stockById[item.id])} ცალია.`}
