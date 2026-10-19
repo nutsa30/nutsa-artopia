@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./BlogsPage.module.css";
-import { cld, IMG } from "../utils/cloudinary";
+import { responsiveImage } from "../utils/cloudinary";
 import SEO from "../components/SEO";
 import AppLoader from "../components/loaders/AppLoader";
 import { BLOG_INDEX_META } from "../utils/catalogMeta";
@@ -167,7 +167,7 @@ const description = stripHtml(rawDescription);
                       >
                         <div className={styles.imageWrap}>
                           <img
-                            src={cld(image, { w: IMG.BLOG_CARD })}
+                            {...responsiveImage(image, "blog")}
                             alt={blog.title || "ბლოგის ქავერი"}
                             className={styles.image}
                             loading="lazy"

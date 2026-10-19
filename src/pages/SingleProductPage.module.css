@@ -13,6 +13,29 @@
   color: #f1f5f9;
 }
 
+.skeletonBlock {
+  border-radius: 12px;
+  background: linear-gradient(100deg, rgba(255,255,255,.07) 20%, rgba(255,255,255,.15) 38%, rgba(255,255,255,.07) 56%);
+  background-size: 220% 100%;
+  animation: productSkeleton 1.35s linear infinite;
+}
+
+.skeletonBack { width: 128px; height: 40px; margin-bottom: 24px; border-radius: 999px; }
+.skeletonGallery { min-height: 520px; display: grid; place-items: center; }
+.skeletonImage { width: 82%; aspect-ratio: 1; }
+.skeletonInfo { min-height: 520px; }
+.skeletonTitle { width: 82%; height: 42px; margin-bottom: 22px; }
+.skeletonLine { width: 58%; height: 18px; margin-bottom: 16px; }
+.skeletonLineWide { width: 94%; height: 72px; margin: 28px 0 22px; }
+.skeletonPrice { width: 34%; height: 38px; margin: 36px 0 24px; }
+.skeletonButton { width: 100%; height: 54px; margin-top: 24px; }
+
+@keyframes productSkeleton { to { background-position-x: -220%; } }
+
+@media (max-width: 800px) {
+  .skeletonGallery, .skeletonInfo { min-height: 420px; }
+}
+
 .topBar {
   display: flex;
   align-items: center;

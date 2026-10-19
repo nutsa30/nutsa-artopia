@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import ProductCard from "../productCard/productsCard";
 import { catalogPath } from "../../utils/canonical";
 import styles from "./CatalogLanding.module.css";
+import { responsiveImage } from "../../utils/cloudinary";
 
 export default function CatalogLanding({ catalog, onAddToCart, onBuyNow }) {
   if (!catalog?.main_categories?.length) return null;
@@ -13,7 +14,7 @@ export default function CatalogLanding({ catalog, onAddToCart, onBuyNow }) {
       <div className={styles.mainGrid}>
         {catalog.main_categories.map((main) => <Link key={main.id} to={catalogPath({ mainCategory: main.slug })}
           className={styles.mainCard}>
-          {main.image_url ? <img src={main.image_url} alt="" width="800" height="450" loading="lazy" /> :
+          {main.image_url ? <img {...responsiveImage(main.image_url, "category")} alt="" width="800" height="450" loading="lazy" decoding="async" /> :
             <div className={styles.placeholder}><ImageIcon size={38} aria-hidden="true" /></div>}
           <span className={styles.overlay} />
           <span className={styles.mainText}><strong>{main.name}</strong><small>{main.product_count} პროდუქტი · {main.subcategories.length} ქვეკატეგორია</small></span>

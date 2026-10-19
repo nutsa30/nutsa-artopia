@@ -103,10 +103,10 @@
   .skeletonGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 480px) {
-  .skeletonGrid { grid-template-columns: 1fr; }
+  .skeletonGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .skeletonCard {
-  height: 280px;
+  min-height: clamp(330px, 34vw, 410px);
   border-radius: 14px;
   background: linear-gradient(90deg, #eef2f6, #f7f9fb, #eef2f6);
   background-size: 200% 100%;

@@ -1,11 +1,10 @@
 // src/App.jsx
 import "../index.css";
 
-import React, { useEffect } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import "./App.css";
 import { CartProvider } from "./components/CartContext/CartContext";
 import Navbar, { CartUiProvider } from "./components/Navbar/Navbar";
-import Checkout from "./components/Checkout/Checkout";
 import {
   BrowserRouter as Router,
   Routes,
@@ -14,29 +13,28 @@ import {
   Navigate,
   useParams,
 } from "react-router-dom";
-import { LayoutGroup } from "framer-motion";
-
 import HomePage from "./pages/HomePage";
-import ProductsPage from "./pages/ProductsPage";
-import BlogsPage from "./pages/BlogsPage";
-import BlogDetailPage from "./pages/BlogsDetailPage";
-
-import ContactsPage from "./pages/ContactsPage";
-import LoginPage from "./pages/LoginPage";
 import Footer from "./components/Footer/Footer";
-import ChatWidget from "./components/ChatWidget";
-
-import PaymentResult from "./components/Checkout/PaymentResult";
 import CartToast from "./components/CartToast/CartToast";
 import { useCart } from "./components/CartContext/CartContext";
-import SingleProductPage from "./pages/SingleProductPage";
-import TermsPage from "./pages/TermsPage";
-import ReturnsPage from "./pages/ReturnsPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import ReviewsPage from "./pages/ReviewsPage";
 import ScrollToTop from "./components/ScrollToTop";
 import NotFound from "./components/NotFound";
 import { dropStaleEdgeJsonLd } from "./utils/edgeJsonLd";
+import { StorefrontDataProvider } from "./context/StorefrontDataContext";
+
+const ProductsPage = React.lazy(() => import("./pages/ProductsPage"));
+const BlogsPage = React.lazy(() => import("./pages/BlogsPage"));
+const BlogDetailPage = React.lazy(() => import("./pages/BlogsDetailPage"));
+const ContactsPage = React.lazy(() => import("./pages/ContactsPage"));
+const LoginPage = React.lazy(() => import("./pages/LoginPage"));
+const Checkout = React.lazy(() => import("./components/Checkout/Checkout"));
+const PaymentResult = React.lazy(() => import("./components/Checkout/PaymentResult"));
+const SingleProductPage = React.lazy(() => import("./pages/SingleProductPage"));
+const TermsPage = React.lazy(() => import("./pages/TermsPage"));
+const ReturnsPage = React.lazy(() => import("./pages/ReturnsPage"));
+const PrivacyPage = React.lazy(() => import("./pages/PrivacyPage"));
+const ReviewsPage = React.lazy(() => import("./pages/ReviewsPage"));
+const ChatWidget = React.lazy(() => import("./components/ChatWidget"));
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 // 3D (three.js) მხოლოდ ამ გვერდს სჭირდება — ცალკე ჩანქად იტვირთება
 const EngravingPage = React.lazy(() => import("./pages/EngravingPage"));
@@ -56,8 +54,22 @@ const RouteLoader = () => {
 };
 
 const ChatWidgetMount = () => {
-  return <ChatWidget siteLang="ka" />;
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const show = () => setReady(true);
+    const id = "requestIdleCallback" in window
+      ? window.requestIdleCallback(show, { timeout: 2500 })
+      : window.setTimeout(show, 1800);
+    return () => {
+      if ("cancelIdleCallback" in window) window.cancelIdleCallback(id);
+      else window.clearTimeout(id);
+    };
+  }, []);
+  return ready ? <Suspense fallback={null}><ChatWidget siteLang="ka" /></Suspense> : null;
 };
+
+const RouteFallback = () => <div style={{ minHeight: "65vh" }} aria-busy="true" />;
+const DeferredPage = ({ children }) => <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 
 const OldAddProductRedirect = () => {
   const { id } = useParams();
@@ -106,10 +118,10 @@ const ChatMountIfNotAdmin = () => {
 
   return (
     <>
-      <LayoutGroup>
         <CartProvider>
           <CartUiProvider>
             <Router>
+              <StorefrontDataProvider>
               <ScrollToTop />   
               <CartToastWrapper />
               <RouteLoader />
@@ -131,17 +143,17 @@ const ChatMountIfNotAdmin = () => {
 
 <Route path="/" element={<HomePage key="home" />} />
 
-<Route path="/products" element={<ProductsPage />} />
+<Route path="/products" element={<DeferredPage><ProductsPage /></DeferredPage>} />
 
-<Route path="/products/page/:page" element={<ProductsPage />} />
+<Route path="/products/page/:page" element={<DeferredPage><ProductsPage /></DeferredPage>} />
 
-<Route path="/products/category/:slug" element={<ProductsPage />} />
+<Route path="/products/category/:slug" element={<DeferredPage><ProductsPage /></DeferredPage>} />
 
-<Route path="/products/category/:slug/page/:page" element={<ProductsPage />} />
-<Route path="/products/group/:mainSlug" element={<ProductsPage />} />
-<Route path="/products/group/:mainSlug/page/:page" element={<ProductsPage />} />
+<Route path="/products/category/:slug/page/:page" element={<DeferredPage><ProductsPage /></DeferredPage>} />
+<Route path="/products/group/:mainSlug" element={<DeferredPage><ProductsPage /></DeferredPage>} />
+<Route path="/products/group/:mainSlug/page/:page" element={<DeferredPage><ProductsPage /></DeferredPage>} />
 
-<Route path="/products/:slug" element={<SingleProductPage />} />
+<Route path="/products/:slug" element={<DeferredPage><SingleProductPage /></DeferredPage>} />
 
 <Route
   path="/engraving"
@@ -152,21 +164,21 @@ const ChatMountIfNotAdmin = () => {
   }
 />
 
-<Route path="/blogs" element={<BlogsPage />} />
+<Route path="/blogs" element={<DeferredPage><BlogsPage /></DeferredPage>} />
 
-<Route path="/blog/:slug" element={<BlogDetailPage />} />
+<Route path="/blog/:slug" element={<DeferredPage><BlogDetailPage /></DeferredPage>} />
 
-<Route path="/login" element={<LoginPage />} />
+<Route path="/login" element={<DeferredPage><LoginPage /></DeferredPage>} />
 
-<Route path="/checkout" element={<Checkout />} />
+<Route path="/checkout" element={<DeferredPage><Checkout /></DeferredPage>} />
 
-<Route path="/payment/result" element={<PaymentResult />} />
+<Route path="/payment/result" element={<DeferredPage><PaymentResult /></DeferredPage>} />
 
-<Route path="/contacts" element={<ContactsPage />} />
-<Route path="/terms" element={<TermsPage />} />
-<Route path="/returns" element={<ReturnsPage />} />
-<Route path="/privacy" element={<PrivacyPage />} />
-<Route path="/reviews" element={<ReviewsPage key="reviews" />} />
+<Route path="/contacts" element={<DeferredPage><ContactsPage /></DeferredPage>} />
+<Route path="/terms" element={<DeferredPage><TermsPage /></DeferredPage>} />
+<Route path="/returns" element={<DeferredPage><ReturnsPage /></DeferredPage>} />
+<Route path="/privacy" element={<DeferredPage><PrivacyPage /></DeferredPage>} />
+<Route path="/reviews" element={<DeferredPage><ReviewsPage key="reviews" /></DeferredPage>} />
     {/* REDIRECTS */}
     <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
     <Route path="/addProducts" element={<Navigate to="/admin/addProducts" replace />} />
@@ -197,10 +209,10 @@ const ChatMountIfNotAdmin = () => {
 </Routes>
 
               <ChatMountIfNotAdmin />
+              </StorefrontDataProvider>
             </Router>
           </CartUiProvider>
         </CartProvider>
-      </LayoutGroup>
     </>
   );
 }

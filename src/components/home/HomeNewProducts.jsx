@@ -1,48 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../../components/CartContext/CartContext";
 import ProductCard from "../../components/productCard/productsCard";
 import styles from "./HomeNewProduct.module.css";
 
-/* API BASE */
-const API_BASE =
-  (import.meta.env.VITE_API_BASE ?? "").trim() ||
-  "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
-
 /** იგივე sorting logic */
 
-export default function HomeNewProducts({ limit = 4, titleKa, titleEn }) {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function HomeNewProducts({ items = [], loading = false, limit = 4, titleKa, titleEn }) {
 
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let alive = true;
-    setLoading(true);
-
-fetch(`${API_BASE}/products/new`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (!alive) return;
-        setItems(Array.isArray(data) ? data : []);
-      })
-      .catch((e) => {
-        console.error("HomeNewProducts fetch error:", e);
-        if (alive) setItems([]);
-      })
-      .finally(() => alive && setLoading(false));
-
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-const newProducts = items.slice(0, limit);
+const newProducts = (Array.isArray(items) ? items : []).slice(0, limit);
 
   const handleAddToCart = (product, qty) => addToCart(product, qty);
 

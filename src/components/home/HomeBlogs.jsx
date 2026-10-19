@@ -1,14 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./HomeBlogs.module.css";
-import { cld, IMG } from "../../utils/cloudinary";
+import { responsiveImage } from "../../utils/cloudinary";
 
-/* API BASE */
-const API_BASE =
-  (import.meta.env.VITE_API_BASE ?? "").trim() ||
-  "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
-
-const BASE = `${API_BASE}/blogs`;
 const FALLBACK_IMAGE = "/noimage.jpeg";
 
 function normalizeText(value) {
@@ -36,42 +30,10 @@ const compareBlogs = (a, b) => {
   return String(a?.title || "").localeCompare(String(b?.title || ""));
 };
 
-export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function HomeBlogs({ items = [], loading = false, limit = 4, titleKa, titleEn }) {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    let alive = true;
-    setLoading(true);
-
-    fetch(BASE)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((data) => {
-        if (!alive) return;
-        const list = Array.isArray(data) ? data : [];
-        const filtered = list
-          .filter((b) => b?.is_active !== false)
-          .sort(compareBlogs)
-          .slice(0, limit);
-
-        setItems(filtered);
-      })
-      .catch((e) => {
-        console.error("HomeBlogs fetch error:", e);
-        if (alive) setItems([]);
-      })
-      .finally(() => {
-        if (alive) setLoading(false);
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, [limit]);
+  const visibleItems = (Array.isArray(items) ? items : [])
+    .filter((blog) => blog?.is_active !== false).sort(compareBlogs).slice(0, limit);
 
   return (
     <section className={styles.section}>
@@ -96,11 +58,11 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
             <div key={i} className={styles.skeletonCard} />
           ))}
         </div>
-      ) : items.length === 0 ? (
+      ) : visibleItems.length === 0 ? (
         <div className={styles.empty}>ბლოგები ჯერ არ არის.</div>
       ) : (
         <div className={styles.grid}>
-          {items.map((b) => {
+          {visibleItems.map((b) => {
             const id = b.id ?? b._id;
             const slug = normalizeText(b?.slug);
             const title = normalizeText(b?.title) || "უსათაურო ბლოგი";
@@ -145,7 +107,7 @@ export default function HomeBlogs({ limit = 4, titleKa, titleEn }) {
               >
                 <div className={styles.cardImageWrap}>
                   <img
-                    src={cld(cover, { w: IMG.BLOG_CARD })}
+                    {...responsiveImage(cover, "blog")}
                     alt={title}
                     className={styles.productImage}
                     style={{ objectFit: "cover" }}

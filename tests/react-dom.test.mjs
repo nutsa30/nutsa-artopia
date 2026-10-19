@@ -35,6 +35,7 @@ const { default: BlogPage } = await server.ssrLoadModule("/src/pages/BlogsDetail
 const { default: Checkout } = await server.ssrLoadModule("/src/components/Checkout/Checkout.jsx");
 const { default: ProductsPage } = await server.ssrLoadModule("/src/pages/ProductsPage.jsx");
 const { default: HomePage } = await server.ssrLoadModule("/src/pages/HomePage.jsx");
+const { StorefrontDataProvider } = await server.ssrLoadModule("/src/context/StorefrontDataContext.jsx");
 const { CartUiProvider } = await server.ssrLoadModule("/src/components/Navbar/Navbar.jsx");
 after(async () => { await server.close(); dom.window.close(); });
 
@@ -291,8 +292,9 @@ test("homepage search opens the catalogue with a trimmed query", async () => {
     React.createElement(Route, { path: "/products", element: React.createElement(LocationProbe) }));
   const cleanup = await render(React.createElement(HelmetProvider, null,
     React.createElement(MemoryRouter, { initialEntries: ["/"], future },
-      React.createElement(CartProvider, null,
-        React.createElement(CartUiProvider, null, routes)))));
+      React.createElement(StorefrontDataProvider, null,
+        React.createElement(CartProvider, null,
+          React.createElement(CartUiProvider, null, routes))))));
   try {
     const form = document.querySelector('form[role="search"]');
     const input = document.querySelector('input[aria-label="პროდუქტის დასახელება"]');

@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { catalogPath } from "../../utils/canonical";
 import styles from "./Footer.module.css";
 import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaEnvelope } from "react-icons/fa";
-
-const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/contacts";
-const API_ROOT = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+import { useStorefrontData } from "../../context/StorefrontDataContext";
 
 /* ---------- ერთენოვანი ლეიბლები ---------- */
 const L = {
@@ -25,43 +23,10 @@ const L = {
 };
 const LogoImg = "/Logo.webp";
 const Footer = () => {
-  const [contacts, setContacts] = useState([]);
-  const [error, setError] = useState("");
-  const [categories, setCategories] = useState([]);
-
-  // კატეგორიების ბმულები ყველა გვერდის ბოლოს — მომხმარებელს სწრაფი გზა აქვს,
-  // crawler-ს კი ყველა კატეგორია ნებისმიერი გვერდიდან ერთი ნაბიჯით ხვდება.
-  useEffect(() => {
-    let alive = true;
-    fetch(`${API_ROOT}/products/categories`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
-        if (!alive || !Array.isArray(data)) return;
-        const names = [...new Set(data.map((c) => String(c).trim()).filter(Boolean))];
-        setCategories(names.sort((a, b) => a.localeCompare(b, "ka")));
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        const res = await fetch(BASE);
-        if (!res.ok) throw new Error("მონაცემების წაკითხვა ვერ მოხერხდა");
-        const data = await res.json();
-        setContacts(data);
-      } catch (err) {
-        console.error(err);
-        setError("კონტაქტის მონაცემების წამოღება ვერ მოხერხდა.");
-      }
-    };
-    fetchContacts();
-  }, []);
-
-  if (error) return <div>{error}</div>;
+  const { data } = useStorefrontData();
+  const contacts = Array.isArray(data.contacts) ? data.contacts : [];
+  const categories = [...new Set((Array.isArray(data.categories) ? data.categories : [])
+    .map((category) => String(category).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ka"));
 
   return (
     <div className={styles.pageWrapper}>

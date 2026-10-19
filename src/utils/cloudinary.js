@@ -105,6 +105,10 @@ const RESPONSIVE = {
   detail: { w: IMG.DETAIL, widths: [600, 900, 1200], sizes: "(max-width: 700px) 92vw, 560px" },
   // მთავარი გვერდის carousel (გვერდის სიგანეზე, მაქს. 1600px)
   hero: { w: IMG.HERO, widths: [800, 1200, 1600], sizes: "(max-width: 1600px) 100vw, 1600px" },
+  // ბლოგის ბარათი: მობილურზე თითქმის სრული სიგანე, desktop-ზე ~300px
+  blog: { w: IMG.BLOG_CARD, widths: [320, 480, 800], sizes: "(max-width: 700px) 92vw, 320px" },
+  // მთავარი კატეგორიის 16:9 ბარათი
+  category: { w: 1200, widths: [480, 800, 1200], sizes: "(max-width: 760px) 92vw, 50vw" },
 };
 
 export function responsiveImage(url, kind) {

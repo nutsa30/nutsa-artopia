@@ -6,7 +6,6 @@ import { playSound } from "../utils/playSound";
 import popSfx from "../assets/pop.mp3";
 import styles from "./SingleProductPage.module.css";
 import { useLocation } from "react-router-dom";
-import AppLoader from "../components/loaders/AppLoader";
 import { Helmet } from "react-helmet-async";
 import AlsoBuyModal from "../components/AlsoBuy/AlsoBuyModal";
 import { trackViewItem } from "../utils/analytics";
@@ -15,6 +14,7 @@ import { cld, IMG, responsiveImage } from "../utils/cloudinary";
 import NotFound from "../components/NotFound";
 import { productJsonLd, breadcrumbJsonLd, productBreadcrumbs } from "../utils/catalogMeta";
 import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
+import { readInitialData } from "../utils/initialData";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const NO_IMAGE = "/noimage.jpeg";
@@ -89,9 +89,14 @@ export default function SingleProductPage() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const location = useLocation();
-const [product, setProduct] = useState(null);
-const [relatedProducts, setRelatedProducts] = useState([]);
-const [status, setStatus] = useState("loading");
+const embeddedRef = useRef(readInitialData("product", location.pathname));
+const embeddedProduct = embeddedRef.current?.product ? normalizeProduct(embeddedRef.current.product) : null;
+const embeddedRelated = Array.isArray(embeddedRef.current?.related)
+  ? embeddedRef.current.related.map(normalizeProduct).filter((p) => p.quantity > 0 && !p.manually_hidden && (!p.optimo_state || p.optimo_state === "active"))
+  : [];
+const [product, setProduct] = useState(embeddedProduct);
+const [relatedProducts, setRelatedProducts] = useState(embeddedRelated);
+const [status, setStatus] = useState(embeddedProduct ? "success" : "loading");
 const [quantity, setQuantity] = useState(1);
 const [stockMessage, setStockMessage] = useState("");
 const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -110,6 +115,10 @@ useEffect(() => {
 }, [status, product]);
 
 useEffect(() => {
+    if (embeddedRef.current?.product?.slug === slug) {
+      embeddedRef.current = null;
+      return;
+    }
     let ignore = false;
 
     const fetchProduct = async () => {
@@ -237,11 +246,23 @@ const canGoRelatedPrev = relatedStartIndex > 0;
 const canGoRelatedNext = relatedStartIndex < maxRelatedStart;
 
 if (status === "loading") {
-  // სიმაღლე დაჯავშნილია: footer არ „ხტება", როცა პროდუქტი ჩაიტვირთება (CLS)
   return (
-    <div style={{ minHeight: "100vh" }}>
-      <AppLoader />
-    </div>
+    <main className={styles.page} aria-label="პროდუქტი იტვირთება" aria-busy="true">
+      <div className={`${styles.skeletonBlock} ${styles.skeletonBack}`} />
+      <div className={styles.hero}>
+        <div className={`${styles.galleryCard} ${styles.skeletonGallery}`}>
+          <div className={`${styles.skeletonBlock} ${styles.skeletonImage}`} />
+        </div>
+        <div className={`${styles.infoCard} ${styles.skeletonInfo}`}>
+          <div className={`${styles.skeletonBlock} ${styles.skeletonTitle}`} />
+          <div className={`${styles.skeletonBlock} ${styles.skeletonLine}`} />
+          <div className={`${styles.skeletonBlock} ${styles.skeletonLineWide}`} />
+          <div className={`${styles.skeletonBlock} ${styles.skeletonLine}`} />
+          <div className={`${styles.skeletonBlock} ${styles.skeletonPrice}`} />
+          <div className={`${styles.skeletonBlock} ${styles.skeletonButton}`} />
+        </div>
+      </div>
+    </main>
   );
 }
 
@@ -606,7 +627,7 @@ alt={`${title} ${category} დეტალური ფოტო - Artopia`}
             style={relatedVisible ? undefined : { display: "none" }}
           >
         <img
-  src={cld(item.image_url1, { w: IMG.CARD }) || NO_IMAGE}
+  {...responsiveImage(item.image_url1 || NO_IMAGE, "card")}
   alt={`${item.name} Artopia`}
   className={styles.relatedImage}
   loading="lazy"

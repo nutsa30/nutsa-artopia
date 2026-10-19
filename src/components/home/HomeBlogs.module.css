@@ -131,7 +131,7 @@
   .skeletonGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 480px) {
-  .skeletonGrid { grid-template-columns: 1fr; }
+  .skeletonGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .skeletonCard {
   height: 240px;

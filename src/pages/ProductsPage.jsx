@@ -6,11 +6,11 @@ import { useCart } from "../components/CartContext/CartContext";
 import { useNavigate, useLocation, useSearchParams, useParams, Navigate } from "react-router-dom";
 import EdgePager from "../components/pagination/EdgePager";
 import SEO from "../components/SEO";
-import AppLoader from "../components/loaders/AppLoader";
 import NotFound from "../components/NotFound";
 import { catalogPath, pageNumber } from "../utils/canonical";
 import { catalogMeta, PRODUCTS_PER_PAGE } from "../utils/catalogMeta";
 import CatalogLanding from "../components/catalog/CatalogLanding";
+import { readInitialData } from "../utils/initialData";
 
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
@@ -128,15 +128,24 @@ const ProductsPage = () => {
     if (searchTerm.trim()) params.set("search", searchTerm.trim());
     return `${path}${params.size ? `?${params}` : ""}`;
   };
+  const requestKey = `${selectedCategory}|${selectedMainCategory}|${selectedSubcategories.join(",")}|${currentPage}|${searchTerm.trim()}`;
+  const embeddedRef = useRef(readInitialData("catalog", location.pathname));
+  const embedded = embeddedRef.current;
   const [catalog, setCatalog] = useState({ main_categories: [], featured_sections: [] });
   const [catalogResolved, setCatalogResolved] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!embedded);
   // ბოლო წარმატებული პასუხი + რომელ მოთხოვნას ეკუთვნის (key)
-  const [result, setResult] = useState({ key: "", items: [], total: 0, categoryExists: true });
+  const [result, setResult] = useState(() => embedded ? {
+    key: requestKey,
+    items: (Array.isArray(embedded.items) ? embedded.items : []).map(normalizeProduct),
+    total: Number(embedded.total) || 0,
+    categoryExists: embedded.category_exists !== false,
+    mainCategoryExists: embedded.main_category_exists !== false,
+    categoryMovedTo: typeof embedded.category_moved_to === "string" ? embedded.category_moved_to : null,
+  } : { key: "", items: [], total: 0, categoryExists: true });
 
   const landingCandidate = selectedCategory === ALL && !selectedMainCategory && currentPage === 1 && !searchTerm.trim();
   const landingMode = landingCandidate && catalogResolved && catalog.main_categories.length > 0;
-  const requestKey = `${selectedCategory}|${selectedMainCategory}|${selectedSubcategories.join(",")}|${currentPage}|${searchTerm.trim()}`;
   const loaded = result.key === requestKey;
   const products = loaded ? result.items : [];
   const total = loaded ? result.total : 0;
@@ -211,6 +220,11 @@ const ProductsPage = () => {
     if (landingCandidate && !catalogResolved) return;
     if (landingMode) {
       setResult({ key: requestKey, items: [], total: 0, categoryExists: true, mainCategoryExists: true });
+      setIsLoading(false);
+      return;
+    }
+    if (embeddedRef.current && result.key === requestKey) {
+      embeddedRef.current = null;
       setIsLoading(false);
       return;
     }
@@ -336,11 +350,6 @@ const ProductsPage = () => {
 
   return (
     <>
-      {isLoading && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
-          <AppLoader />
-        </div>
-      )}
       <SEO
         title={meta.title}
         description={meta.description}
@@ -362,7 +371,16 @@ const ProductsPage = () => {
           {currentPage > 1 ? ` — გვერდი ${currentPage}` : ""}
         </h1>
         {landingMode ? (
-          <CatalogLanding catalog={catalog} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
+          catalogResolved ? (
+            <CatalogLanding catalog={catalog} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
+          ) : (
+            <div className={styles.landingSkeleton} aria-label="კატალოგი იტვირთება" aria-busy="true">
+              <div className={styles.landingSkeletonTitle} />
+              <div className={styles.landingSkeletonGrid}>
+                {Array.from({ length: 8 }, (_, index) => <div className={styles.landingSkeletonCard} key={index} />)}
+              </div>
+            </div>
+          )
         ) : <>
         {selectedMain && <section className={styles.mainIntro}>
           <div><p>მთავარი კატეგორია</p><h2>{selectedMain.name}</h2>
@@ -388,7 +406,11 @@ const ProductsPage = () => {
           </div>
         </div>
 
-        {!isLoading && (
+        {isLoading ? (
+          <div className={`${styles.productsGrid} ${styles.catalogGrid}`} aria-label="პროდუქტები იტვირთება" aria-busy="true">
+            {Array.from({ length: 8 }, (_, index) => <div className={styles.catalogSkeletonCard} key={index} />)}
+          </div>
+        ) : (
           <>
             <div className={`${styles.productsGrid} ${styles.catalogGrid}`}>
               {products.length > 0 ? (

@@ -2,15 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "./HomeCarousel.module.css";
 import { responsiveImage } from "../../utils/cloudinary";
 
-/* API BASE — იგივე ლოგიკა, რაც სხვაგან გაქვს */
-const API_BASE =
-  (import.meta.env.VITE_API_BASE ?? "").trim() ||
-  "https://artopia-backend-2024-54872c79acdd.herokuapp.com/";
-
-export default function HomeCarousel({ autoPlayMs = 5000 }) {
-
-
-  const [items, setItems] = useState([]);
+export default function HomeCarousel({ images = [], autoPlayMs = 5000 }) {
+  const items = Array.isArray(images) ? images : [];
   const [idx, setIdx] = useState(0);
   const timerRef = useRef(null);
 
@@ -18,24 +11,7 @@ export default function HomeCarousel({ autoPlayMs = 5000 }) {
   const startX = useRef(0);
   const deltaX = useRef(0);
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const r = await fetch(`${API_BASE}/home-images/public`);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
-        if (alive) {
-          setItems(Array.isArray(data) ? data : []);
-          setIdx(0);
-        }
-      } catch (e) {
-        console.error("home carousel fetch failed:", e);
-        if (alive) setItems([]);
-      }
-    })();
-    return () => { alive = false; };
-}, []);
+  useEffect(() => { setIdx(0); }, [images]);
 
   // autoplay
   useEffect(() => {
@@ -93,21 +69,23 @@ export default function HomeCarousel({ autoPlayMs = 5000 }) {
           className={styles.track}
           style={{ transform: `translateX(-${idx * 100}%)` }}
         >
-          {items.map((it, slideIndex) => (
+          {items.map((it, slideIndex) => {
+            const previous = (idx - 1 + items.length) % items.length;
+            const nextIndex = (idx + 1) % items.length;
+            const shouldLoad = slideIndex === idx || slideIndex === previous || slideIndex === nextIndex;
+            return (
             <div key={it.id} className={styles.slide}>
-              {/* თუ გინდა კლიკზე გაიხსნას სრული სურათი */}
-              {/* <a href={it.image_url} target="_blank" rel="noreferrer"> */}
+              {shouldLoad && (
                 <img
                   {...responsiveImage(it.image_url, "hero")}
                   alt={it.alt_text || it.title || "Artopia"}
-                  // პირველი სლაიდი გვერდის მთავარი ფოტოა (LCP); დანარჩენი საჭიროებისას იტვირთება
-                  loading={slideIndex === 0 ? "eager" : "lazy"}
+                  loading={slideIndex === idx ? "eager" : "lazy"}
                   {...(slideIndex === 0 ? { fetchpriority: "high" } : {})}
                   decoding="async"
                 />
-              {/* </a> */}
+              )}
             </div>
-          ))}
+          );})}
         </div>
 
         {items.length > 1 && (

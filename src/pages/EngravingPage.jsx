@@ -22,6 +22,7 @@ import SideEditor from "../components/Engraving/SideEditor";
 import { ensureAllFonts } from "../components/Engraving/fonts";
 import { composeSide, laserPngBlob, tintMask } from "../components/Engraving/compose";
 import { useCart } from "../components/CartContext/CartContext";
+import { useStorefrontData } from "../context/StorefrontDataContext";
 import { ClockIcon, WarningIcon, StoreIcon, TruckIcon, PinIcon } from "../components/Checkout/icons";
 import {
   ENGRAVING_PRODUCTS,
@@ -147,6 +148,7 @@ const rawLineCount = (text) => String(text || "").split("\n").filter((l) => l.tr
 export default function EngravingPage() {
   const navigate = useNavigate();
   const { cartItems, addEngravingToCart } = useCart();
+  const { data: storefrontData } = useStorefrontData();
   const viewerRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -160,7 +162,7 @@ export default function EngravingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [added, setAdded] = useState(null);
-  const [contact, setContact] = useState(null);
+  const contact = Array.isArray(storefrontData.contacts) ? storefrontData.contacts[0] || null : null;
 
   const product = productKey ? ENGRAVING_PRODUCTS[productKey] : null;
   const isKeychain = product?.category === "keychain";
@@ -169,10 +171,6 @@ export default function EngravingPage() {
   useEffect(() => {
     let alive = true;
     ensureAllFonts().then(() => alive && setFontsReady(true));
-    fetch(`${API_BASE}/contacts`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((list) => alive && setContact(Array.isArray(list) ? list[0] || null : null))
-      .catch(() => {});
     return () => {
       alive = false;
     };

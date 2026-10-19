@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import styles from "./HomePage.module.css";
@@ -7,8 +7,7 @@ import HomeSaleProducts from "../components/home/HomeSaleProducts";
 import HomeNewProducts from "../components/home/HomeNewProducts";
 import HomeBlogs from "../components/home/HomeBlogs";
 import SEO from "../components/SEO";
-
-const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+import { useStorefrontData } from "../context/StorefrontDataContext";
 
 // Visually hidden but crawlable (NOT display:none) — gives the homepage a real
 // H1 + intro targeting "სამხატვრო მაღაზია" without changing the visual design.
@@ -26,9 +25,8 @@ const srOnly = {
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [homeImages, setHomeImages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { data, loading, error } = useStorefrontData();
+  const homeImages = data.home_images || [];
   const [productSearch, setProductSearch] = useState("");
 
   const submitProductSearch = (event) => {
@@ -37,30 +35,6 @@ export default function HomePage() {
     if (!query) return;
     navigate(`/products?search=${encodeURIComponent(query)}`);
   };
-  // 🔥 HOME IMAGES FETCH (admin-იდან)
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/home-images`);
-        const data = await res.json();
-
-        // 🔥 მხოლოდ აქტიური და სორტით დალაგებული
-        const filtered = (data || [])
-          .filter((img) => img.is_active)
-          .sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
-
-        setHomeImages(filtered);
-      } catch (err) {
-        console.error(err);
-        setError("ჰოუმ სურათები ვერ ჩაიტვირთა");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchImages();
-  }, []);
-
   return (
     <div className={styles.page}>
       <SEO
@@ -111,17 +85,17 @@ export default function HomePage() {
 
       {/* 💸 SALE PRODUCTS */}
       <section className={styles.section}>
-        <HomeSaleProducts />
+        <HomeSaleProducts items={data.sale_products} loading={loading} />
       </section>
 
       {/* 🆕 NEW PRODUCTS */}
       <section className={styles.section}>
-        <HomeNewProducts />
+        <HomeNewProducts items={data.new_products} loading={loading} />
       </section>
 
       {/* 📰 BLOGS */}
       <section className={styles.section}>
-        <HomeBlogs />
+        <HomeBlogs items={data.blogs} loading={loading} />
       </section>
       {/* ⭐ GOOGLE REVIEWS CTA */}
       <section className={styles.section}>

@@ -52,6 +52,11 @@ function setTag(html, regex, replacement) {
   return regex.test(html) ? html.replace(regex, replacement) : html;
 }
 
+function embedInitialData(html, kind, path, data) {
+  const payload = JSON.stringify({ kind, path, data }).replace(/</g, "\\u003c");
+  return html.replace("</head>", `<script id="artopia-initial-data" type="application/json">${payload}</script>\n</head>`);
+}
+
 // Client-side routes (src/App.jsx). Anything else is a real 404.
 const STATIC_ROUTES = new Set([
   "/", "/index.html", "/products", "/engraving", "/blogs", "/login", "/checkout",
@@ -209,6 +214,23 @@ async function handle(request, context) {
     if (!isKnownRoute(rawPath)) return notFoundResponse(shell, source, 404);
 
     const path = decodeURIComponent(new URL(pageCanonical).pathname);
+
+    /* =============== HOME: reuse bootstrap data + preload its LCP =============== */
+    if (path === "/") {
+      try {
+        const homeResponse = await apiFetch("/storefront/bootstrap?home=1");
+        if (homeResponse.ok && (homeResponse.headers.get("content-type") || "").includes("application/json")) {
+          const home = await homeResponse.json();
+          const firstHero = Array.isArray(home?.home_images) ? home.home_images[0]?.image_url : null;
+          let out = shell;
+          const preload = imagePreload(firstHero, "hero");
+          if (preload) out = out.replace("</head>", `${preload}\n</head>`);
+          out = embedInitialData(out, "storefront", path, home);
+          return htmlResponse(out, source);
+        }
+      } catch { /* normal client fetch remains as the fallback */ }
+      return page();
+    }
 
     /* ===================== BLOG ARTICLE: /blog/<slug> ===================== */
     const blogMatch = path.match(/^\/blog\/([^/]+)$/);
@@ -472,6 +494,7 @@ async function handle(request, context) {
       let firstImage = null;
       let confirmedEmpty = false;
       let categoryContext = null;
+      let catalogData = null;
       const inclusive = ["1", "true"].includes(url.searchParams.get("include_out_of_stock"));
       const filterSuffix = inclusive ? "?include_out_of_stock=1" : "";
       // Page 1 of the full catalogue always exists; everything else is checked
@@ -484,6 +507,7 @@ async function handle(request, context) {
         const r = await apiFetch(`/products/list?${qs}`);
         if (r.ok && (r.headers.get("content-type") || "").includes("application/json")) {
           const data = await r.json();
+          catalogData = data;
           const items = Array.isArray(data?.items) ? data.items : null;
           // a renamed category: its old address moves permanently to the new name
           const movedTo = data?.category_exists === false ? data?.category_moved_to : null;
@@ -559,7 +583,8 @@ async function handle(request, context) {
         response.headers.set("x-robots-tag", "noindex");
         return response;
       }
-      return htmlResponse(out, source);
+      const hydratable = catalogData && (category || mainCategory || page > 1 || url.searchParams.has("search"));
+      return htmlResponse(hydratable ? embedInitialData(out, "catalog", path, catalogData) : out, source);
     }
 
     /* ===================== PRODUCT DETAIL: /products/<slug> ===================== */
@@ -606,7 +631,7 @@ async function handle(request, context) {
       },
     });
 
-    return htmlResponse(out, source);
+    return htmlResponse(embedInitialData(out, "product", path, data), source);
   } catch {
     return page(); // fail-safe: never break the page, never invent a 404
   }

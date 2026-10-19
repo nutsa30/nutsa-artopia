@@ -199,6 +199,56 @@ body,
   }
 }
 
+.landingSkeleton {
+  padding: 18px 0 44px;
+}
+
+.landingSkeletonTitle {
+  width: min(360px, 70%);
+  height: 44px;
+  margin: 0 0 24px;
+  border-radius: 12px;
+}
+
+.landingSkeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.landingSkeletonCard,
+.catalogSkeletonCard,
+.landingSkeletonTitle {
+  background: linear-gradient(100deg, rgba(255,255,255,.07) 20%, rgba(255,255,255,.14) 38%, rgba(255,255,255,.07) 56%);
+  background-size: 220% 100%;
+  animation: catalogSkeleton 1.35s linear infinite;
+}
+
+.landingSkeletonCard {
+  min-height: 156px;
+  border-radius: 18px;
+}
+
+.catalogSkeletonCard {
+  min-height: 390px;
+  border-radius: 18px;
+}
+
+@keyframes catalogSkeleton {
+  to { background-position-x: -220%; }
+}
+
+@media (max-width: 899px) {
+  .landingSkeletonGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .catalogSkeletonCard { min-height: 350px; }
+}
+
+@media (max-width: 639px) {
+  .landingSkeletonGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .landingSkeletonCard { min-height: 112px; }
+  .catalogSkeletonCard { min-height: 330px; }
+}
+
 /* === GAP TUNING — Home grids (კომპონენტებს არ ვეხებით) === */
 .section :global([class*="HomeNewProducts"]) [class*="grid"],
 .section :global([class*="HomeSaleProducts"]) [class*="grid"] {

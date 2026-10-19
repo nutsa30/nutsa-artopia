@@ -1,46 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../CartContext/CartContext";
 import ProductCard from "../productCard/productsCard";
 import styles from "./HomeSaleProducts.module.css";
 
-/* API BASE — იგივე ლოგიკა, რაც სხვაგან გაქვს */
-const API_BASE =
-  (import.meta.env.VITE_API_BASE ?? "").trim() ||
-  "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
-
-export default function HomeSaleProducts({ limit = 4, titleKa, titleEn }) {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function HomeSaleProducts({ items = [], loading = false, limit = 4, titleKa, titleEn }) {
 
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let alive = true;
-    setLoading(true);
-
-fetch(`${API_BASE}/products/sale`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((data) => {
-        if (!alive) return;
-        setItems(Array.isArray(data) ? data : []);
-      })
-      .catch((e) => {
-        console.error("HomeSaleProducts fetch error:", e);
-        if (alive) setItems([]);
-      })
-      .finally(() => alive && setLoading(false));
-
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-const saleProducts = items.slice(0, limit);
+const saleProducts = (Array.isArray(items) ? items : []).slice(0, limit);
 
   const handleAddToCart = (product, qty) => addToCart(product, qty);
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import styles from "./ContactsPage.module.css";
 import {
   FaInstagram,
@@ -11,9 +11,7 @@ import {
   FaPhoneAlt,
 } from "react-icons/fa";
 import SEO from "../components/SEO";
-
-const BASE =
-  "https://artopia-backend-2024-54872c79acdd.herokuapp.com/contacts";
+import { useStorefrontData } from "../context/StorefrontDataContext";
 
 // პატარა ჰელპერი რომ https:// ავტომატურად მიეცეს
 const toUrl = (val, fallback) => {
@@ -34,25 +32,8 @@ const T = {
 };
 
 const ContactsPage = () => {
-  const [contacts, setContacts] = useState([]);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        const res = await fetch(BASE);
-        if (!res.ok) throw new Error("მონაცემების წაკითხვა ვერ მოხერხდა");
-        const data = await res.json();
-        setContacts(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error(err);
-        setError("კონტაქტის მონაცემების წამოღება ვერ მოხერხდა.");
-      }
-    };
-    fetchContacts();
-  }, []);
-
-  if (error) return <div>{error}</div>;
+  const { data } = useStorefrontData();
+  const contacts = Array.isArray(data.contacts) ? data.contacts : [];
 
 return (
   <>
