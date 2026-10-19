@@ -627,7 +627,7 @@ alt={`${title} ${category} დეტალური ფოტო - Artopia`}
             style={relatedVisible ? undefined : { display: "none" }}
           >
         <img
-  {...responsiveImage(item.image_url1 || NO_IMAGE, "card")}
+  {...responsiveImage(item.image_url1 || NO_IMAGE, "related")}
   alt={`${item.name} Artopia`}
   className={styles.relatedImage}
   loading="lazy"
