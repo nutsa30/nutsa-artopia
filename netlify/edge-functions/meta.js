@@ -218,14 +218,17 @@ async function handle(request, context) {
     /* =============== HOME: reuse bootstrap data + preload its LCP =============== */
     if (path === "/") {
       try {
-        const homeResponse = await apiFetch("/storefront/bootstrap?home=1");
+        // Only the LCP carousel is worth delaying HTML for, and even that gets a
+        // strict budget. The rest of the homepage hydrates from the compact
+        // bootstrap endpoint in the browser without holding back first paint.
+        const homeResponse = await fetch(`${API}/home-images/public`, { signal: AbortSignal.timeout(900) });
         if (homeResponse.ok && (homeResponse.headers.get("content-type") || "").includes("application/json")) {
-          const home = await homeResponse.json();
-          const firstHero = Array.isArray(home?.home_images) ? home.home_images[0]?.image_url : null;
+          const homeImages = await homeResponse.json();
+          const firstHero = Array.isArray(homeImages) ? homeImages[0]?.image_url : null;
           let out = shell;
           const preload = imagePreload(firstHero, "hero");
           if (preload) out = out.replace("</head>", `${preload}\n</head>`);
-          out = embedInitialData(out, "storefront", path, home);
+          out = embedInitialData(out, "storefront", path, { __partial: true, home_images: homeImages });
           return htmlResponse(out, source);
         }
       } catch { /* normal client fetch remains as the fallback */ }

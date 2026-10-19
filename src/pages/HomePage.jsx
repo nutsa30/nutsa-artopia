@@ -58,29 +58,27 @@ export default function HomePage() {
       <section className={`${styles.section} ${styles.heroSection}`}>
         {/* ჩატვირთვისას იმავე ზომის ადგილი იჯავშნება, რაც carousel-ს აქვს (16:9) —
             ქვემოთ მდებარე სექციები აღარ „ხტება" (CLS) */}
-        {loading && <div className={styles.carouselPlaceholder} aria-hidden="true" />}
+        {loading && homeImages.length === 0 && <div className={styles.carouselPlaceholder} aria-hidden="true" />}
         {error && <div className={styles.error}>{error}</div>}
 
-        {!loading && homeImages.length > 0 && (
+        {homeImages.length > 0 && (
           <HomeCarousel images={homeImages} />
         )}
 
-        {!loading && (
-          <form className={styles.productSearch} onSubmit={submitProductSearch}
-            role="search" aria-label="პროდუქტების ძიება">
-            <div className={styles.searchCopy}>
-              <span>იპოვე სწრაფად</span>
-              <strong>რას ეძებ?</strong>
-            </div>
-            <div className={styles.searchControl}>
-              <Search size={21} aria-hidden="true" />
-              <input type="search" value={productSearch}
-                onChange={(event) => setProductSearch(event.target.value)}
-                placeholder="მოძებნე პროდუქტი..." aria-label="პროდუქტის დასახელება" />
-              <button type="submit" disabled={!productSearch.trim()}>ძებნა</button>
-            </div>
-          </form>
-        )}
+        <form className={styles.productSearch} onSubmit={submitProductSearch}
+          role="search" aria-label="პროდუქტების ძიება">
+          <div className={styles.searchCopy}>
+            <span>იპოვე სწრაფად</span>
+            <strong>რას ეძებ?</strong>
+          </div>
+          <div className={styles.searchControl}>
+            <Search size={21} aria-hidden="true" />
+            <input type="search" value={productSearch}
+              onChange={(event) => setProductSearch(event.target.value)}
+              placeholder="მოძებნე პროდუქტი..." aria-label="პროდუქტის დასახელება" />
+            <button type="submit" disabled={!productSearch.trim()}>ძებნა</button>
+          </div>
+        </form>
       </section>
 
       {/* 💸 SALE PRODUCTS */}

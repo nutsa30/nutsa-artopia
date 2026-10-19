@@ -53,7 +53,7 @@ export function StorefrontDataProvider({ children }) {
   const initial = includeHome ? readInitialData("storefront", pathname) : null;
   const [state, setState] = useState(() => ({
     data: initial ? { ...EMPTY, ...initial } : EMPTY,
-    loading: !isAdmin && !initial,
+    loading: !isAdmin && (!initial || initial.__partial === true),
     error: "",
   }));
 
@@ -63,12 +63,17 @@ export function StorefrontDataProvider({ children }) {
       return;
     }
     const embedded = includeHome ? readInitialData("storefront", pathname) : null;
-    if (embedded) {
+    if (embedded && embedded.__partial !== true) {
       setState({ data: { ...EMPTY, ...embedded }, loading: false, error: "" });
       return;
     }
     let alive = true;
-    setState((current) => ({ ...current, loading: true, error: "" }));
+    setState((current) => ({
+      ...current,
+      data: embedded ? { ...EMPTY, ...embedded } : current.data,
+      loading: true,
+      error: "",
+    }));
     loadBootstrap(includeHome)
       .then((data) => {
         if (!alive) return;
