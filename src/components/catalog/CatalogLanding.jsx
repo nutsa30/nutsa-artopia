@@ -12,9 +12,11 @@ export default function CatalogLanding({ catalog, onAddToCart, onBuyNow }) {
     <section className={styles.hero} aria-labelledby="catalog-categories-title">
       <div className={styles.heading}><h2 id="catalog-categories-title">პროდუქციის კატეგორიები</h2></div>
       <div className={styles.mainGrid}>
-        {catalog.main_categories.map((main) => <Link key={main.id} to={catalogPath({ mainCategory: main.slug })}
+        {catalog.main_categories.map((main, index) => <Link key={main.id} to={catalogPath({ mainCategory: main.slug })}
           className={styles.mainCard}>
-          {main.image_url ? <img {...responsiveImage(main.image_url, "category")} alt="" width="800" height="450" loading="lazy" decoding="async" /> :
+          {/* პირველი ორი ბარათი პირველივე ეკრანზე ჩანს → eager (edge ამ ფოტოს preload-საც აკეთებს) */}
+          {main.image_url ? <img {...responsiveImage(main.image_url, "category")} alt="" width="800" height="450"
+            loading={index < 2 ? "eager" : "lazy"} {...(index === 0 ? { fetchpriority: "high" } : {})} decoding="async" /> :
             <div className={styles.placeholder}><ImageIcon size={38} aria-hidden="true" /></div>}
           <span className={styles.overlay} />
           <span className={styles.mainText}><strong>{main.name}</strong><small>{main.product_count} პროდუქტი · {main.subcategories.length} ქვეკატეგორია</small></span>
@@ -22,13 +24,13 @@ export default function CatalogLanding({ catalog, onAddToCart, onBuyNow }) {
       </div>
     </section>
     <div className={styles.featured}>
-      {catalog.featured_sections?.map((section) => <ProductRail key={section.category.id} section={section}
-        onAddToCart={onAddToCart} onBuyNow={onBuyNow} />)}
+      {catalog.featured_sections?.map((section, index) => <ProductRail key={section.category.id} section={section}
+        eagerImages={index === 0} onAddToCart={onAddToCart} onBuyNow={onBuyNow} />)}
     </div>
   </>;
 }
 
-function ProductRail({ section, onAddToCart, onBuyNow }) {
+function ProductRail({ section, eagerImages, onAddToCart, onBuyNow }) {
   const rail = useRef(null);
   const scroll = (direction) => rail.current?.scrollBy({ left: direction * Math.min(900, rail.current.clientWidth * .85), behavior: "smooth" });
   return <section className={styles.railSection}>
@@ -38,7 +40,7 @@ function ProductRail({ section, onAddToCart, onBuyNow }) {
       <button type="button" className={`${styles.arrow} ${styles.left}`} onClick={() => scroll(-1)} aria-label="წინა პროდუქტები"><ChevronLeft /></button>
       <div className={styles.rail} ref={rail}>
         {section.products.map((product, index) => <div className={styles.product} key={product.id}>
-          <ProductCard product={product} href={`/products/${product.slug}`} eager={index < 2}
+          <ProductCard product={product} href={`/products/${product.slug}`} eager={eagerImages && index < 2}
             onAddToCart={(e, quantity) => { e.stopPropagation(); onAddToCart(product, quantity); }}
             onBuyNow={(e, quantity) => { e.stopPropagation(); onBuyNow(product, quantity); }} />
         </div>)}

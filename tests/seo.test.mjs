@@ -337,3 +337,27 @@ test("search and subcategory-filtered catalogue pages are never pre-filled with 
   }
   assert.match((await visit("/products/category/x", api)).body, /artopia-initial-data/);
 });
+
+test("catalog HTML: no wrong preload on the landing page, the category tree ships inline, filtered lists are never pre-filled", async () => {
+  const tree = { main_categories: [{ id: 1, slug: "art", name: "სამხატვრო", image_url: "https://res.cloudinary.com/x/image/upload/v1/cat.png", subcategories: [] }], featured_sections: [] };
+  const api = async (url) => {
+    if (url.includes("/products/list?")) return json({ items: [product({ image_url1: "https://res.cloudinary.com/x/image/upload/v1/list.png" })], total: 1, category_exists: true });
+    if (url.endsWith("/categories/catalog")) return json(tree);
+    if (url.includes("/categories/main/")) return json({ name: "სამხატვრო", slug: "art" });
+    return noNetwork(url);
+  };
+  const initial = (body) => JSON.parse(body.match(/<script id="artopia-initial-data" type="application\/json">([\s\S]*?)<\/script>/)?.[1] ?? "null");
+
+  const landing = await visit("/products", api);
+  assert.equal(landing.status, 200);
+  assert.match(landing.body, /rel="preload" as="image" href="[^"]*cat\.png"/);
+  assert.doesNotMatch(landing.body, /rel="preload"[^>]*list\.png/);
+  assert.deepEqual(initial(landing.body).data.catalog, tree);
+
+  const group = await visit("/products/group/art", api);
+  assert.deepEqual(initial(group.body).data.catalog, tree);
+
+  for (const filtered of ["/products?search=x", "/products/category/x?search=x", "/products/group/art?categories=a,b"]) {
+    assert.equal(initial((await visit(filtered, api)).body), null, filtered);
+  }
+});

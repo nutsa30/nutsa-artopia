@@ -6,7 +6,8 @@ import SEO from "../components/SEO";
 import AppLoader from "../components/loaders/AppLoader";
 import { BLOG_INDEX_META } from "../utils/catalogMeta";
 
-const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
+import { PUBLIC_API } from "../utils/apiBase";
+const BASE = `${PUBLIC_API}/blogs`;
 const FALLBACK_IMAGE = "/noimage.jpeg";
 
 function normalizeText(value) {

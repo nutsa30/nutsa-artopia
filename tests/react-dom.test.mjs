@@ -230,6 +230,8 @@ test("catalog browsing, search and add-to-cart still work with fixture products"
     const search = document.querySelector('input[placeholder="საძიებო სიტყვა..."]');
     await React.act(async () => { Simulate.change(search, { target: { value: "Focus" } }); });
     await React.act(async () => { await new Promise(resolve => setTimeout(resolve, 20)); });
+    assert.ok(!calls.some(url => url.includes("search=Focus")), "no API call per keystroke");
+    await React.act(async () => { await new Promise(resolve => setTimeout(resolve, 350)); });
     assert.ok(calls.some(url => url.includes("search=Focus")));
     const add = Array.from(document.querySelectorAll("button")).find(button => button.textContent.includes("კალათაში დამატება") || button.getAttribute("aria-label") === "კალათაში დამატება");
     assert.ok(add);
@@ -320,6 +322,7 @@ test("catalogue restores a homepage search query and keeps it in pagination", as
     const search = document.querySelector('input[placeholder="საძიებო სიტყვა..."]');
     assert.equal(search.value, "აკვარელი");
     assert.ok(calls.some(url => url.includes("search=აკვარელი") && url.includes("page=1")));
+    assert.equal(calls.filter(url => url.includes("/products/list?")).length, 1, "the list is requested once, not again when the category tree arrives");
     assert.ok(hrefs().includes("/products/page/2?search=%E1%83%90%E1%83%99%E1%83%95%E1%83%90%E1%83%A0%E1%83%94%E1%83%9A%E1%83%98"));
     assert.equal(robotsMeta(), "noindex,follow");
   } finally { await cleanup(); }
@@ -350,7 +353,7 @@ test("catalog: product and pagination are real <a href> links and pages are craw
     // search keeps working across pages and always restarts from page 1
     const search = document.querySelector('input[placeholder="საძიებო სიტყვა..."]');
     await React.act(async () => { Simulate.change(search, { target: { value: "Foc" } }); });
-    await settle();
+    await settle(350);
     assert.ok(calls.some(url => url.includes("search=Foc") && url.includes("page=1") && url.includes("category=Fixture")));
     await clickLink("/products/category/Fixture/page/3?search=Foc");
     assert.ok(calls.some(url => url.includes("search=Foc") && url.includes("page=3")), "search term survives pagination");

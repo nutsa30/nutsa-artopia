@@ -8,7 +8,8 @@ import { blogArticleMeta } from "../utils/catalogMeta";
 import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
 import AppLoader from "../components/loaders/AppLoader";
 
-const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
+import { PUBLIC_API } from "../utils/apiBase";
+const BASE = `${PUBLIC_API}/blogs`;
 const FALLBACK_IMAGE = "/noimage.jpeg";
 
 function normalizeText(value) {
@@ -141,7 +142,7 @@ const handleMouseOver = async (e) => {
     if (href.includes("/products/")) {
       const slug = href.split("/products/")[1];
       const res = await fetch(
-        `https://artopia-backend-2024-54872c79acdd.herokuapp.com/products/full/${slug}`
+        `${PUBLIC_API}/products/full/${slug}`
       );
       const json = await res.json();
       data = { type: "product", data: json.product };
@@ -150,7 +151,7 @@ const handleMouseOver = async (e) => {
     if (href.includes("/blog/")) {
       const slug = href.split("/blog/")[1];
       const res = await fetch(
-        `https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs/slug/${slug}`
+        `${PUBLIC_API}/blogs/slug/${slug}`
       );
       const json = await res.json();
       data = { type: "blog", data: json };

@@ -16,7 +16,7 @@ import { productJsonLd, breadcrumbJsonLd, productBreadcrumbs } from "../utils/ca
 import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
 import { readInitialData } from "../utils/initialData";
 
-const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+import { PUBLIC_API } from "../utils/apiBase";
 const NO_IMAGE = "/noimage.jpeg";
 
 const L = {
@@ -125,7 +125,7 @@ useEffect(() => {
       try {
         setStatus("loading");
 
-const res = await fetch(`${API_BASE}/products/full/${slug}`);
+const res = await fetch(`${PUBLIC_API}/products/full/${slug}`);
 if (!res.ok) {
   // 404 = არ არსებობს / ადმინმა დამალა; 410 = გაყიდვიდან სამუდამოდ ამოღებული.
   // სხვა ყველაფერი (5xx, timeout) სერვერის დროებითი პრობლემაა და არა „ვერ მოიძებნა".

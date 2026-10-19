@@ -7,7 +7,9 @@
 
     <!-- Speed up first product images & API (Core Web Vitals / LCP) -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
-    <link rel="preconnect" href="https://artopia-backend-2024-54872c79acdd.herokuapp.com" />
+    <!-- საჯარო მონაცემები /api-დან მოდის (იგივე დომენი); Heroku-ს მხოლოდ კალათა/checkout
+         ეკითხება, ამიტომ აქ მხოლოდ DNS-ია და არა ყოველ გვერდზე ზედმეტი TLS კავშირი აშშ-თან -->
+    <link rel="dns-prefetch" href="https://artopia-backend-2024-54872c79acdd.herokuapp.com" />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
 
     <!-- Google tag (gtag.js) -->

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./ReviewsPage.module.css";
 import SEO from "../components/SEO";
 
-const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+import { PUBLIC_API } from "../utils/apiBase";
 
 /*
   მერე აქ ჩასვი შენი ნამდვილი Google review link
@@ -95,7 +95,7 @@ useEffect(() => {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`${API_BASE}/google-reviews`);
+        const res = await fetch(`${PUBLIC_API}/google-reviews`);
         const json = await res.json();
 
         if (!res.ok) {

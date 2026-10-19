@@ -68,7 +68,9 @@ const ChatWidgetMount = () => {
   return ready ? <Suspense fallback={null}><ChatWidget siteLang="ka" /></Suspense> : null;
 };
 
-const RouteFallback = () => <div style={{ minHeight: "65vh" }} aria-busy="true" />;
+// გვერდის კოდის ჩატვირთვამდე მთელი ეკრანი იჯავშნება: footer ეკრანის ქვემოთ რჩება და
+// კონტენტის გამოჩენისას აღარ „ხტება" (CLS იყო 0.37 ყველა გვერდზე)
+const RouteFallback = () => <div style={{ minHeight: "100vh" }} aria-busy="true" />;
 const DeferredPage = ({ children }) => <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 
 const OldAddProductRedirect = () => {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import styles from "./HomePage.module.css";
 import HomeCarousel from "../components/home/HomeCarousel";
@@ -105,17 +105,6 @@ export default function HomePage() {
             <p className={styles.reviewText}>
              ჩვენთვის მნიშვნელოვანია რას ფიქრობენ მომხმარებლები ჩვენზე — ნახე მათი შეფასებები და დაგვიტოვე შენიც.
             </p>
-
-            <div className={styles.reviewActions}>
-            
-
-            <Link
-  to="/reviews"
-  className={styles.reviewPrimaryBtn}
->
-  შეფასებების ნახვა
-</Link>
-            </div>
           </div>
 
           <div className={styles.reviewStatCard}>

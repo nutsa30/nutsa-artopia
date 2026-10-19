@@ -500,6 +500,23 @@ async function handle(request, context) {
       let catalogData = null;
       const inclusive = ["1", "true"].includes(url.searchParams.get("include_out_of_stock"));
       const filterSuffix = inclusive ? "?include_out_of_stock=1" : "";
+      // ?search= და ?categories= სიას ცვლის, მაგრამ ქვემოთ API-ს ის არ გადაეცემა —
+      // ასეთ გვერდზე წინასწარ ჩასმული სია სხვა (ფილტრის გარეშე) შედეგი იქნებოდა.
+      const listFiltered = url.searchParams.has("search") || url.searchParams.has("categories");
+      const landing = !category && !mainCategory && page === 1 && !listFiltered;
+      // ყველა მოთხოვნა ერთდროულად იგზავნება: HTML ყველაზე ნელ პასუხს ელოდება და არა ჯამს
+      const contextRequest = (category || mainCategory)
+        ? apiFetch(mainCategory ? `/categories/main/${encodeURIComponent(mainCategory)}` : `/categories/sub/${encodeURIComponent(category)}`)
+          .catch(() => null)
+        : null;
+      // კატალოგის მთავარი გვერდი და მთავარი კატეგორიის გვერდი კატეგორიების ხეს
+      // ბრაუზერში მეორედ აღარ ითხოვს — ის HTML-შივე მიდის
+      const treeRequest = (landing || (mainCategory && !listFiltered))
+        ? apiFetch("/categories/catalog")
+          .then((res) => (res.ok && (res.headers.get("content-type") || "").includes("application/json") ? res.json() : null))
+          .then((tree) => (Array.isArray(tree?.main_categories) ? tree : null))
+          .catch(() => null)
+        : null;
       // Page 1 of the full catalogue always exists; everything else is checked
       // against the API so a mistyped category or a page past the end is a 404.
       { // Validate empty catalogues too; API failures remain a normal 200 page.
@@ -527,16 +544,24 @@ async function handle(request, context) {
         // not ok / not JSON → unknown; fall through and serve the page as 200
       }
 
-      if (category || mainCategory) {
+      if (contextRequest) {
         try {
-          const contextPath = mainCategory ? `/categories/main/${encodeURIComponent(mainCategory)}` : `/categories/sub/${encodeURIComponent(category)}`;
-          const contextResponse = await apiFetch(contextPath);
+          const contextResponse = await contextRequest;
+          if (!contextResponse) throw new Error("category context unavailable");
           if (isApiVerdict(contextResponse, 404)) return notFoundResponse(shell, source, 404);
           if (contextResponse.ok && (contextResponse.headers.get("content-type") || "").includes("application/json")) {
             categoryContext = await contextResponse.json();
           }
         } catch { /* metadata lookup outage must not remove a valid catalogue page */ }
       }
+
+      const tree = treeRequest ? await treeRequest : null;
+      // კატალოგის მთავარ გვერდზე პირველი ხილული ფოტო კატეგორიის ბარათისაა და არა სიის
+      // პირველი პროდუქტის — არასწორი preload ტყუილად ჩამოტვირთავდა სხვა ფოტოს
+      const firstCategoryImage = tree?.main_categories?.find((item) => item?.image_url)?.image_url;
+      const lcpPreload = landing && tree?.main_categories?.length
+        ? imagePreload(firstCategoryImage, "category")
+        : imagePreload(firstImage, "card");
 
       const meta = catalogMeta({ category, mainCategory, displayName: categoryContext?.name,
         description: categoryContext?.meta_description || categoryContext?.description, page });
@@ -563,7 +588,7 @@ async function handle(request, context) {
         url: meta.url,
         image: DEFAULT_IMAGE,
         type: "website",
-        headExtra: [...links, imagePreload(firstImage, "card")].filter(Boolean).join("\n"),
+        headExtra: [...links, lcpPreload].filter(Boolean).join("\n"),
         jsonLd: {
           "@context": "https://schema.org",
           "@graph": [
@@ -586,11 +611,9 @@ async function handle(request, context) {
         response.headers.set("x-robots-tag", "noindex");
         return response;
       }
-      // ?search= და ?categories= სიას ცვლის, მაგრამ ზემოთ API-ს ის არ გადაეცემა — ასეთ
-      // გვერდზე ჩასმული სია ფილტრის გარეშე შედეგი იქნებოდა (ძიება სხვა პროდუქტებს აჩვენებდა)
-      const listFiltered = url.searchParams.has("search") || url.searchParams.has("categories");
-      const hydratable = catalogData && !listFiltered && (category || mainCategory || page > 1);
-      return htmlResponse(hydratable ? embedInitialData(out, "catalog", path, catalogData) : out, source);
+      const hydratable = catalogData && !listFiltered && (landing || category || mainCategory || page > 1);
+      const initial = hydratable ? (tree ? { ...catalogData, catalog: tree } : catalogData) : null;
+      return htmlResponse(initial ? embedInitialData(out, "catalog", path, initial) : out, source);
     }
 
     /* ===================== PRODUCT DETAIL: /products/<slug> ===================== */
@@ -649,5 +672,5 @@ export const config = {
   path: "/*",
   // /sitemap.xml is a rewrite to a function and /robots.txt a static file: neither
   // is a page, and neither may ever be turned into a 404 by the route table.
-  excludedPath: ["/assets/*", "/models/*", "/fonts/*", "/images/*", "/.netlify/*", "/sitemap.xml", "/robots.txt"],
+  excludedPath: ["/api/*", "/assets/*", "/models/*", "/fonts/*", "/images/*", "/.netlify/*", "/sitemap.xml", "/robots.txt"],
 };
