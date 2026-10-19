@@ -129,7 +129,9 @@ const ProductsPage = () => {
     return `${path}${params.size ? `?${params}` : ""}`;
   };
   const requestKey = `${selectedCategory}|${selectedMainCategory}|${selectedSubcategories.join(",")}|${currentPage}|${searchTerm.trim()}`;
-  const embeddedRef = useRef(readInitialData("catalog", location.pathname));
+  // edge-ის ჩასმული სია ფილტრის გარეშეა — ძიების / ქვეკატეგორიების გვერდზე მას არ ვიყენებთ
+  const embeddedRef = useRef(searchParams.has("search") || searchParams.has("categories")
+    ? null : readInitialData("catalog", location.pathname));
   const embedded = embeddedRef.current;
   const [catalog, setCatalog] = useState({ main_categories: [], featured_sections: [] });
   const [catalogResolved, setCatalogResolved] = useState(false);

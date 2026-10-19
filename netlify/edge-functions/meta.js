@@ -586,7 +586,10 @@ async function handle(request, context) {
         response.headers.set("x-robots-tag", "noindex");
         return response;
       }
-      const hydratable = catalogData && (category || mainCategory || page > 1 || url.searchParams.has("search"));
+      // ?search= და ?categories= სიას ცვლის, მაგრამ ზემოთ API-ს ის არ გადაეცემა — ასეთ
+      // გვერდზე ჩასმული სია ფილტრის გარეშე შედეგი იქნებოდა (ძიება სხვა პროდუქტებს აჩვენებდა)
+      const listFiltered = url.searchParams.has("search") || url.searchParams.has("categories");
+      const hydratable = catalogData && !listFiltered && (category || mainCategory || page > 1);
       return htmlResponse(hydratable ? embedInitialData(out, "catalog", path, catalogData) : out, source);
     }
 
