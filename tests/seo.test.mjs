@@ -241,7 +241,8 @@ test("LCP image preload matches the real <img> exactly and exists only for a rea
   assert.ok(link.includes(`imagesrcset="${expected.srcSet}"`));
   assert.ok(link.includes(`imagesizes="${expected.sizes}"`));
   assert.equal(withPhoto.match(/rel="preload" as="image"/g).length, 1);
-  assert.equal(expected.srcSet.split(", ").length, 3);
+  assert.equal(expected.srcSet.split(", ").length, 5);
+  assert.equal(expected.sizes, "(max-width: 628px) calc(100vw - 68px), 560px");   // measured layout width
   for (const p of [product({ image_url1: null }), product({ image_url1: "" }), product({ image_url1: "/noimage.jpeg" })]) {
     assert.doesNotMatch(await page(p), /rel="preload" as="image"/);          // no photo → no preload
   }
