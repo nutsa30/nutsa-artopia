@@ -1,7 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
 import styles from "./HomePage.module.css";
+import ProductSearchForm from "../components/search/ProductSearchForm";
 import HomeCarousel from "../components/home/HomeCarousel";
 import HomeSaleProducts from "../components/home/HomeSaleProducts";
 import HomeNewProducts from "../components/home/HomeNewProducts";
@@ -24,17 +22,8 @@ const srOnly = {
 };
 
 export default function HomePage() {
-  const navigate = useNavigate();
   const { data, loading, error } = useStorefrontData();
   const homeImages = data.home_images || [];
-  const [productSearch, setProductSearch] = useState("");
-
-  const submitProductSearch = (event) => {
-    event.preventDefault();
-    const query = productSearch.trim();
-    if (!query) return;
-    navigate(`/products?search=${encodeURIComponent(query)}`);
-  };
   return (
     <div className={styles.page}>
       <SEO
@@ -65,20 +54,7 @@ export default function HomePage() {
           <HomeCarousel images={homeImages} />
         )}
 
-        <form className={styles.productSearch} onSubmit={submitProductSearch}
-          role="search" aria-label="პროდუქტების ძიება">
-          <div className={styles.searchCopy}>
-            <span>იპოვე სწრაფად</span>
-            <strong>რას ეძებ?</strong>
-          </div>
-          <div className={styles.searchControl}>
-            <Search size={21} aria-hidden="true" />
-            <input type="search" value={productSearch}
-              onChange={(event) => setProductSearch(event.target.value)}
-              placeholder="მოძებნე პროდუქტი..." aria-label="პროდუქტის დასახელება" />
-            <button type="submit" disabled={!productSearch.trim()}>ძებნა</button>
-          </div>
-        </form>
+        <ProductSearchForm overlapHero />
       </section>
 
       {/* 💸 SALE PRODUCTS */}

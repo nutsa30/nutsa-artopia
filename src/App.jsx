@@ -12,6 +12,7 @@ import {
   useLocation,
   Navigate,
   useParams,
+  useSearchParams,
 } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import Footer from "./components/Footer/Footer";
@@ -70,6 +71,13 @@ const ChatWidgetMount = () => {
 
 // გვერდის კოდის ჩატვირთვამდე მთელი ეკრანი იჯავშნება: footer ეკრანის ქვემოთ რჩება და
 // კონტენტის გამოჩენისას აღარ „ხტება" (CLS იყო 0.37 ყველა გვერდზე)
+// /products?search=… ახალი ძიება (ან „უკან" ძიებიდან კატალოგზე) გვერდს თავიდან აწყობს,
+// რომ შედეგი ყოველთვის მისამართს ემთხვეოდეს
+const CatalogRootPage = () => {
+  const [searchParams] = useSearchParams();
+  return <ProductsPage key={searchParams.get("search") || ""} />;
+};
+
 const RouteFallback = () => <div style={{ minHeight: "100vh" }} aria-busy="true" />;
 const DeferredPage = ({ children }) => <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 
@@ -145,7 +153,7 @@ const ChatMountIfNotAdmin = () => {
 
 <Route path="/" element={<HomePage key="home" />} />
 
-<Route path="/products" element={<DeferredPage><ProductsPage /></DeferredPage>} />
+<Route path="/products" element={<DeferredPage><CatalogRootPage /></DeferredPage>} />
 
 <Route path="/products/page/:page" element={<DeferredPage><ProductsPage /></DeferredPage>} />
 

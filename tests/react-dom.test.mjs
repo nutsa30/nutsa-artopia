@@ -532,6 +532,7 @@ test("main-category subcategories are persistent multi-select toggles", async ()
     const toggles = () => Array.from(document.querySelectorAll('nav[aria-label*="ქვეკატეგორიები"] button'));
     assert.equal(toggles().length, 2);
     assert.ok(toggles().every(button => button.getAttribute("aria-pressed") === "false"));
+    assert.equal(document.body.textContent.includes("მთავარი კატეგორია"), false, "only the category name is shown");
     assert.equal(document.body.textContent.includes("ამოწურული პროდუქტების ჩვენება"), false);
     assert.equal(document.querySelector('[class*="catTrigger"]'), null);
 
@@ -587,4 +588,24 @@ test("a decorated VITE_API_BASE (e.g. an emoji before the URL) still yields the 
   assert.equal(cleanApiBase(""), DEFAULT_API_BASE);
   assert.equal(cleanApiBase(undefined), DEFAULT_API_BASE);
   assert.equal(cleanApiBase("✅"), DEFAULT_API_BASE);
+});
+
+test("catalogue landing has the same all-category search as the homepage", async () => {
+  document.head.innerHTML = ""; sessionStorage.clear(); localStorage.clear();
+  globalThis.fetch = async url => {
+    const parsed = new URL(url);
+    if (parsed.pathname === "/categories/catalog") return Response.json({ featured_sections: [], main_categories: [{
+      id: 1, slug: "art", name: "Art", image_url: null, product_count: 2, subcategories: [] }] });
+    if (parsed.pathname === "/products/list") return Response.json({ items: [], total: 0 });
+    throw Error(`Unexpected fixture request: ${url}`);
+  };
+  const cleanup = await render(storefront("/products"));
+  try {
+    await settle();
+    const form = document.querySelector('form[role="search"]');
+    assert.ok(form, "landing shows the global search form");
+    assert.ok(document.querySelector('a[href="/products/group/art"]'), "category cards still render");
+    // submitting it is the same component the homepage test drives (→ /products?search=…)
+    assert.ok(form.querySelector('input[aria-label="პროდუქტის დასახელება"]'));
+  } finally { await cleanup(); }
 });

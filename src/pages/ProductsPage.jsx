@@ -10,6 +10,7 @@ import NotFound from "../components/NotFound";
 import { catalogPath, pageNumber } from "../utils/canonical";
 import { catalogMeta, PRODUCTS_PER_PAGE } from "../utils/catalogMeta";
 import CatalogLanding from "../components/catalog/CatalogLanding";
+import ProductSearchForm from "../components/search/ProductSearchForm";
 import { readInitialData } from "../utils/initialData";
 
 
@@ -388,7 +389,11 @@ const ProductsPage = () => {
         </h1>
         {landingMode ? (
           catalogResolved ? (
-            <CatalogLanding catalog={catalog} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
+            <>
+              {/* ძიება ყველა კატეგორიაში — იგივე ფორმა, რაც ჰოუმზეა */}
+              <ProductSearchForm />
+              <CatalogLanding catalog={catalog} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
+            </>
           ) : (
             <div className={styles.landingSkeleton} aria-label="კატალოგი იტვირთება" aria-busy="true">
               <div className={styles.landingSkeletonTitle} />
@@ -399,7 +404,7 @@ const ProductsPage = () => {
           )
         ) : <>
         {selectedMain && <section className={styles.mainIntro}>
-          <div><p>მთავარი კატეგორია</p><h2>{selectedMain.name}</h2>
+          <div><h2>{selectedMain.name}</h2>
             {selectedMain.description && <span>{selectedMain.description}</span>}</div>
           <nav aria-label={`${selectedMain.name} ქვეკატეგორიები`} className={styles.subcategoryNav}>
             {selectedMain.subcategories.map((sub) => {

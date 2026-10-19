@@ -234,8 +234,8 @@
 
   z-index: 1001;
 
-  /* ეს არის მთავარი FIX */
-  pointer-events: none;
+  /* overlay-ზე (კალათის გარეთ) დაჭერა კალათას ხურავს; კალათა თავად z-index 3000-ზეა */
+  cursor: pointer;
 }
 
 /* CLOSE */
