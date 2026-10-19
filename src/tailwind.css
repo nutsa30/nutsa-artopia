@@ -1,0 +1,7 @@
+/* Tailwind v4 — მხოლოდ theme + utilities, Preflight (CSS reset) განზრახ არ არის:
+   reset მთელი საიტის სათაურებს, ღილაკებს და სურათებს შეცვლიდა.
+   ყველა კლასი `tw:` პრეფიქსით იწერება (მაგ. `tw:flex tw:md:grid-cols-3`), რომ არსებულ
+   გლობალურ კლასებს (ჩატის `.grid`, `.row`…) არ დაეჯახოს. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) prefix(tw);
+@import "tailwindcss/utilities.css" layer(utilities);

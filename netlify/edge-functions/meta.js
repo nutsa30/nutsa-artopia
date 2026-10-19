@@ -639,7 +639,9 @@ async function handle(request, context) {
     if (!p || !p.name) return page();
 
     const name = String(p.name).trim();
-    const image = p.image_url1 || DEFAULT_IMAGE;
+    // პირველი არსებული ფოტო (ძველ ჩანაწერებში 1-ლი სლოტი შეიძლება ცარიელი იყოს)
+    const photo = [1, 2, 3, 4, 5, 6].map((i) => p[`image_url${i}`]).find((u) => typeof u === "string" && u.trim()) || null;
+    const image = photo || DEFAULT_IMAGE;
     const pageUrl = `${SITE}/products/${slug}`;
     const description = clip(p.description || `${name} — იყიდე Artopia-ში, სამხატვრო და საკანცელარიო მაღაზია. მიტანა მთელ საქართველოში.`, 160);
 
@@ -650,11 +652,11 @@ async function handle(request, context) {
       url: pageUrl,
       image,
       type: "product",
-      headExtra: imagePreload(p.image_url1, "detail"),
+      headExtra: imagePreload(photo, "detail"),
       jsonLd: {
         "@context": "https://schema.org",
         "@graph": [
-          productJsonLd(p, { url: pageUrl, images: p.image_url1 ? [p.image_url1] : [], sellerId: ORG_ID }),
+          productJsonLd(p, { url: pageUrl, images: photo ? [photo] : [], sellerId: ORG_ID }),
           breadcrumb(productBreadcrumbs(p, pageUrl)),
         ],
       },

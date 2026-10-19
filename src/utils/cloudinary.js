@@ -113,7 +113,8 @@ const RESPONSIVE = {
   // ბლოგის ბარათი: მობილურზე თითქმის სრული სიგანე, desktop-ზე ~300px
   blog: { w: IMG.BLOG_CARD, widths: [320, 480, 800], sizes: "(max-width: 700px) 92vw, 320px" },
   // მთავარი კატეგორიის 16:9 ბარათი
-  category: { w: 1200, widths: [480, 800, 1200], sizes: "(max-width: 760px) 92vw, 50vw" },
+  // ტელეფონზე 1, ტაბლეტზე 2, დიდ ეკრანზე 3 ბარათი ხაზზე
+  category: { w: 1200, widths: [480, 800, 1200], sizes: "(max-width: 639px) 92vw, (max-width: 1023px) 46vw, 31vw" },
 };
 
 export function responsiveImage(url, kind) {

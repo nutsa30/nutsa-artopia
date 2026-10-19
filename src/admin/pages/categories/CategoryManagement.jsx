@@ -7,8 +7,8 @@ import {
   updateSubcategory,
 } from "../../api";
 import styles from "./CategoryManagement.module.css";
+import SubcategoryIcon from "../../../components/catalog/SubcategoryIcon";
 
-const ICONS = ["🎨", "🖌️", "✏️", "📚", "✂️", "🧸", "🎁", "🧵", "🧩", "🔌", "✨", "📌"];
 
 export default function CategoryManagement() {
   const [data, setData] = useState({ main_categories: [], subcategories: [], ungrouped_count: 0 });
@@ -135,10 +135,12 @@ export default function CategoryManagement() {
 
 function SubcategoryRow({ sub, mains, saving, onSave }) {
   return <div className={styles.subRow}>
-    <select aria-label={`${sub.name} icon`} value={sub.icon || ""} onChange={(e) => onSave(sub, { icon: e.target.value })}>
-      <option value="">◌</option>{ICONS.map((icon) => <option key={icon} value={icon}>{icon}</option>)}
-    </select>
-    <div><strong>{sub.name}</strong><span>{sub.product_count} პროდუქტი</span></div>
+    {/* ხატულა ავტომატურია (src/components/catalog/SubcategoryIcon.jsx) — ემოჯის არჩევა აღარ საჭიროა */}
+    <SubcategoryIcon slug={sub.slug} name={sub.name}
+      mainSlug={mains.find((main) => main.id === sub.main_category_id)?.slug} size="sm" />
+    <div><strong>{sub.name}</strong><span>{sub.product_count} პროდუქტი</span>
+      {/* Optimo-ში წაშლილი: საიტზე აღარ ჩანს, ადმინში რჩება */}
+      {!sub.is_active && <em className={styles.optimoDeleted}>Optimo-ში წაშლილია</em>}</div>
     <select aria-label={`${sub.name} მთავარი კატეგორია`} value={sub.main_category_id ?? ""}
       onChange={(e) => onSave(sub, { main_category_id: e.target.value || null })}>
       <option value="">დაუჯგუფებელი</option>{mains.map((main) => <option key={main.id} value={main.id}>{main.name}</option>)}

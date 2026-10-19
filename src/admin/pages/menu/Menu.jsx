@@ -75,6 +75,8 @@ const normalizeProduct = (p) => {
     is_new: !!p?.is_new,
     hide: !!p?.hide,
     manually_hidden: !!p?.manually_hidden,
+    // Optimo-ში წაშლილი: საიტზე აღარ ჩანს (გვერდი 410), ადმინში რჩება ისტორიისთვის
+    optimo_deleted: p?.optimo_state === "inactive",
     slug: p?.slug || "",
     images: imgs,
     weight: p?.weight != null ? Number(p.weight) : null,
@@ -295,6 +297,8 @@ const Menu = () => {
 </span>
                         {p.is_new && <span className={styles.newBadge}>ახალი</span>}
                         {p.hide && <span className={styles.hiddenBadge}><EyeOff size={12} /></span>}
+                        {p.optimo_deleted && <span className={styles.optimoDeletedBadge}
+                          title="საიტზე აღარ ჩანს; ადმინში რჩება ისტორიისთვის">Optimo-ში წაშლილია</span>}
                       </div>
                       <p className={styles.pDesc}>{p.description}</p>
                       <div className={styles.meta}>

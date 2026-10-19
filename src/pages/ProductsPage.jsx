@@ -3,7 +3,8 @@ import ProductCard from "../components/productCard/productsCard";
 import ProductFilter from "../components/productCard/ProductFilter";
 import styles from "./ProductsPage.module.css";
 import { useCart } from "../components/CartContext/CartContext";
-import { useNavigate, useLocation, useSearchParams, useParams, Navigate } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams, useParams, Navigate, Link } from "react-router-dom";
+import { ArrowLeft, Check } from "lucide-react";
 import EdgePager from "../components/pagination/EdgePager";
 import SEO from "../components/SEO";
 import NotFound from "../components/NotFound";
@@ -11,6 +12,7 @@ import { catalogPath, pageNumber } from "../utils/canonical";
 import { catalogMeta, PRODUCTS_PER_PAGE } from "../utils/catalogMeta";
 import CatalogLanding from "../components/catalog/CatalogLanding";
 import ProductSearchForm from "../components/search/ProductSearchForm";
+import SubcategoryIcon from "../components/catalog/SubcategoryIcon";
 import { readInitialData } from "../utils/initialData";
 
 
@@ -404,7 +406,13 @@ const ProductsPage = () => {
           )
         ) : <>
         {selectedMain && <section className={styles.mainIntro}>
-          <div><h2>{selectedMain.name}</h2>
+          <div>
+            {/* უკან — ყველა კატეგორიის სიაზე (/products) */}
+            <Link to="/products"
+              className="tw:mb-4 tw:inline-flex tw:items-center tw:gap-2 tw:rounded-full tw:border tw:border-white/15 tw:bg-white/5 tw:px-4 tw:py-2 tw:text-sm tw:font-semibold tw:text-sky-100 tw:no-underline tw:shadow-sm tw:transition tw:hover:border-sky-300/50 tw:hover:bg-sky-500/15 tw:hover:text-white">
+              <ArrowLeft size={16} aria-hidden="true" /> ყველა კატეგორია
+            </Link>
+            <h2>{selectedMain.name}</h2>
             {selectedMain.description && <span>{selectedMain.description}</span>}</div>
           <nav aria-label={`${selectedMain.name} ქვეკატეგორიები`} className={styles.subcategoryNav}>
             {selectedMain.subcategories.map((sub) => {
@@ -412,7 +420,12 @@ const ProductsPage = () => {
               return <button key={sub.id} type="button" aria-pressed={selected}
                 className={selected ? styles.subcategorySelected : ""}
                 onClick={() => toggleSubcategory(sub.slug)}>
-                <b aria-hidden="true">{selected ? "✓" : (sub.icon || "◌")}</b>
+                <i className="tw:relative tw:inline-flex tw:not-italic">
+                  <SubcategoryIcon slug={sub.slug} name={sub.name} mainSlug={selectedMain.slug} size="sm" />
+                  {selected && <i aria-hidden="true"
+                    className="tw:absolute tw:-right-1.5 tw:-top-1.5 tw:grid tw:size-4 tw:place-items-center tw:rounded-full tw:bg-white tw:text-sky-700 tw:not-italic tw:shadow">
+                    <Check size={11} strokeWidth={3} /></i>}
+                </i>
                 <span>{sub.name}</span><small>{sub.product_count}</small>
               </button>;
             })}

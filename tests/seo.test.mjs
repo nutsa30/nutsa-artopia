@@ -362,3 +362,11 @@ test("catalog HTML: no wrong preload on the landing page, the category tree ship
     assert.equal(initial((await visit(filtered, api)).body), null, filtered);
   }
 });
+
+test("product page uses the first existing photo even when slot 1 is empty (preload + JSON-LD)", async () => {
+  const photo = "https://res.cloudinary.com/x/image/upload/v1/second-slot.png";
+  const { body } = await visit("/products/tikha-deli", async (url) => (url.includes("/products/full/")
+    ? json({ product: product({ image_url1: null, image_url2: photo }), related: [] }) : noNetwork(url)));
+  assert.ok(body.includes(`imagesrcset="${responsiveImage(photo, "detail").srcSet}"`));
+  assert.deepEqual(nodes(body, "Product")[0].image, [photo]);
+});
