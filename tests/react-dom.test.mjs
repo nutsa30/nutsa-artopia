@@ -576,3 +576,12 @@ test("unverified direct page stays indexable and alternatives cannot include una
     assert.ok(!hrefs().includes("/products/hidden"));
   } finally { await cleanup(); }
 });
+
+test("a decorated VITE_API_BASE (e.g. an emoji before the URL) still yields the real backend URL", async () => {
+  const { cleanApiBase, DEFAULT_API_BASE } = await server.ssrLoadModule("/src/utils/apiBase.js");
+  assert.equal(cleanApiBase("✅ https://api.example.test/"), "https://api.example.test");
+  assert.equal(cleanApiBase("  https://api.example.test//  "), "https://api.example.test");
+  assert.equal(cleanApiBase(""), DEFAULT_API_BASE);
+  assert.equal(cleanApiBase(undefined), DEFAULT_API_BASE);
+  assert.equal(cleanApiBase("✅"), DEFAULT_API_BASE);
+});
