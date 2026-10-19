@@ -1,0 +1,48 @@
+import React, { useRef } from "react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import ProductCard from "../productCard/productsCard";
+import { catalogPath } from "../../utils/canonical";
+import styles from "./CatalogLanding.module.css";
+
+export default function CatalogLanding({ catalog, onAddToCart, onBuyNow }) {
+  if (!catalog?.main_categories?.length) return null;
+  return <>
+    <section className={styles.hero} aria-labelledby="catalog-categories-title">
+      <div className={styles.heading}><p>აირჩიე მიმართულება</p><h2 id="catalog-categories-title">პროდუქციის კატეგორიები</h2></div>
+      <div className={styles.mainGrid}>
+        {catalog.main_categories.map((main) => <Link key={main.id} to={catalogPath({ mainCategory: main.slug })}
+          className={styles.mainCard}>
+          {main.image_url ? <img src={main.image_url} alt="" width="800" height="450" loading="lazy" /> :
+            <div className={styles.placeholder}><ImageIcon size={38} aria-hidden="true" /></div>}
+          <span className={styles.overlay} />
+          <span className={styles.mainText}><strong>{main.name}</strong><small>{main.product_count} პროდუქტი · {main.subcategories.length} ქვეკატეგორია</small></span>
+        </Link>)}
+      </div>
+    </section>
+    <div className={styles.featured}>
+      {catalog.featured_sections?.map((section) => <ProductRail key={section.category.id} section={section}
+        onAddToCart={onAddToCart} onBuyNow={onBuyNow} />)}
+    </div>
+  </>;
+}
+
+function ProductRail({ section, onAddToCart, onBuyNow }) {
+  const rail = useRef(null);
+  const scroll = (direction) => rail.current?.scrollBy({ left: direction * Math.min(900, rail.current.clientWidth * .85), behavior: "smooth" });
+  return <section className={styles.railSection}>
+    <header><div><span>{section.category.icon || "✦"}</span><h2>{section.category.name}</h2></div>
+      <Link to={catalogPath({ category: section.category.slug })}>ყველას ნახვა →</Link></header>
+    <div className={styles.railShell}>
+      <button type="button" className={`${styles.arrow} ${styles.left}`} onClick={() => scroll(-1)} aria-label="წინა პროდუქტები"><ChevronLeft /></button>
+      <div className={styles.rail} ref={rail}>
+        {section.products.map((product, index) => <div className={styles.product} key={product.id}>
+          <ProductCard product={product} href={`/products/${product.slug}`} eager={index < 2}
+            onAddToCart={(e, quantity) => { e.stopPropagation(); onAddToCart(product, quantity); }}
+            onBuyNow={(e, quantity) => { e.stopPropagation(); onBuyNow(product, quantity); }} />
+        </div>)}
+      </div>
+      <button type="button" className={`${styles.arrow} ${styles.right}`} onClick={() => scroll(1)} aria-label="შემდეგი პროდუქტები"><ChevronRight /></button>
+    </div>
+  </section>;
+}

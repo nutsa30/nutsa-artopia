@@ -19,6 +19,7 @@ const SEO = ({
   image = DEFAULT_IMAGE,
   type = "website",
   noIndex = false,
+  noIndexFollow = false,
 }) => {
   const cleanTitle = clean(title);
   const cleanDescription = clean(description);
@@ -48,7 +49,7 @@ const SEO = ({
 
       {cleanUrl && <link rel="canonical" href={cleanUrl} />}
 
-      <meta name="robots" content={noIndex ? "noindex,nofollow" : "index,follow"} />
+      <meta name="robots" content={noIndex ? (noIndexFollow ? "noindex,follow" : "noindex,nofollow") : "index,follow"} />
 
       <meta property="og:locale" content={DEFAULT_LOCALE} />
       <meta property="og:site_name" content={SITE_NAME} />

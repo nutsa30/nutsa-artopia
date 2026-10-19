@@ -5,16 +5,17 @@ import { SITE_URL, catalogPath } from "./canonical.js";
 
 export const PRODUCTS_PER_PAGE = 20;
 
-export function catalogMeta({ category, page } = {}) {
+export function catalogMeta({ category, mainCategory, displayName, description: customDescription, page } = {}) {
   const n = Number(page) > 1 ? Number(page) : 1;
   const pageSuffix = n > 1 ? ` — გვერდი ${n}` : "";
-  const url = `${SITE_URL}${catalogPath({ category, page: n })}`;
-  if (category && category !== "ყველა") {
+  const url = `${SITE_URL}${catalogPath({ category, mainCategory, page: n })}`;
+  const categoryLabel = displayName || category || mainCategory;
+  if (categoryLabel && categoryLabel !== "ყველა") {
     return {
       url,
-      heading: category,
-      title: `${category}${pageSuffix} — Artopia | სამხატვრო მაღაზია`,
-      description: `იყიდე ${category} Artopia-ში — სამხატვრო მაღაზია თბილისში. ხარისხიანი ${category}, ფართო არჩევანი და მიტანა მთელ საქართველოში.${n > 1 ? ` გვერდი ${n}.` : ""}`,
+      heading: categoryLabel,
+      title: `${categoryLabel}${pageSuffix} — Artopia | ონლაინ მაღაზია`,
+      description: customDescription || `აღმოაჩინე ${categoryLabel} Artopia-ში — ხარისხიანი პროდუქცია, ფართო არჩევანი და მიტანა მთელ საქართველოში.${n > 1 ? ` გვერდი ${n}.` : ""}`,
     };
   }
   return {
@@ -73,7 +74,8 @@ export function productBreadcrumbs(p, url) {
   return [
     { name: "მთავარი", item: `${SITE_URL}/` },
     { name: "პროდუქტები", item: `${SITE_URL}/products` },
-    ...(category ? [{ name: category, item: `${SITE_URL}${catalogPath({ category })}` }] : []),
+    ...(p.main_category_slug ? [{ name: p.main_category_name, item: `${SITE_URL}${catalogPath({ mainCategory: p.main_category_slug })}` }] : []),
+    ...(category ? [{ name: category, item: `${SITE_URL}${catalogPath({ category: p.category_slug || category })}` }] : []),
     { name: String(p.name || "").trim(), item: url },
   ];
 }

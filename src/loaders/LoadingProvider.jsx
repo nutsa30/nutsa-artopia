@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import "./loading-overlay.css";
 import { subscribeLoading } from "./loadingBus";
+import loader from "../assets/loader.webm";
 
 const LoadingContext = createContext(null);
 
@@ -70,7 +71,7 @@ export const LoadingProvider = ({ children, minShowMs = 400 }) => {
           aria-live="polite"
           aria-label="Loading"
         >
-          <img src={loader} alt="Loading..." className="loading-spinner" />
+          <video src={loader} autoPlay loop muted playsInline aria-hidden="true" className="loading-spinner" />
           {/* თუ ვიდეო გინდა, აქ <video autoPlay muted playsInline src={...}/> ჩასვი */}
         </div>
       )}

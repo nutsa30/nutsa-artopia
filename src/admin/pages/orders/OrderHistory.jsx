@@ -52,7 +52,7 @@ const pickItemImage = (it = {}) => {
 
 const parseISOasUTC = (s) => {
   if (!s) return null;
-  const hasTZ = /[zZ]|[+\-]\d{2}:\d{2}$/.test(s);
+  const hasTZ = /[zZ]|[+-]\d{2}:\d{2}$/.test(s);
   return new Date(hasTZ ? s : `${s}Z`);
 };
 

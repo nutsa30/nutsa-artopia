@@ -26,7 +26,7 @@ const L = {
   price: "ფასი",
   addToCart: "კალათაში დამატება",
   buyNow: "ყიდვა",
-  outOfStock: "არ არის მარაგში",
+  outOfStock: "ამჟამად არ არის მარაგში",
   prev: "წინა",
   next: "შემდეგი",
   new: "ახალი",
@@ -135,7 +135,7 @@ if (!ignore && data?.product?.slug && data.product.slug !== slug) {
 if (!ignore) {
   setProduct(normalizeProduct(data.product));
   setRelatedProducts(
-    Array.isArray(data.related) ? data.related.map(normalizeProduct) : []
+    Array.isArray(data.related) ? data.related.map(normalizeProduct).filter((p) => p.quantity > 0 && !p.manually_hidden && (!p.optimo_state || p.optimo_state === "active")) : []
   );
   setStatus("success");
 }
@@ -150,7 +150,7 @@ if (!ignore) {
     return () => {
       ignore = true;
     };
-  }, [slug]);
+  }, [slug, location.state, navigate]);
 
   const images = useMemo(() => {
     if (!product) return [];
@@ -417,7 +417,7 @@ navigate(-1);
               {L.category}:{" "}
               {category ? (
                 <Link
-                  to={`/products/category/${encodeURIComponent(category)}`}
+                  to={`/products/category/${encodeURIComponent(product.category_slug || category)}`}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -517,7 +517,7 @@ navigate(-1);
 </button>
                   </>
                 ) : (
-                  <div className={styles.outOfStock}>{L.outOfStock}</div>
+                  <div className={styles.outOfStock}>{product.optimo_state === "unverified" ? "ხელმისაწვდომობა მოწმდება" : L.outOfStock}</div>
                 )}
               </div>
             </div>
@@ -546,7 +546,7 @@ alt={`${title} ${category} დეტალური ფოტო - Artopia`}
 {relatedProducts.length > 0 && (
   <section className={styles.relatedSection}>
     <div className={styles.relatedHeader}>
-      <h2 className={styles.relatedTitle}>მსგავსი პროდუქტები</h2>
+      <h2 className={styles.relatedTitle}>{inStock ? "მსგავსი პროდუქტები" : "მარაგში არსებული ალტერნატივები"}</h2>
 
       <div className={styles.relatedNav}>
         <button

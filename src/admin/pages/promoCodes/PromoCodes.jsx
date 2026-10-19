@@ -1,8 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./PromoCodes.module.css";
 import { Plus, Trash2, Ticket, RefreshCw, Info } from "lucide-react";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+const getAuthHeaders = (extra = {}) => ({ ...extra, "Authorization": `Bearer ${localStorage.getItem("ADMIN_TOKEN")}` });
+const normalizeCoupon = (row = {}) => ({ id: row.id, code: String(row.code || "").toUpperCase(),
+  percent: Number(row.percent ?? 0), is_active: !!row.is_active, usage_count: Number(row.usage_count ?? 0) });
 
 const PromoCodes = () => {
   const [list, setList] = useState([]);
@@ -14,23 +17,7 @@ const PromoCodes = () => {
   const [percent, setPercent] = useState("");
   const [isActive, setIsActive] = useState(true);
 
-  const getAuthHeaders = (extra = {}) => {
-    const token = localStorage.getItem("ADMIN_TOKEN");
-    return {
-      ...extra,
-      "Authorization": `Bearer ${token}`,
-    };
-  };
-
-  const normalizeCoupon = (row = {}) => ({
-    id: row.id,
-    code: String(row.code || "").toUpperCase(),
-    percent: Number(row.percent ?? 0),
-    is_active: !!row.is_active,
-    usage_count: Number(row.usage_count ?? 0),
-  });
-
-  const fetchCoupons = async () => {
+  const fetchCoupons = useCallback(async () => {
     setLoading(true);
     setErr("");
     try {
@@ -46,11 +33,11 @@ const PromoCodes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCoupons();
-  }, []);
+  }, [fetchCoupons]);
 
   const handleCreate = async (e) => {
     e.preventDefault();

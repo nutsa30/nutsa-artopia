@@ -2,6 +2,7 @@
 .filterContainer {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 20px;
   position: relative;
@@ -279,3 +280,13 @@
   color: white;
   font-size: 14px;
 }
+.stockToggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-basis: 100%;
+  color: #e5edf8;
+  font-size: 15px;
+  cursor: pointer;
+}
+.stockToggle input { width: 18px; height: 18px; accent-color: #5aa6f0; flex-shrink: 0; }

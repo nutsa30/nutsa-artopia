@@ -200,11 +200,11 @@ function Bar({ value, max, color = "#4b74ff" }) {
 }
 
 // ── KPI Card ──────────────────────────────────────────────────────────
-function KpiCard({ icon: Icon, label, value, sub, color = "#4b74ff" }) {
+function KpiCard({ icon, label, value, sub, color = "#4b74ff" }) {
   return (
     <div className={styles.kpiCard}>
       <div className={styles.kpiIcon} style={{ background: `${color}18`, color }}>
-        <Icon size={22} />
+        {React.createElement(icon, { size: 22 })}
       </div>
       <div className={styles.kpiBody}>
         <div className={styles.kpiLabel}>{label}</div>

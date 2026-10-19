@@ -16,6 +16,7 @@ import Analytics from "./pages/analytics/Analytics";
 import SupportPanel from "./pages/supportPanel/SupportPanel";
 import AdminRestock from "./pages/restock/AdminRestock";
 import ConsultantPhotos from "./pages/consultantPhotos/ConsultantPhotos";
+import CategoryManagement from "./pages/categories/CategoryManagement";
 
 import { AuthProvider } from "./context/AuthContext";
 
@@ -81,6 +82,15 @@ function AdminShell() {
           element={
             <ProtectedRoute>
               <Menu />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="categories"
+          element={
+            <ProtectedRoute>
+              <CategoryManagement />
             </ProtectedRoute>
           }
         />

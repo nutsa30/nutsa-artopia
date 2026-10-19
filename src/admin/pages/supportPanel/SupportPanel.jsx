@@ -15,11 +15,6 @@ import {
 const PLACEHOLDER = "https://via.placeholder.com/120x120?text=No+Image";
 const LIMIT = 30;
 
-function formatDate(iso) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleDateString("ka-GE");
-}
-
 /* ვადაგასული ან არასწორი ტოკენი → ვასუფთავებთ და ვაბრუნებთ login-ზე.
    ამის გარეშე 401-ის დროს გვერდი ჩუმად ცარიელი რჩებოდა. */
 function handleAuthError(err) {
@@ -41,7 +36,6 @@ export default function SupportPanel() {
   const setTab = (newTab) =>
     navigate(`/admin/support-panel/${newTab === "nophoto" ? "no-photo" : "products"}`, { replace: false });
   const [products, setProducts] = useState([]);
-  const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
   const [page, setPage] = useState(1);
 
@@ -91,7 +85,6 @@ export default function SupportPanel() {
     getSupportProducts({ search: q, category: cat, page: pg, limit: LIMIT })
       .then((data) => {
         setProducts(data?.items ?? []);
-        setTotal(data?.total ?? 0);
         setPages(data?.pages ?? 1);
       })
       .catch(handleAuthError)
@@ -148,6 +141,7 @@ export default function SupportPanel() {
       await removeFromRestock(restockItemId);
       fetchRestock();
     } catch {
+      // The next refresh reconciles the list; keep the current row visible meanwhile.
     } finally {
       setRemoving((prev) => {
         const next = new Set(prev);

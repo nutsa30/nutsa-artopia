@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 
 export default function ChatWidget({ siteLang = "ka" }) {
   const path = typeof window !== "undefined" ? window.location.pathname : "/";
-  if (/^\/admin\b/.test(path)) return null;
+  const isAdmin = /^\/admin\b/.test(path);
 
   const [open, setOpen] = useState(false);
   const [view, setView] = useState("start");
@@ -14,6 +14,8 @@ export default function ChatWidget({ siteLang = "ka" }) {
     () => (siteLang === "en" ? "Art Bot" : "არტ ბოტი"),
     [siteLang]
   );
+
+  if (isAdmin) return null;
 
   // 🔥 FRONT DATA
 const DATA = {

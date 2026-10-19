@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../../components/CartContext/CartContext";
 import ProductCard from "../../components/productCard/productsCard";

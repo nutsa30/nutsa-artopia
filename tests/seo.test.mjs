@@ -298,3 +298,32 @@ test("blog metadata is identical before and after JavaScript", async () => {
   const page = await readFile(new URL("../src/pages/BlogsPage.jsx", import.meta.url), "utf8");
   assert.match(page, /BLOG_INDEX_META\.title/);
 });
+
+
+test("filtered pagination is validated against the inclusive catalogue, noindex and no canonical", async () => {
+  const r = await visit("/products/category/Fixture/page/3?include_out_of_stock=1", url => {
+    assert.equal(new URL(url).searchParams.get("include_out_of_stock"), "1");
+    return json({ items: [product({ quantity: 0 })], total: 60, category_exists: true });
+  });
+  assert.equal(r.status, 200);
+  assert.equal(robots(r.body), "noindex,follow");
+  assert.deepEqual(canonical(r.body), []);
+  assert.equal(r.response.headers.get("x-robots-tag"), "noindex");
+});
+
+test("renamed category keeps the inclusive filter on its permanent redirect", async () => {
+  const r = await visit("/products/category/Old?include_out_of_stock=1", () =>
+    json({ items: [], total: 0, category_exists: false, category_moved_to: "New" }));
+  assert.equal(r.status, 301);
+  assert.equal(r.response.headers.get("location"), "https://artopia.ge/products/category/New?include_out_of_stock=1");
+});
+
+
+test("confirmed empty default catalogues are 200 with matching React noindex, without canonical", async () => {
+  for (const path of ["/products", "/products/category/Fixture"]) {
+    const r = await visit(path, () => json({ items: [], total: 0, category_exists: true }));
+    assert.equal(r.status, 200);
+    assert.equal(robots(r.body), "noindex,nofollow");
+    assert.deepEqual(canonical(r.body), []);
+  }
+});

@@ -37,7 +37,6 @@ function headers(extra = {}) {
 export default function AddHomeImg() {
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const [files, setFiles] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
@@ -48,7 +47,6 @@ export default function AddHomeImg() {
 
   const fetchList = async () => {
     try {
-      setLoading(true);
       const res = await fetch(`${API_BASE}/home-images`, {
         headers: headers(),
         credentials: "include",
@@ -59,8 +57,6 @@ export default function AddHomeImg() {
     } catch (err) {
       console.error(err);
       setError("სიის წამოღების შეცდომა");
-    } finally {
-      setLoading(false);
     }
   };
 

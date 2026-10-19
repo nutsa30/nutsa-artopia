@@ -29,8 +29,6 @@ function Stars({ value = 0 }) {
 }
 
 function ReviewCard({ review }) {
-  const fallbackInitial = review?.author?.trim()?.charAt(0)?.toUpperCase() || "A";
-
   return (
     <article className={styles.card}>
       <div className={styles.cardTop}>
@@ -111,7 +109,7 @@ useEffect(() => {
             reviews: Array.isArray(json?.reviews) ? json.reviews : [],
           });
         }
-      } catch (err) {
+      } catch {
         if (!ignore) {
           setError("შეფასებები დროებით ვერ ჩაიტვირთა. სცადეთ მოგვიანებით.");
         }

@@ -40,6 +40,17 @@ body,
   width: 100%;
 }
 
+.mainIntro { margin-bottom: 22px; }
+.mainIntro > div > p { margin: 0 0 4px; color: #d6ae5d; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; }
+.mainIntro h2 { margin: 0 0 8px; color: #f3f6fa; font-size: clamp(28px, 4vw, 46px); }
+.mainIntro > div > span { color: #aeb9c7; line-height: 1.65; }
+.subcategoryNav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.subcategoryNav a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 9px; min-height: 62px; padding: 10px 13px; border: 1px solid #2b394c; border-radius: 13px; background: #162130; color: #edf3fa; text-decoration: none; }
+.subcategoryNav a:hover { border-color: #547da8; background: #1c2c40; }
+.subcategoryNav b { font-size: 22px; font-weight: 400; }
+.subcategoryNav span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.subcategoryNav small { color: #8594a7; }
+
 @media (min-width: 640px) {
   .selectDecor {
     width: auto;
@@ -249,6 +260,10 @@ body,
     font-size: 15px;
     flex-wrap: wrap;
   }
+
+  .subcategoryNav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .subcategoryNav a { grid-template-columns: auto minmax(0, 1fr); min-height: 56px; padding: 8px 10px; }
+  .subcategoryNav small { display: none; }
 
   .paginationContainer {
     margin-top: 24px;

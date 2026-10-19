@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./AlsoBuyModal.module.css";
 import { cld, IMG } from "../../utils/cloudinary";
@@ -9,17 +9,11 @@ const NO_IMAGE = "/noimage.jpeg";
 const getImage = (p) =>
   p?.image_url1 || p?.image_url2 || p?.image_url3 || NO_IMAGE;
 
-const getPrice = (p) => {
-  const price = Number(p?.price || 0);
-  const sale = Number(p?.sale || 0);
-  if (sale > 0 && sale <= 100) return +(price * (1 - sale / 100)).toFixed(2);
-  return +price.toFixed(2);
-};
-
 export default function AlsoBuyModal({ alsoBuyIds = [], isOpen, onClose }) {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const alsoBuyKey = alsoBuyIds.join(",");
 
   useEffect(() => {
     if (!isOpen || !alsoBuyIds.length) return;
@@ -27,7 +21,7 @@ export default function AlsoBuyModal({ alsoBuyIds = [], isOpen, onClose }) {
     let ignore = false;
     setLoading(true);
 
-    fetch(`${API_BASE}/products/also-buy?ids=${alsoBuyIds.join(",")}`)
+    fetch(`${API_BASE}/products/also-buy?ids=${alsoBuyKey}`)
       .then((r) => r.json())
       .then((data) => {
         if (!ignore) setProducts(Array.isArray(data) ? data : []);
@@ -42,7 +36,7 @@ export default function AlsoBuyModal({ alsoBuyIds = [], isOpen, onClose }) {
     return () => {
       ignore = true;
     };
-  }, [isOpen, alsoBuyIds.join(",")]);
+  }, [isOpen, alsoBuyKey, alsoBuyIds.length]);
 
   // ESC კლავიში
   useEffect(() => {

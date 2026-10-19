@@ -25,6 +25,9 @@ export default function ProductFilter({
   onCategoryChange,
   searchTerm,
   onSearchChange,
+  includeOutOfStock = false,
+  onOutOfStockChange,
+  categoryHref = (category) => catalogPath({ category }),
 }) {
   const L = LABELS;
 const [catSearch, setCatSearch] = useState("");
@@ -32,19 +35,15 @@ const [catSearch, setCatSearch] = useState("");
     if (!Array.isArray(categories)) return [];
     return categories.map((c, idx) =>
       typeof c === "string"
-        ? { id: null, name: c, _key: `s-${idx}` }
-        : { ...c, _key: `o-${c.id ?? idx}` }
+        ? { id: null, name: c, value: c, _key: `s-${idx}` }
+        : { ...c, value: c.slug || c.name, _key: `o-${c.id ?? idx}` }
     );
   }, [categories]);
-const catLabels = useMemo(
-  () => [L.all, ...catObjs.map((c) => catLabel(c)).filter(Boolean)],
-  [catObjs]
-);
-const filteredLabels = useMemo(() => {
-  return catLabels.filter((label) =>
-    label.toLowerCase().includes(catSearch.toLowerCase())
+const filteredCategories = useMemo(() => {
+  return [{ name: L.all, value: "" }, ...catObjs].filter((cat) =>
+    catLabel(cat).toLowerCase().includes(catSearch.toLowerCase())
   );
-}, [catLabels, catSearch]);
+}, [catObjs, catSearch, L.all]);
 
   const [open, setOpen] = useState(false);
 
@@ -79,18 +78,14 @@ const filteredLabels = useMemo(() => {
     };
   }, []);
 
-const handlePickCategory = (label) => {
-  if (label === L.all) {
-    onCategoryChange("");
-  } else {
-    onCategoryChange(label);
-  }
+const handlePickCategory = (value) => {
+  onCategoryChange(value || "");
 
   setCatSearch(""); // 🔥 reset
   setOpen(false);
 };
 
-  const triggerLabel = selectedCategory || L.all;
+  const triggerLabel = catObjs.find((cat) => cat.value === selectedCategory || cat.name === selectedCategory)?.name || selectedCategory || L.all;
 
   return (
     <div className={styles.filterContainer}>
@@ -117,7 +112,7 @@ const handlePickCategory = (label) => {
     title={triggerLabel}
   >
     {selectedCategory ? (
-      <CategoryIcon name={selectedCategory} size={18} className={styles.triggerIcon} />
+      <CategoryIcon name={triggerLabel} size={18} className={styles.triggerIcon} />
     ) : (
       <LayoutGrid size={18} className={styles.triggerIcon} aria-hidden="true" />
     )}
@@ -141,16 +136,18 @@ const handlePickCategory = (label) => {
 
 
     <ul className={styles.darkList}>
-{filteredLabels.map((label) => {
-                  const isSelected = (selectedCategory || L.all) === label;
+{filteredCategories.map((cat) => {
+                  const label = catLabel(cat);
+                  const value = cat.value || "";
+                  const isSelected = (selectedCategory || "") === value;
 
                 return (
                   <li
-                    key={label}
+                    key={cat._key || "all"}
                     className={`${styles.darkItem} ${
                       isSelected ? styles.darkActive : ""
                     }`}
-                    onClick={() => handlePickCategory(label)}
+                    onClick={() => handlePickCategory(value)}
                     title={label}
                   >
                     {label === L.all ? (
@@ -159,7 +156,7 @@ const handlePickCategory = (label) => {
                       <CategoryIcon name={label} size={18} className={styles.catIcon} />
                     )}
                     <Link
-                      to={catalogPath({ category: label === L.all ? null : label })}
+                      to={categoryHref(value || null)}
                       className={styles.catLink}
                       aria-current={isSelected ? "page" : undefined}
                       onClick={(e) => {
@@ -186,6 +183,11 @@ const handlePickCategory = (label) => {
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
       />
+      <label className={styles.stockToggle}>
+        <input type="checkbox" checked={includeOutOfStock}
+          onChange={(e) => onOutOfStockChange?.(e.target.checked)} />
+        ამოწურული პროდუქტების ჩვენება
+      </label>
     </div>
   );
 }

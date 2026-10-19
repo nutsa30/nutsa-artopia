@@ -4,7 +4,6 @@ import {
   getCategories,
   createProductForm,
   updateProductForm,
-  deleteProductImage,
 } from "../../api";
 import styles from "./AddProducts.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
@@ -36,22 +35,6 @@ async function uploadToCloudinary(file) {
   return data?.secure_url || null;
 }
 
-/* ------------------------ auth helpers ------------------------ */
-const getAdminToken = () =>
-  ((typeof window !== "undefined") &&
-    (localStorage.getItem("ADMIN_TOKEN") || sessionStorage.getItem("ADMIN_TOKEN"))) ||
-  "";
-const adminHeaders = (extra = {}) => {
-  const t = (getAdminToken() || "").trim();
-  return t ? { Authorization: `Bearer ${t}`, ...extra } : { ...extra };
-};
-
-/* ------------------------ helpers ------------------------ */
-const safeJson = (text) => {
-  try { return text ? JSON.parse(text) : null; } catch { return null; }
-};
-
-
 // ---- დასახელებების ნორმალიზაცია / შედარება ----
 export default function AddProducts() {
   const navigate = useNavigate();
@@ -79,8 +62,6 @@ const [form, setForm] = useState({
   const [previews, setPreviews] = useState([]); // [url|null]
   const originalUrlsRef = useRef(Array(MAX_IMAGES).fill(null));
 
-  const [catModalOpen, setCatModalOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
 useEffect(() => {
   (async () => {
     try {
@@ -213,12 +194,6 @@ useEffect(() => {
     setForm((f) => ({ ...f, [name]: type === "checkbox" ? !!checked : value }));
   };
 
-  const handlePickCategory = (e) => {
-setForm((f) => ({ ...f, category_id: e.target.value }));
-  };
-
-
-
   // Images add
   const handleImages = (e) => {
     const files = Array.from(e.target.files || []);
@@ -256,48 +231,6 @@ setForm((f) => ({ ...f, category_id: e.target.value }));
       return next;
     });
   }
-
-  /** -------- Category/Subcategory CRUD helpers -------- */
-  const refreshCategories = async () => {
-    try {
-const cats = await getCategories();
-      setCategories(Array.isArray(cats) ? cats : []);
-    } catch {
-      setCategories([]);
-    }
-  };
-
-  const createCategory = async (name) => {
-    const payload = { name: (name || "").trim(), is_active: true };
-    const res = await fetch(`${API_BASE}/categories`, {
-      method: "POST",
-      credentials: "include",
-      headers: adminHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify(payload),
-    });
-    const text = await res.text();
-    let data = null; try { data = JSON.parse(text); } catch {}
-    if (!res.ok) {
-      throw new Error(
-        (data && (data.message || data.error)) ||
-        `HTTP ${res.status} – ${text.slice(0,200)}`
-      );
-    }
-  };
-
-  const deleteCategory = async (id) => {
-    const res = await fetch(`${API_BASE}/categories/${id}`, {
-      method: "DELETE",
-      credentials: "include",
-      headers: adminHeaders(),
-    });
-    const text = await res.text();
-    const data = safeJson(text);
-    if (!res.ok) {
-      throw new Error(data?.message || data?.error || text || "კატეგორიის წაშლა ვერ მოხერხდა");
-    }
-  };
-
 
   /** -------- Compose FormData -------- */
   const buildFormData = async () => {
@@ -356,8 +289,6 @@ return alert("სახელი სავალდებულოა");
       if (editingProduct?.id || routeId) {
         const pid = editingProduct?.id || routeId;
         await updateProductForm(pid, fd);
-
-   await updateProductForm(pid, fd);
         alert("პროდუქტი განახლდა!");
       } else {
         await createProductForm(fd);

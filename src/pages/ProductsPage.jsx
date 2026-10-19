@@ -10,6 +10,7 @@ import AppLoader from "../components/loaders/AppLoader";
 import NotFound from "../components/NotFound";
 import { catalogPath, pageNumber } from "../utils/canonical";
 import { catalogMeta, PRODUCTS_PER_PAGE } from "../utils/catalogMeta";
+import CatalogLanding from "../components/catalog/CatalogLanding";
 
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
@@ -65,11 +66,6 @@ const hasRealImage = (product) => {
   );
 };
 
-const hasSale = (product) => {
-  const sale = Number(product?.sale);
-  return Number.isFinite(sale) && sale > 0 && sale <= 100;
-};
-
 const normalizeProduct = (product) => {
   const quantity = normalizeQuantity(product?.quantity ?? 0);
 
@@ -80,26 +76,6 @@ const normalizeProduct = (product) => {
     __hasRealImage: hasRealImage(product),
   };
 };
-const compareProducts = (a, b) => {
-  const aQty = normalizeQuantity(a?.quantity);
-  const bQty = normalizeQuantity(b?.quantity);
-
-  const aOut = aQty === 0;
-  const bOut = bQty === 0;
-
-  if (aOut !== bOut) return aOut ? 1 : -1;
-
-  const aSale = hasSale(a) ? 1 : 0;
-  const bSale = hasSale(b) ? 1 : 0;
-  if (aSale !== bSale) return bSale - aSale;
-
-  const aNew = a?.is_new ? 1 : 0;
-  const bNew = b?.is_new ? 1 : 0;
-  if (aNew !== bNew) return bNew - aNew;
-
-  return 0;
-};
-
 // ვიზუალურად დამალული, მაგრამ crawler-ისთვის ხილული (display:none არა)
 const srOnly = {
   position: "absolute",
@@ -125,7 +101,7 @@ const ProductsPage = () => {
   // მისამართი არის სიმართლის ერთადერთი წყარო:
   //   /products[/category/<სახელი>][/page/<N>]
   // React Router პარამეტრს უკვე დეკოდირებულს აბრუნებს (ზუსტი ქართული სახელი).
-  const { slug: categorySlug, page: pageParam } = useParams();
+  const { slug: categorySlug, mainSlug, page: pageParam } = useParams();
 
   // ძველი ?category= / ?page= ბმულები (სანიშნები, გარე საიტები) — იგივე გვერდის სუფთა მისამართზე გადადის
   const legacyCategory = searchParams.get("category");
@@ -134,6 +110,7 @@ const ProductsPage = () => {
 
   const selectedCategory =
     categorySlug || (legacyCategory && legacyCategory !== ALL ? legacyCategory : "") || ALL;
+  const selectedMainCategory = mainSlug || "";
 
   // pageParam: undefined → 1; "1" → 1; "2".. → N; სხვა ყველაფერი → არასწორი მისამართი
   const pathPage = pageParam == null || pageParam === "1" ? 1 : pageNumber(pageParam);
@@ -141,18 +118,33 @@ const ProductsPage = () => {
   const currentPage = pathPage || 1;
 
   const [searchTerm, setSearchTerm] = useState("");
+  const includeOutOfStock = ["1", "true"].includes(searchParams.get("include_out_of_stock"));
+  const filteredPath = (category, page, mainCategory = "") => catalogPath({ category, mainCategory, page }) + (includeOutOfStock ? "?include_out_of_stock=1" : "");
   const [categories, setCategories] = useState([]);
+  const [catalog, setCatalog] = useState({ main_categories: [], featured_sections: [] });
+  const [catalogResolved, setCatalogResolved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   // ბოლო წარმატებული პასუხი + რომელ მოთხოვნას ეკუთვნის (key)
   const [result, setResult] = useState({ key: "", items: [], total: 0, categoryExists: true });
 
-  const requestKey = `${selectedCategory}|${currentPage}|${searchTerm.trim()}`;
-  const products = result.items;
-  const total = result.total;
+  const landingCandidate = selectedCategory === ALL && !selectedMainCategory && currentPage === 1 && !searchTerm.trim() && !includeOutOfStock;
+  const landingMode = landingCandidate && catalogResolved && catalog.main_categories.length > 0;
+  const requestKey = `${selectedCategory}|${selectedMainCategory}|${currentPage}|${searchTerm.trim()}|${includeOutOfStock}`;
   const loaded = result.key === requestKey;
+  const products = loaded ? result.items : [];
+  const total = loaded ? result.total : 0;
 
-  const meta = catalogMeta({ category: selectedCategory, page: currentPage });
-  const hrefFor = (page) => catalogPath({ category: selectedCategory, page });
+  const selectedSub = categories.find((item) => item.slug === selectedCategory || item.name === selectedCategory);
+  const selectedMain = catalog.main_categories.find((item) => item.slug === selectedMainCategory);
+  const meta = catalogMeta({
+    category: selectedCategory === ALL ? null : selectedCategory,
+    mainCategory: selectedMainCategory || null,
+    displayName: selectedSub?.name || selectedMain?.name,
+    description: selectedSub?.meta_description || selectedMain?.meta_description || selectedMain?.description,
+    page: currentPage,
+  });
+  if (includeOutOfStock) meta.url += "?include_out_of_stock=1";
+  const hrefFor = (page) => filteredPath(selectedCategory === ALL ? null : selectedCategory, page, selectedMainCategory);
 
   const scrollToTop = () => {
     const scroller =
@@ -208,12 +200,21 @@ const ProductsPage = () => {
 
   useEffect(() => {
     if (invalidPage || hasLegacyQuery) return;
+    if (landingCandidate && !catalogResolved) return;
+    if (landingMode) {
+      setResult({ key: requestKey, items: [], total: 0, categoryExists: true, mainCategoryExists: true });
+      setIsLoading(false);
+      return;
+    }
     let mounted = true;
+    setIsLoading(true);
 
     const params = new URLSearchParams();
     params.set("page", currentPage);
     params.set("limit", PRODUCTS_PER_PAGE);
+    if (includeOutOfStock) params.set("include_out_of_stock", "1");
     if (selectedCategory !== ALL) params.set("category", selectedCategory);
+    if (selectedMainCategory) params.set("main_category", selectedMainCategory);
     if (searchTerm.trim()) params.set("search", searchTerm.trim());
 
     fetch(`${API_BASE}/products/list?${params.toString()}`)
@@ -230,6 +231,7 @@ const ProductsPage = () => {
           total: Number(data.total) || 0,
           // ძველი backend ამ ველს არ აბრუნებს → კატეგორია არსებულად ითვლება
           categoryExists: data.category_exists !== false,
+          mainCategoryExists: data.main_category_exists !== false,
           categoryMovedTo: typeof data.category_moved_to === "string" ? data.category_moved_to : null,
         });
       })
@@ -246,33 +248,35 @@ const ProductsPage = () => {
     };
     // requestKey = selectedCategory + currentPage + searchTerm
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestKey, invalidPage, hasLegacyQuery]);
+  }, [requestKey, invalidPage, hasLegacyQuery, landingMode, landingCandidate, catalogResolved]);
 
   useEffect(() => {
-    fetch(`${API_BASE}/products/categories`)
+    fetch(`${API_BASE}/categories/catalog`)
       .then((res) => res.json())
       .then((data) => {
-        if (!Array.isArray(data)) return;
-
-        const unique = [...new Set(data.map((c) => String(c).trim()).filter(Boolean))];
-
-        // „სხვა" ბოლოში, დანარჩენი ანბანურად (ქართული)
-        const sorted = unique.filter((c) => c !== "სხვა").sort((a, b) => a.localeCompare(b, "ka"));
-
-        setCategories([...sorted, ...(unique.includes("სხვა") ? ["სხვა"] : [])]);
+        if (!Array.isArray(data?.main_categories)) throw new Error("catalog unavailable");
+        setCatalog(data);
+        setCategories(data.main_categories.flatMap((main) => main.subcategories || []));
       })
-      .catch(() => {});
+      .catch(() => fetch(`${API_BASE}/products/categories`).then((res) => res.json())
+        .then((items) => { if (Array.isArray(items)) setCategories(items); }).catch(() => {}))
+      .finally(() => setCatalogResolved(true));
   }, []);
 
   const handleCategoryChange = (newCategory) => {
     // სუფთა, ინდექსირებადი მისამართი (query string-ის გარეშე → robots არ ბლოკავს)
-    navigate(catalogPath({ category: newCategory || null }));
+    navigate(filteredPath(newCategory || null, 1, ""));
   };
 
   const handleSearchChange = (value) => {
     setSearchTerm(value);
     // ძიების შედეგი ყოველთვის პირველი გვერდიდან იწყება
     if (currentPage !== 1) navigate(hrefFor(1), { replace: true });
+  };
+
+  const handleOutOfStockChange = (checked) => {
+    navigate(catalogPath({ category: selectedCategory === ALL ? null : selectedCategory,
+      mainCategory: selectedMainCategory || null }) + (checked ? "?include_out_of_stock=1" : ""));
   };
 
   const productHref = (product) => (product?.slug ? `/products/${product.slug}` : null);
@@ -287,21 +291,21 @@ const ProductsPage = () => {
     return (
       <Navigate
         replace
-        to={catalogPath({ category: selectedCategory, page: currentPage > 1 ? currentPage : legacyPage })}
+        to={filteredPath(selectedCategory, currentPage > 1 ? currentPage : legacyPage)}
       />
     );
   }
 
   // გადარქმეული კატეგორიის ძველი მისამართი → ახალი (HTTP 301-ს edge function აბრუნებს)
   if (loaded && result.categoryMovedTo) {
-    return <Navigate replace to={catalogPath({ category: result.categoryMovedTo })} />;
+    return <Navigate replace to={filteredPath(result.categoryMovedTo, 1)} />;
   }
 
   // არარსებული კატეგორია, არასწორი /page/<...> ან ბოლო გვერდს გაცდენილი ნომერი.
   // (ძიებისას ცარიელი შედეგი „ვერ მოიძებნა" არ არის.)
   const pastTheEnd = loaded && currentPage > 1 && products.length === 0 && !searchTerm.trim();
-  if (invalidPage || (loaded && !result.categoryExists) || pastTheEnd) {
-    return <NotFound what={selectedCategory !== ALL && !pastTheEnd ? "კატეგორია" : "გვერდი"} />;
+  if (invalidPage || (loaded && (!result.categoryExists || !result.mainCategoryExists)) || pastTheEnd) {
+    return <NotFound what={(selectedCategory !== ALL || selectedMainCategory) && !pastTheEnd ? "კატეგორია" : "გვერდი"} />;
   }
 
   const totalPages = Math.ceil(total / PRODUCTS_PER_PAGE);
@@ -336,7 +340,8 @@ const ProductsPage = () => {
         description={meta.description}
         url={meta.url}
         // ცარიელი კატეგორია (პროდუქტი დროებით არ აქვს) ინდექსში არ უნდა მოხვდეს
-        noIndex={loaded && products.length === 0 && !searchTerm.trim()}
+        noIndex={includeOutOfStock || (!landingMode && loaded && products.length === 0 && !searchTerm.trim())}
+        noIndexFollow={includeOutOfStock}
       />
       {products.length > 0 && (
         <script
@@ -350,6 +355,17 @@ const ProductsPage = () => {
           {meta.heading}
           {currentPage > 1 ? ` — გვერდი ${currentPage}` : ""}
         </h1>
+        {landingMode ? (
+          <CatalogLanding catalog={catalog} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
+        ) : <>
+        {selectedMain && <section className={styles.mainIntro}>
+          <div><p>მთავარი კატეგორია</p><h2>{selectedMain.name}</h2>
+            {selectedMain.description && <span>{selectedMain.description}</span>}</div>
+          <nav aria-label={`${selectedMain.name} ქვეკატეგორიები`} className={styles.subcategoryNav}>
+            {selectedMain.subcategories.map((sub) => <a key={sub.id} href={catalogPath({ category: sub.slug })}>
+              <b aria-hidden="true">{sub.icon || "◌"}</b><span>{sub.name}</span><small>{sub.product_count}</small></a>)}
+          </nav>
+        </section>}
         <div className={styles.filterBar}>
           <div className={styles.selectDecor}>
             <ProductFilter
@@ -358,6 +374,9 @@ const ProductsPage = () => {
               onCategoryChange={handleCategoryChange}
               searchTerm={searchTerm}
               onSearchChange={handleSearchChange}
+              includeOutOfStock={includeOutOfStock}
+              onOutOfStockChange={handleOutOfStockChange}
+              categoryHref={(category) => filteredPath(category, 1)}
             />
           </div>
         </div>
@@ -401,6 +420,7 @@ const ProductsPage = () => {
             )}
           </>
         )}
+        </>}
       </div>
     </>
   );

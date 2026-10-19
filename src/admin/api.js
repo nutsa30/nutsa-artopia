@@ -119,6 +119,16 @@ export const getProduct = (id) => jfetch(`${BASE}/products/${id}`);
 
 export const getCategories = () => jfetch(`${BASE}/categories`);
 
+export const getCategoryManagement = () => jfetch(`${BASE}/categories/admin`);
+export const createMainCategory = (payload) =>
+  jfetch(`${BASE}/categories/main`, { method: "POST", body: JSON.stringify(payload) });
+export const updateMainCategory = (id, payload) => {
+  if (payload instanceof FormData) return ffetch(`${BASE}/categories/main/${id}`, payload, "PUT");
+  return jfetch(`${BASE}/categories/main/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+};
+export const updateSubcategory = (id, payload) =>
+  jfetch(`${BASE}/categories/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+
 /* თუ ეს endpoint შენთან ნამდვილად public-ად ასე მუშაობს, დატოვე ეს ვერსია */
 export const getHomepageImages = () => jfetch(`${BASE}/home-images/public`);
 
@@ -184,12 +194,11 @@ export async function deleteProductImage(productId, imageFieldOrOptions) {
 /* =========================================================
    Sync Helper
    ========================================================= */
-// confirmDelete — წასაშლელი პროდუქტების ზუსტი რაოდენობა, რომელიც ადმინმა დაადასტურა
-// (სერვერი მასობრივ წაშლას მხოლოდ ამ რიცხვის დამთხვევისას ასრულებს).
-export const syncOptimo = (confirmDelete) => {
+// dryRun returns a complete preview; sync never physically deletes Product rows.
+export const syncOptimo = (options = {}) => {
   return jfetch(`${BASE}/api/optimo/sync`, {
     method: "POST",
-    body: JSON.stringify(confirmDelete == null ? {} : { confirm_delete: confirmDelete }),
+    body: JSON.stringify({ dry_run: options.dryRun === true }),
   });
 };
 

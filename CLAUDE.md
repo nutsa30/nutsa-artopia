@@ -187,7 +187,7 @@ compiled out of production builds.
   checkbox reads `manually_hidden`. **The repo is public — no secret in code or `.env`.**
 - Promo codes are checked only by `POST /promo-codes/validate`.
 
-**Checking a change**: `npm test` (66). Deploy previews cannot load API data in a browser (CORS); for real
+**Checking a change**: `npm test` (71). Deploy previews cannot load API data in a browser (CORS); for real
 data run `npm run build && npx vite preview --port 5173 --strictPort`. The real edge runtime runs locally
 with `npx netlify dev`. Deploy: branch → PR → Netlify preview → merge to `main`.
 
@@ -210,3 +210,17 @@ emoji for delivery). Use small inline SVG icons instead (see
 `src/components/Checkout/icons.jsx` for the pattern: a shared `base` props object,
 `currentColor` stroke, sized via props). This applies to new UI; don't go back
 and strip emoji from unrelated existing features unless asked.
+
+
+### Optimo stock safety and category hierarchy
+`include_out_of_stock=1` is an optional catalogue filter, preserved across category/search/pagination;
+toggling it resets to page 1. Backend counts/sorts using stock minus reservations. Sold-out cards say
+"ამოწურულია" and have no purchase control; direct product URLs stay indexable with OutOfStock.
+Inclusive query variants are noindex,follow with no canonical in React and edge; default page canonicals
+and robots remain. Edge validates pagination against the same inclusive API filter.
+Explicit inactive products get API-backed 410/301; unverified products keep 200 and cannot be bought.
+Admin sync never offers deletion confirmation; preview downloads the backend dry-run report.
+This frontend requires the safety and category backend migrations. `/products` renders 11 main-category
+cards (two per desktop row), bounded featured-product rails, and legacy-compatible fallbacks;
+`/products/group/:mainSlug` renders a paginated group view. Main-category images are managed in admin,
+with 1600 × 900 px documented as the recommended 16:9 size. Match backend and frontend deployments.

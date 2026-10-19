@@ -423,7 +423,7 @@ test("catalog cards: no request per card, first screen eager with srcset, the re
     assert.ok(imgs.every(i => i.getAttribute("alt")));
     // stock comes from the list: the sold-out card cannot be bought
     const cards = Array.from(document.querySelectorAll(".product-card"));
-    assert.match(cards[7].textContent, /არ არის მარაგში/);
+    assert.match(cards[7].textContent, /ამოწურულია/);
     assert.equal(cards[7].querySelectorAll("button").length, 0);
     assert.equal(cards[0].querySelectorAll("button").length, 2);
   } finally { await cleanup(); }
@@ -457,5 +457,74 @@ test("one robots meta after React takes over; blog index keeps the server title"
   try {
     assert.equal(document.querySelectorAll('meta[name="robots"]').length, 1);
     assert.match(document.title, /^არტ ბლოგი — Artopia/);
+  } finally { await cleanup(); }
+});
+
+
+test("stock checkbox persists through category, search and pagination and resets to page 1", async () => {
+  document.head.innerHTML = ""; localStorage.clear(); sessionStorage.clear();
+  const calls = [];
+  globalThis.fetch = async url => {
+    const parsed = new URL(url); calls.push(parsed);
+    if (parsed.pathname === "/products/categories") return Response.json(["Fixture", "Other"]);
+    if (parsed.pathname === "/products/list") {
+      const out = parsed.searchParams.get("include_out_of_stock") === "1";
+      const page = Number(parsed.searchParams.get("page"));
+      return Response.json({ total: 45, category_exists: true,
+        items: [fixtureProduct({ id: 100 + page, slug: `focus-${page}`, quantity: out && page > 1 ? 0 : 2 })] });
+    }
+    throw Error(`Unexpected network: ${url}`);
+  };
+  const cleanup = await render(storefront("/products/category/Fixture/page/2"));
+  try {
+    const checkbox = document.querySelector('input[type="checkbox"]');
+    assert.equal(checkbox.checked, false);
+    await React.act(async () => { Simulate.change(checkbox, { target: { checked: true } }); });
+    await settle();
+    const lastList = () => calls.filter(u => u.pathname === "/products/list").at(-1);
+    assert.equal(lastList().searchParams.get("page"), "1");
+    assert.equal(lastList().searchParams.get("include_out_of_stock"), "1");
+    assert.equal(lastList().searchParams.get("category"), "Fixture");
+    assert.equal(robotsMeta(), "noindex,follow");
+    assert.equal(canonicalHref(), undefined);
+    await clickLink("/products/category/Fixture/page/2?include_out_of_stock=1");
+    assert.equal(document.querySelector('input[type="checkbox"]').checked, true);
+    assert.match(document.querySelector(".product-card").textContent, /ამოწურულია/);
+    assert.equal(document.querySelector(".product-card").querySelectorAll("button").length, 0);
+    const search = document.querySelector('input[placeholder="საძიებო სიტყვა..."]');
+    await React.act(async () => { Simulate.change(search, { target: { value: "Focus" } }); });
+    await settle();
+    assert.equal(lastList().searchParams.get("search"), "Focus");
+    assert.equal(lastList().searchParams.get("page"), "1");
+    assert.equal(lastList().searchParams.get("include_out_of_stock"), "1");
+    await clickLink("/products/category/Other?include_out_of_stock=1");
+    assert.equal(lastList().searchParams.get("category"), "Other");
+    assert.equal(document.querySelector('input[type="checkbox"]').checked, true);
+    await React.act(async () => { Simulate.change(document.querySelector('input[type="checkbox"]'), { target: { checked: false } }); });
+    await settle();
+    assert.equal(lastList().searchParams.has("include_out_of_stock"), false);
+    assert.equal(robotsMeta(), "index,follow");
+    assert.equal(canonicalHref(), "https://artopia.ge/products/category/Other");
+  } finally { await cleanup(); }
+});
+
+test("unverified direct page stays indexable and alternatives cannot include unavailable rows", async () => {
+  document.head.innerHTML = "";
+  globalThis.fetch = async url => {
+    if (url.includes("/products/full/")) return Response.json({ product: fixtureProduct({ quantity: 0, optimo_state: "unverified" }),
+      related: [fixtureProduct({ id: 201, slug: "available", quantity: 2 }), fixtureProduct({ id: 202, slug: "empty", quantity: 0 }),
+                fixtureProduct({ id: 203, slug: "inactive", quantity: 9, optimo_state: "inactive" }),
+                fixtureProduct({ id: 204, slug: "hidden", quantity: 9, manually_hidden: true })] });
+    throw Error(`Unexpected request ${url}`);
+  };
+  const cleanup = await render(storefront("/products/focus-2"));
+  try {
+    assert.equal(robotsMeta(), "index,follow");
+    assert.equal(canonicalHref(), "https://artopia.ge/products/focus-2");
+    assert.match(document.body.textContent, /ხელმისაწვდომობა მოწმდება/);
+    assert.ok(hrefs().includes("/products/available"));
+    assert.ok(!hrefs().includes("/products/empty"));
+    assert.ok(!hrefs().includes("/products/inactive"));
+    assert.ok(!hrefs().includes("/products/hidden"));
   } finally { await cleanup(); }
 });

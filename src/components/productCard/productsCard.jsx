@@ -11,7 +11,7 @@ const LBL = {
   new: "ახალი",
   addToCart: "კალათაში დამატება",
   buyNow: "ყიდვა",
-  outOfStock: "არ არის მარაგში",
+  outOfStock: "ამოწურულია",
   category: "კატეგორია",
 };
 

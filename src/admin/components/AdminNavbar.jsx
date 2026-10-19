@@ -14,6 +14,7 @@ import {
   BarChart2,
   Upload,
   ClipboardList,
+  Tags,
 } from 'lucide-react';
 import styles from "./AdminNavbar.module.css";
 import artopiaLogo from "../assets/IMG_4970.JPG";
@@ -39,7 +40,7 @@ const AdminNavbar = () => {
   const onLogout = async () => {
     try {
       await apiJson("/admin/logout", "POST", {});
-    } catch {}
+    } catch { /* Logout clears local credentials even if the server is unavailable. */ }
     ["ADMIN_TOKEN", "ADMIN_ROLE"].forEach((k) => {
       localStorage.removeItem(k);
       sessionStorage.removeItem(k);
@@ -47,43 +48,25 @@ const AdminNavbar = () => {
     window.location.href = "/";
   };
 
-// 2. ფუნქცია შეცვალე ასე:
-const onSyncOptimo = async () => {
+const onSyncOptimo = async (dryRun = false) => {
   if (loading) return;
   setLoading(true);
   try {
-    // აქ ვიყენებთ ახალ ფუნქციას, რომელიც გარანტირებულად POST-ს აგზავნის
-    let response = await syncOptimo();
-
-    // საეჭვოდ ბევრი წაშლა: სერვერმა პროდუქტები არ წაშალა და ზუსტ რაოდენობაზე დასტურს ითხოვს
-    if (response.status === "needs_confirmation") {
-      const n = response.would_delete;
-      const sure = window.confirm(
-        `${response.message}\n\nწაიშალოს ეს ${n} პროდუქტი საიტიდან? ` +
-        "ფოტოები და აღწერები დაიკარგება. თუ დარწმუნებული არ ხართ, დააჭირეთ გაუქმებას და მოგვიანებით სცადეთ თავიდან."
-      );
-      if (!sure) {
-        alert("მარაგი და ფასები განახლდა. პროდუქტები არ წაშლილა.");
-        return;
-      }
-      response = await syncOptimo(n);
-      if (response.status === "needs_confirmation") {
-        alert("Optimo-ს პასუხი შეიცვალა — წაშლა არ შესრულდა. სცადეთ სინქრონიზაცია თავიდან.");
-        return;
-      }
-    }
-
-    if (response.status === "success") {
-      alert("სინქრონიზაცია წარმატებით დასრულდა" + (response.deleted ? ` (წაიშალა ${response.deleted} პროდუქტი)` : ""));
-    } else {
-      alert("შეცდომა: " + (response.message || "უცნობი შეცდომა"));
+    const response = await syncOptimo({ dryRun });
+    alert(`${response.message}\nდამატება: ${response.added ?? 0}; განახლება: ${response.updated ?? 0}; ` +
+      `გამოტოვება: ${response.omitted ?? 0}; დეაქტივაცია: ${response.deactivated ?? 0}; ` +
+      `გადასამოწმებელი: ${response.unverified ?? 0}; შეჩერებული ახალი ID: ${response.deferred ?? 0}`);
+    if (dryRun) {
+      const blob = new Blob([JSON.stringify(response, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url; link.download = "optimo-sync-preview.json"; link.click();
+      URL.revokeObjectURL(url);
     }
   } catch (err) {
-    console.error(err);
-    alert("სინქრონიზაციის შეცდომა: " + (err?.message || "სერვერთან კავშირი ვერ დამყარდა ან წვდომა აკრძალულია"));
+    alert("სინქრონიზაციის შეცდომა: " + (err?.message || "სერვერთან კავშირი ვერ დამყარდა"));
   } finally {
-    setLoading(false);
-    setOpen(false);
+    setLoading(false); setOpen(false);
   }
 };
 
@@ -153,8 +136,14 @@ const onSyncOptimo = async () => {
               </div>
               
               <ul className={styles.menuLinks}>
+                <li>
+                  <button type="button" onClick={() => onSyncOptimo(true)} disabled={loading}
+                    className={`${styles.syncItem} ${styles.previewButton}`}>
+                    <FileText size={18} /> ცვლილებების ნახვა
+                  </button>
+                </li>
                 <li
-                  onClick={onSyncOptimo}
+                  onClick={() => onSyncOptimo(false)}
                   className={`${styles.syncItem} ${loading ? styles.syncing : ''}`}
                 >
                   <RefreshCw size={18} className={loading ? styles.spin : ''} />
@@ -186,6 +175,11 @@ const onSyncOptimo = async () => {
                 <Link to="/menu" className={styles.navLink}>
                   <LayoutGrid size={18} />
                   <span>კატალოგი</span>
+                </Link>
+
+                <Link to="/admin/categories" className={styles.navLink}>
+                  <Tags size={18} />
+                  <span>კატეგორიების მართვა</span>
                 </Link>
 
                 <Link to="/blog" className={styles.navLink}>

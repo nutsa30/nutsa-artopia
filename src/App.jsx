@@ -1,7 +1,7 @@
 // src/App.jsx
 import "../index.css";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import "./App.css";
 import { CartProvider } from "./components/CartContext/CartContext";
 import Navbar, { CartUiProvider } from "./components/Navbar/Navbar";
@@ -90,24 +90,9 @@ function Chrome({ children, cartItems, showCart, lastAddedId }) {
 }
 
 function App() {
-  const [cartItems, setCartItems] = useState([]);
-  const [lastAddedId, setLastAddedId] = useState(null);
-  const [showCart, setShowCart] = useState(false);
-
-  const handleAdd = (product) => {
-    setCartItems((prev) => {
-      const exists = prev.find((p) => p.id === product.id);
-      if (exists) {
-        return prev.map((p) =>
-          p.id === product.id ? { ...p, qty: (p.qty || 1) + 1 } : p
-        );
-      }
-      return [...prev, { ...product, qty: 1 }];
-    });
-    setLastAddedId(product.id);
-    setShowCart(true);
-    setTimeout(() => setShowCart(false), 1200);
-  };
+  const cartItems = [];
+  const lastAddedId = null;
+  const showCart = false;
 
 const ChatMountIfNotAdmin = () => {
   const { pathname } = useLocation();
@@ -153,6 +138,8 @@ const ChatMountIfNotAdmin = () => {
 <Route path="/products/category/:slug" element={<ProductsPage />} />
 
 <Route path="/products/category/:slug/page/:page" element={<ProductsPage />} />
+<Route path="/products/group/:mainSlug" element={<ProductsPage />} />
+<Route path="/products/group/:mainSlug/page/:page" element={<ProductsPage />} />
 
 <Route path="/products/:slug" element={<SingleProductPage />} />
 

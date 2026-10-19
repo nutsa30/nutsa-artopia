@@ -65,6 +65,7 @@ const ROUTE_PATTERNS = [
   /^\/products\/[^/]+$/,
   /^\/products\/page\/[^/]+$/,
   /^\/products\/category\/[^/]+(?:\/page\/[^/]+)?$/,
+  /^\/products\/group\/[^/]+(?:\/page\/[^/]+)?$/,
   /^\/blog\/[^/]+$/,
 ];
 export const isKnownRoute = (path) =>
@@ -165,7 +166,17 @@ const breadcrumb = breadcrumbJsonLd;
 // (<site>.netlify.app, main--<site>.netlify.app). They are copies of artopia.ge
 // and must never be indexed themselves.
 export default async (request, context) => {
-  const response = await handle(request, context);
+  let response = await handle(request, context);
+  const filterUrl = new URL(request.url);
+  if (parseCatalogPath(filterUrl.pathname) && ["1", "true"].includes(filterUrl.searchParams.get("include_out_of_stock"))
+      && response.status === 200 && (response.headers.get("content-type") || "").includes("text/html")) {
+    let body = await response.text();
+    body = setTag(body, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex,follow" data-rh="true" />`);
+    body = body.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*>\s*/gi, "");
+    const headers = new Headers(response.headers);
+    headers.set("x-robots-tag", "noindex");
+    response = new Response(body, { status: 200, headers });
+  }
   try {
     if (new URL(request.url).hostname.endsWith(".netlify.app")) {
       const headers = new Headers(response.headers);
@@ -456,14 +467,20 @@ async function handle(request, context) {
       if (!rawCatalog.valid) return notFoundResponse(shell, source, 404);   // /page/abc, /page/0
       // The canonical path also folds in the legacy ?category= / ?page= forms.
       const catalog = parseCatalogPath(path) || rawCatalog;
-      const { category, page } = catalog;
+      const { category, mainCategory, page } = catalog;
       let total = null;
       let firstImage = null;
+      let confirmedEmpty = false;
+      let categoryContext = null;
+      const inclusive = ["1", "true"].includes(url.searchParams.get("include_out_of_stock"));
+      const filterSuffix = inclusive ? "?include_out_of_stock=1" : "";
       // Page 1 of the full catalogue always exists; everything else is checked
       // against the API so a mistyped category or a page past the end is a 404.
-      if (category || page > 1) {
+      { // Validate empty catalogues too; API failures remain a normal 200 page.
         const qs = new URLSearchParams({ page: String(page), limit: String(PRODUCTS_PER_PAGE) });
         if (category) qs.set("category", category);
+        if (mainCategory) qs.set("main_category", mainCategory);
+        if (inclusive) qs.set("include_out_of_stock", "1");
         const r = await apiFetch(`/products/list?${qs}`);
         if (r.ok && (r.headers.get("content-type") || "").includes("application/json")) {
           const data = await r.json();
@@ -471,28 +488,46 @@ async function handle(request, context) {
           // a renamed category: its old address moves permanently to the new name
           const movedTo = data?.category_exists === false ? data?.category_moved_to : null;
           if (typeof movedTo === "string" && movedTo.trim() && movedTo !== category) {
-            return new Response(null, { status: 301, headers: { location: `${SITE}${catalogPath({ category: movedTo })}` } });
+            return new Response(null, { status: 301, headers: { location: `${SITE}${catalogPath({ category: movedTo })}${["1", "true"].includes(url.searchParams.get("include_out_of_stock")) ? "?include_out_of_stock=1" : ""}` } });
           }
           if (data?.category_exists === false) return notFoundResponse(shell, source, 404);
+          if (data?.main_category_exists === false) return notFoundResponse(shell, source, 404);
           if (items && items.length) firstImage = items[0]?.image_url1 || null;
           if (items && page > 1 && items.length === 0) return notFoundResponse(shell, source, 404);
           if (Number.isFinite(Number(data?.total))) total = Number(data.total);
+          confirmedEmpty = items != null && items.length === 0 && total === 0;
         }
         // not ok / not JSON → unknown; fall through and serve the page as 200
       }
 
-      const meta = catalogMeta({ category, page });
+      if (category || mainCategory) {
+        try {
+          const contextPath = mainCategory ? `/categories/main/${encodeURIComponent(mainCategory)}` : `/categories/sub/${encodeURIComponent(category)}`;
+          const contextResponse = await apiFetch(contextPath);
+          if (isApiVerdict(contextResponse, 404)) return notFoundResponse(shell, source, 404);
+          if (contextResponse.ok && (contextResponse.headers.get("content-type") || "").includes("application/json")) {
+            categoryContext = await contextResponse.json();
+          }
+        } catch { /* metadata lookup outage must not remove a valid catalogue page */ }
+      }
+
+      const meta = catalogMeta({ category, mainCategory, displayName: categoryContext?.name,
+        description: categoryContext?.meta_description || categoryContext?.description, page });
+      meta.url += filterSuffix;
       const crumbs = [
         { name: "მთავარი", item: `${SITE}/` },
         { name: "პროდუქტები", item: `${SITE}/products` },
       ];
-      if (category) crumbs.push({ name: category, item: `${SITE}${catalogPath({ category })}` });
+      if (categoryContext?.main_category_slug) crumbs.push({ name: categoryContext.main_category_name,
+        item: `${SITE}${catalogPath({ mainCategory: categoryContext.main_category_slug })}` });
+      if (category || mainCategory) crumbs.push({ name: categoryContext?.name || category || mainCategory,
+        item: `${SITE}${catalogPath({ category, mainCategory })}` });
 
       // rel prev/next: plain crawlable hints to the neighbouring listing pages
       const links = [];
-      if (page > 1) links.push(`<link rel="prev" href="${esc(`${SITE}${catalogPath({ category, page: page - 1 })}`)}" />`);
+      if (page > 1) links.push(`<link rel="prev" href="${esc(`${SITE}${catalogPath({ category, mainCategory, page: page - 1 })}${filterSuffix}`)}" />`);
       if (total != null && page * PRODUCTS_PER_PAGE < total) {
-        links.push(`<link rel="next" href="${esc(`${SITE}${catalogPath({ category, page: page + 1 })}`)}" />`);
+        links.push(`<link rel="next" href="${esc(`${SITE}${catalogPath({ category, mainCategory, page: page + 1 })}${filterSuffix}`)}" />`);
       }
 
       const out = applyMeta(shell, {
@@ -516,6 +551,14 @@ async function handle(request, context) {
           ],
         },
       });
+      if (confirmedEmpty && !inclusive) {
+        let empty = setTag(out, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex,nofollow" data-rh="true" />`);
+        empty = empty.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*>\s*/gi, "");
+        empty = empty.replace(/<meta\s+property="og:url"[^>]*>/gi, "");
+        const response = htmlResponse(empty, source);
+        response.headers.set("x-robots-tag", "noindex");
+        return response;
+      }
       return htmlResponse(out, source);
     }
 
