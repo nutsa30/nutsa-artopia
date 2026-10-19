@@ -328,3 +328,12 @@ test("confirmed empty default catalogues are 200 with matching React noindex, wi
     assert.deepEqual(canonical(r.body), []);
   }
 });
+
+test("search and subcategory-filtered catalogue pages are never pre-filled with the unfiltered list", async () => {
+  const api = async (url) => (url.includes("/products/list?") ? json({ items: [product()], total: 1, category_exists: true })
+    : url.includes("/categories/") ? json({ name: "x", slug: "x" }) : noNetwork(url));
+  for (const filtered of ["/products?search=x", "/products/category/x?search=x", "/products/group/art?categories=a,b"]) {
+    assert.doesNotMatch((await visit(filtered, api)).body, /artopia-initial-data/, filtered);
+  }
+  assert.match((await visit("/products/category/x", api)).body, /artopia-initial-data/);
+});
