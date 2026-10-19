@@ -1,9 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { readInitialData } from "../utils/initialData";
-
-const API_BASE = ((import.meta.env.VITE_API_BASE ?? "").trim() ||
-  "https://artopia-backend-2024-54872c79acdd.herokuapp.com").replace(/\/+$/, "");
+import { API_BASE } from "../utils/apiBase";
 
 const EMPTY = {
   contacts: [], categories: [], home_images: [], sale_products: [], new_products: [], blogs: [],
@@ -81,7 +79,13 @@ export function StorefrontDataProvider({ children }) {
       })
       .catch(() => {
         if (!alive) return;
-        setState({ data: EMPTY, loading: false, error: "მონაცემები ვერ ჩაიტვირთა" });
+        // edge-მა უკვე მოიტანა carousel-ის სურათები → არ ვშლით (თორემ carousel ქრება
+        // და გვერდი ხტება); შეცდომას მხოლოდ მაშინ ვაჩვენებთ, როცა საჩვენებელი არაფერია
+        setState({
+          data: embedded ? { ...EMPTY, ...embedded } : EMPTY,
+          loading: false,
+          error: embedded ? "" : "მონაცემები ვერ ჩაიტვირთა",
+        });
       });
     return () => { alive = false; };
   }, [includeHome, isAdmin, pathname]);
