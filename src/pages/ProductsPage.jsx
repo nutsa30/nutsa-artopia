@@ -118,23 +118,30 @@ const ProductsPage = () => {
   const currentPage = pathPage || 1;
 
   const [searchTerm, setSearchTerm] = useState("");
-  const includeOutOfStock = ["1", "true"].includes(searchParams.get("include_out_of_stock"));
-  const filteredPath = (category, page, mainCategory = "") => catalogPath({ category, mainCategory, page }) + (includeOutOfStock ? "?include_out_of_stock=1" : "");
-  const [categories, setCategories] = useState([]);
+  const selectedSubcategories = selectedMainCategory
+    ? [...new Set((searchParams.get("categories") || "").split(",").map((item) => item.trim()).filter(Boolean))]
+    : [];
+  const filteredPath = (category, page, mainCategory = "") => {
+    const path = catalogPath({ category, mainCategory, page });
+    if (!mainCategory || selectedSubcategories.length === 0) return path;
+    return `${path}?categories=${encodeURIComponent(selectedSubcategories.join(","))}`;
+  };
   const [catalog, setCatalog] = useState({ main_categories: [], featured_sections: [] });
   const [catalogResolved, setCatalogResolved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   // ბოლო წარმატებული პასუხი + რომელ მოთხოვნას ეკუთვნის (key)
   const [result, setResult] = useState({ key: "", items: [], total: 0, categoryExists: true });
 
-  const landingCandidate = selectedCategory === ALL && !selectedMainCategory && currentPage === 1 && !searchTerm.trim() && !includeOutOfStock;
+  const landingCandidate = selectedCategory === ALL && !selectedMainCategory && currentPage === 1 && !searchTerm.trim();
   const landingMode = landingCandidate && catalogResolved && catalog.main_categories.length > 0;
-  const requestKey = `${selectedCategory}|${selectedMainCategory}|${currentPage}|${searchTerm.trim()}|${includeOutOfStock}`;
+  const requestKey = `${selectedCategory}|${selectedMainCategory}|${selectedSubcategories.join(",")}|${currentPage}|${searchTerm.trim()}`;
   const loaded = result.key === requestKey;
   const products = loaded ? result.items : [];
   const total = loaded ? result.total : 0;
 
-  const selectedSub = categories.find((item) => item.slug === selectedCategory || item.name === selectedCategory);
+  const selectedSub = catalog.main_categories
+    .flatMap((main) => main.subcategories || [])
+    .find((item) => item.slug === selectedCategory || item.name === selectedCategory);
   const selectedMain = catalog.main_categories.find((item) => item.slug === selectedMainCategory);
   const meta = catalogMeta({
     category: selectedCategory === ALL ? null : selectedCategory,
@@ -143,7 +150,6 @@ const ProductsPage = () => {
     description: selectedSub?.meta_description || selectedMain?.meta_description || selectedMain?.description,
     page: currentPage,
   });
-  if (includeOutOfStock) meta.url += "?include_out_of_stock=1";
   const hrefFor = (page) => filteredPath(selectedCategory === ALL ? null : selectedCategory, page, selectedMainCategory);
 
   const scrollToTop = () => {
@@ -212,9 +218,9 @@ const ProductsPage = () => {
     const params = new URLSearchParams();
     params.set("page", currentPage);
     params.set("limit", PRODUCTS_PER_PAGE);
-    if (includeOutOfStock) params.set("include_out_of_stock", "1");
     if (selectedCategory !== ALL) params.set("category", selectedCategory);
     if (selectedMainCategory) params.set("main_category", selectedMainCategory);
+    if (selectedMainCategory && selectedSubcategories.length) params.set("categories", selectedSubcategories.join(","));
     if (searchTerm.trim()) params.set("search", searchTerm.trim());
 
     fetch(`${API_BASE}/products/list?${params.toString()}`)
@@ -256,17 +262,10 @@ const ProductsPage = () => {
       .then((data) => {
         if (!Array.isArray(data?.main_categories)) throw new Error("catalog unavailable");
         setCatalog(data);
-        setCategories(data.main_categories.flatMap((main) => main.subcategories || []));
       })
-      .catch(() => fetch(`${API_BASE}/products/categories`).then((res) => res.json())
-        .then((items) => { if (Array.isArray(items)) setCategories(items); }).catch(() => {}))
+      .catch(() => {})
       .finally(() => setCatalogResolved(true));
   }, []);
-
-  const handleCategoryChange = (newCategory) => {
-    // სუფთა, ინდექსირებადი მისამართი (query string-ის გარეშე → robots არ ბლოკავს)
-    navigate(filteredPath(newCategory || null, 1, ""));
-  };
 
   const handleSearchChange = (value) => {
     setSearchTerm(value);
@@ -274,9 +273,13 @@ const ProductsPage = () => {
     if (currentPage !== 1) navigate(hrefFor(1), { replace: true });
   };
 
-  const handleOutOfStockChange = (checked) => {
-    navigate(catalogPath({ category: selectedCategory === ALL ? null : selectedCategory,
-      mainCategory: selectedMainCategory || null }) + (checked ? "?include_out_of_stock=1" : ""));
+  const toggleSubcategory = (slug) => {
+    const next = new Set(selectedSubcategories);
+    if (next.has(slug)) next.delete(slug);
+    else next.add(slug);
+    const params = new URLSearchParams();
+    if (next.size) params.set("categories", [...next].join(","));
+    navigate(`${catalogPath({ mainCategory: selectedMainCategory })}${params.size ? `?${params}` : ""}`);
   };
 
   const productHref = (product) => (product?.slug ? `/products/${product.slug}` : null);
@@ -340,8 +343,8 @@ const ProductsPage = () => {
         description={meta.description}
         url={meta.url}
         // ცარიელი კატეგორია (პროდუქტი დროებით არ აქვს) ინდექსში არ უნდა მოხვდეს
-        noIndex={includeOutOfStock || (!landingMode && loaded && products.length === 0 && !searchTerm.trim())}
-        noIndexFollow={includeOutOfStock}
+        noIndex={selectedSubcategories.length > 0 || (!landingMode && loaded && products.length === 0 && !searchTerm.trim())}
+        noIndexFollow={selectedSubcategories.length > 0}
       />
       {products.length > 0 && (
         <script
@@ -362,21 +365,22 @@ const ProductsPage = () => {
           <div><p>მთავარი კატეგორია</p><h2>{selectedMain.name}</h2>
             {selectedMain.description && <span>{selectedMain.description}</span>}</div>
           <nav aria-label={`${selectedMain.name} ქვეკატეგორიები`} className={styles.subcategoryNav}>
-            {selectedMain.subcategories.map((sub) => <a key={sub.id} href={catalogPath({ category: sub.slug })}>
-              <b aria-hidden="true">{sub.icon || "◌"}</b><span>{sub.name}</span><small>{sub.product_count}</small></a>)}
+            {selectedMain.subcategories.map((sub) => {
+              const selected = selectedSubcategories.includes(sub.slug);
+              return <button key={sub.id} type="button" aria-pressed={selected}
+                className={selected ? styles.subcategorySelected : ""}
+                onClick={() => toggleSubcategory(sub.slug)}>
+                <b aria-hidden="true">{selected ? "✓" : (sub.icon || "◌")}</b>
+                <span>{sub.name}</span><small>{sub.product_count}</small>
+              </button>;
+            })}
           </nav>
         </section>}
         <div className={styles.filterBar}>
           <div className={styles.selectDecor}>
             <ProductFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onCategoryChange={handleCategoryChange}
               searchTerm={searchTerm}
               onSearchChange={handleSearchChange}
-              includeOutOfStock={includeOutOfStock}
-              onOutOfStockChange={handleOutOfStockChange}
-              categoryHref={(category) => filteredPath(category, 1)}
             />
           </div>
         </div>

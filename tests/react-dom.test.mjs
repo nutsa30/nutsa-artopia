@@ -248,6 +248,8 @@ const storefront = (entry) => React.createElement(HelmetProvider, null, React.cr
   React.createElement(CartProvider, null, React.createElement(CartUiProvider, null, React.createElement(Routes, null,
     React.createElement(Route, { path: "/products", element: React.createElement(ProductsPage) }),
     React.createElement(Route, { path: "/products/page/:page", element: React.createElement(ProductsPage) }),
+    React.createElement(Route, { path: "/products/group/:mainSlug", element: React.createElement(ProductsPage) }),
+    React.createElement(Route, { path: "/products/group/:mainSlug/page/:page", element: React.createElement(ProductsPage) }),
     React.createElement(Route, { path: "/products/category/:slug", element: React.createElement(ProductsPage) }),
     React.createElement(Route, { path: "/products/category/:slug/page/:page", element: React.createElement(ProductsPage) }),
     React.createElement(Route, { path: "/products/:slug", element: React.createElement(SingleProductPage) }))))));
@@ -276,15 +278,13 @@ function catalogApi({ total = 45, exists = true, items } = {}) {
   return calls;
 }
 
-test("catalog: product, category and pagination are real <a href> links and pages are crawlable", async () => {
+test("catalog: product and pagination are real <a href> links and pages are crawlable", async () => {
   document.head.innerHTML = ""; sessionStorage.clear(); localStorage.clear();
   const calls = catalogApi();
   const cleanup = await render(storefront("/products/category/Fixture"));
   try {
     const links = hrefs();
     assert.ok(links.includes("/products/focus-p1"), "product card title is a link");
-    assert.ok(links.includes("/products/category/Fixture") && links.includes("/products/category/%E1%83%A1%E1%83%AE%E1%83%95%E1%83%90") && links.includes("/products"),
-      "category links exist in the DOM without opening the menu");
     assert.ok(links.includes("/products/category/Fixture/page/2") && links.includes("/products/category/Fixture/page/3"), "pagination links");
     assert.equal(document.querySelector('a[rel="next"]').getAttribute("href"), "/products/category/Fixture/page/2");
     assert.equal(document.querySelectorAll("a a, a button, button a").length, 0, "no nested interactive elements");
@@ -308,9 +308,6 @@ test("catalog: product, category and pagination are real <a href> links and page
     await clickLink("/products/category/Fixture/page/3");
     assert.ok(calls.some(url => url.includes("search=Foc") && url.includes("page=3")), "search term survives pagination");
 
-    // category filter still works by clicking a category
-    await clickLink("/products");
-    assert.equal(canonicalHref(), "https://artopia.ge/products");
   } finally { await cleanup(); }
 });
 
@@ -461,50 +458,54 @@ test("one robots meta after React takes over; blog index keeps the server title"
 });
 
 
-test("stock checkbox persists through category, search and pagination and resets to page 1", async () => {
+test("main-category subcategories are persistent multi-select toggles", async () => {
   document.head.innerHTML = ""; localStorage.clear(); sessionStorage.clear();
   const calls = [];
   globalThis.fetch = async url => {
     const parsed = new URL(url); calls.push(parsed);
-    if (parsed.pathname === "/products/categories") return Response.json(["Fixture", "Other"]);
+    if (parsed.pathname === "/categories/catalog") return Response.json({ featured_sections: [], main_categories: [{
+      id: 1, slug: "art", name: "სამხატვრო მასალები", product_count: 3,
+      subcategories: [
+        { id: 10, slug: "paint", name: "საღებავები", product_count: 2 },
+        { id: 11, slug: "brushes", name: "ფუნჯები", product_count: 1 },
+      ],
+    }] });
     if (parsed.pathname === "/products/list") {
-      const out = parsed.searchParams.get("include_out_of_stock") === "1";
-      const page = Number(parsed.searchParams.get("page"));
-      return Response.json({ total: 45, category_exists: true,
-        items: [fixtureProduct({ id: 100 + page, slug: `focus-${page}`, quantity: out && page > 1 ? 0 : 2 })] });
+      const selected = parsed.searchParams.get("categories") || "all";
+      return Response.json({ total: 3, category_exists: true, main_category_exists: true,
+        items: [fixtureProduct({ id: 100, slug: `focus-${selected}`, quantity: 2 })] });
     }
     throw Error(`Unexpected network: ${url}`);
   };
-  const cleanup = await render(storefront("/products/category/Fixture/page/2"));
+  const cleanup = await render(storefront("/products/group/art"));
   try {
-    const checkbox = document.querySelector('input[type="checkbox"]');
-    assert.equal(checkbox.checked, false);
-    await React.act(async () => { Simulate.change(checkbox, { target: { checked: true } }); });
+    const toggles = () => Array.from(document.querySelectorAll('nav[aria-label*="ქვეკატეგორიები"] button'));
+    assert.equal(toggles().length, 2);
+    assert.ok(toggles().every(button => button.getAttribute("aria-pressed") === "false"));
+    assert.equal(document.body.textContent.includes("ამოწურული პროდუქტების ჩვენება"), false);
+    assert.equal(document.querySelector('[class*="catTrigger"]'), null);
+
+    await React.act(async () => { Simulate.click(toggles()[0]); });
     await settle();
     const lastList = () => calls.filter(u => u.pathname === "/products/list").at(-1);
-    assert.equal(lastList().searchParams.get("page"), "1");
-    assert.equal(lastList().searchParams.get("include_out_of_stock"), "1");
-    assert.equal(lastList().searchParams.get("category"), "Fixture");
+    assert.equal(lastList().searchParams.get("main_category"), "art");
+    assert.equal(lastList().searchParams.get("categories"), "paint");
+    assert.equal(toggles()[0].getAttribute("aria-pressed"), "true");
     assert.equal(robotsMeta(), "noindex,follow");
-    assert.equal(canonicalHref(), undefined);
-    await clickLink("/products/category/Fixture/page/2?include_out_of_stock=1");
-    assert.equal(document.querySelector('input[type="checkbox"]').checked, true);
-    assert.match(document.querySelector(".product-card").textContent, /ამოწურულია/);
-    assert.equal(document.querySelector(".product-card").querySelectorAll("button").length, 0);
-    const search = document.querySelector('input[placeholder="საძიებო სიტყვა..."]');
-    await React.act(async () => { Simulate.change(search, { target: { value: "Focus" } }); });
+
+    await React.act(async () => { Simulate.click(toggles()[1]); });
     await settle();
-    assert.equal(lastList().searchParams.get("search"), "Focus");
-    assert.equal(lastList().searchParams.get("page"), "1");
-    assert.equal(lastList().searchParams.get("include_out_of_stock"), "1");
-    await clickLink("/products/category/Other?include_out_of_stock=1");
-    assert.equal(lastList().searchParams.get("category"), "Other");
-    assert.equal(document.querySelector('input[type="checkbox"]').checked, true);
-    await React.act(async () => { Simulate.change(document.querySelector('input[type="checkbox"]'), { target: { checked: false } }); });
+    assert.equal(lastList().searchParams.get("categories"), "paint,brushes");
+    assert.ok(toggles().every(button => button.getAttribute("aria-pressed") === "true"));
+
+    await React.act(async () => { Simulate.click(toggles()[0]); });
     await settle();
-    assert.equal(lastList().searchParams.has("include_out_of_stock"), false);
+    await React.act(async () => { Simulate.click(toggles()[1]); });
+    await settle();
+    assert.equal(lastList().searchParams.has("categories"), false);
+    assert.ok(toggles().every(button => button.getAttribute("aria-pressed") === "false"));
     assert.equal(robotsMeta(), "index,follow");
-    assert.equal(canonicalHref(), "https://artopia.ge/products/category/Other");
+    assert.equal(canonicalHref(), "https://artopia.ge/products/group/art");
   } finally { await cleanup(); }
 });
 

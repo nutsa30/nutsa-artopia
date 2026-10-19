@@ -9,7 +9,7 @@ export default function CatalogLanding({ catalog, onAddToCart, onBuyNow }) {
   if (!catalog?.main_categories?.length) return null;
   return <>
     <section className={styles.hero} aria-labelledby="catalog-categories-title">
-      <div className={styles.heading}><p>აირჩიე მიმართულება</p><h2 id="catalog-categories-title">პროდუქციის კატეგორიები</h2></div>
+      <div className={styles.heading}><h2 id="catalog-categories-title">პროდუქციის კატეგორიები</h2></div>
       <div className={styles.mainGrid}>
         {catalog.main_categories.map((main) => <Link key={main.id} to={catalogPath({ mainCategory: main.slug })}
           className={styles.mainCard}>
