@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { readInitialData } from "../utils/initialData";
-import { API_BASE } from "../utils/apiBase";
+import { PUBLIC_API } from "../utils/apiBase";
 
 const EMPTY = {
   contacts: [], categories: [], home_images: [], sale_products: [], new_products: [], blogs: [],
@@ -15,11 +15,11 @@ const json = async (url) => {
 };
 
 async function legacyBootstrap(includeHome) {
-  const requests = [json(`${API_BASE}/contacts`), json(`${API_BASE}/products/categories`)];
+  const requests = [json(`${PUBLIC_API}/contacts`), json(`${PUBLIC_API}/products/categories`)];
   if (includeHome) {
     requests.push(
-      json(`${API_BASE}/home-images/public`), json(`${API_BASE}/products/sale`),
-      json(`${API_BASE}/products/new`), json(`${API_BASE}/blogs`),
+      json(`${PUBLIC_API}/home-images/public`), json(`${PUBLIC_API}/products/sale`),
+      json(`${PUBLIC_API}/products/new`), json(`${PUBLIC_API}/blogs`),
     );
   }
   const [contacts, categories, homeImages = [], sale = [], newest = [], blogs = []] = await Promise.all(requests);
@@ -30,7 +30,7 @@ function loadBootstrap(includeHome) {
   const key = includeHome ? "home" : "chrome";
   if (!requestCache.has(key)) {
     const suffix = includeHome ? "?home=1" : "";
-    const request = json(`${API_BASE}/storefront/bootstrap${suffix}`)
+    const request = json(`${PUBLIC_API}/storefront/bootstrap${suffix}`)
       .catch(() => legacyBootstrap(includeHome))
       .then((data) => ({ ...EMPTY, ...(data && typeof data === "object" && !Array.isArray(data) ? data : {}) }))
       .catch((error) => {

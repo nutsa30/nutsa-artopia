@@ -13,7 +13,7 @@ import CatalogLanding from "../components/catalog/CatalogLanding";
 import { readInitialData } from "../utils/initialData";
 
 
-const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+import { PUBLIC_API } from "../utils/apiBase";
 const NO_IMAGE = "/noimage.jpeg";
 
 const normalizeQuantity = (value) => {
@@ -118,6 +118,14 @@ const ProductsPage = () => {
   const currentPage = pathPage || 1;
 
   const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") || "");
+  // API-ს ყოველ აკრეფილ ასოზე არ ვეკითხებით: მოთხოვნა აკრეფის შეჩერებიდან 300ms-ში იგზავნება
+  const [querySearch, setQuerySearch] = useState(() => (searchParams.get("search") || "").trim());
+  useEffect(() => {
+    const next = searchTerm.trim();
+    if (next === querySearch) return undefined;
+    const timer = setTimeout(() => setQuerySearch(next), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm, querySearch]);
   const selectedSubcategories = selectedMainCategory
     ? [...new Set((searchParams.get("categories") || "").split(",").map((item) => item.trim()).filter(Boolean))]
     : [];
@@ -128,13 +136,15 @@ const ProductsPage = () => {
     if (searchTerm.trim()) params.set("search", searchTerm.trim());
     return `${path}${params.size ? `?${params}` : ""}`;
   };
-  const requestKey = `${selectedCategory}|${selectedMainCategory}|${selectedSubcategories.join(",")}|${currentPage}|${searchTerm.trim()}`;
+  const requestKey = `${selectedCategory}|${selectedMainCategory}|${selectedSubcategories.join(",")}|${currentPage}|${querySearch}`;
   // edge-ის ჩასმული სია ფილტრის გარეშეა — ძიების / ქვეკატეგორიების გვერდზე მას არ ვიყენებთ
   const embeddedRef = useRef(searchParams.has("search") || searchParams.has("categories")
     ? null : readInitialData("catalog", location.pathname));
   const embedded = embeddedRef.current;
-  const [catalog, setCatalog] = useState({ main_categories: [], featured_sections: [] });
-  const [catalogResolved, setCatalogResolved] = useState(false);
+  // კატეგორიების ხე edge-მა შეიძლება უკვე ჩასვა HTML-ში → მეორე მოთხოვნა აღარ სჭირდება
+  const embeddedTreeRef = useRef(Array.isArray(embedded?.catalog?.main_categories) ? embedded.catalog : null);
+  const [catalog, setCatalog] = useState(() => embeddedTreeRef.current || { main_categories: [], featured_sections: [] });
+  const [catalogResolved, setCatalogResolved] = useState(() => Boolean(embeddedTreeRef.current));
   const [isLoading, setIsLoading] = useState(!embedded);
   // ბოლო წარმატებული პასუხი + რომელ მოთხოვნას ეკუთვნის (key)
   const [result, setResult] = useState(() => embedded ? {
@@ -146,7 +156,7 @@ const ProductsPage = () => {
     categoryMovedTo: typeof embedded.category_moved_to === "string" ? embedded.category_moved_to : null,
   } : { key: "", items: [], total: 0, categoryExists: true });
 
-  const landingCandidate = selectedCategory === ALL && !selectedMainCategory && currentPage === 1 && !searchTerm.trim();
+  const landingCandidate = selectedCategory === ALL && !selectedMainCategory && currentPage === 1 && !querySearch;
   const landingMode = landingCandidate && catalogResolved && catalog.main_categories.length > 0;
   const loaded = result.key === requestKey;
   const products = loaded ? result.items : [];
@@ -239,9 +249,9 @@ const ProductsPage = () => {
     if (selectedCategory !== ALL) params.set("category", selectedCategory);
     if (selectedMainCategory) params.set("main_category", selectedMainCategory);
     if (selectedMainCategory && selectedSubcategories.length) params.set("categories", selectedSubcategories.join(","));
-    if (searchTerm.trim()) params.set("search", searchTerm.trim());
+    if (querySearch) params.set("search", querySearch);
 
-    fetch(`${API_BASE}/products/list?${params.toString()}`)
+    fetch(`${PUBLIC_API}/products/list?${params.toString()}`)
       .then((res) => {
         if (!res.ok) throw new Error(`${res.status}`);
         return res.json();
@@ -270,12 +280,13 @@ const ProductsPage = () => {
     return () => {
       mounted = false;
     };
-    // requestKey = selectedCategory + currentPage + searchTerm
+    // requestKey = selectedCategory + currentPage + querySearch
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestKey, invalidPage, hasLegacyQuery, landingMode, landingCandidate, catalogResolved]);
 
   useEffect(() => {
-    fetch(`${API_BASE}/categories/catalog`)
+    if (embeddedTreeRef.current) return;
+    fetch(`${PUBLIC_API}/categories/catalog`)
       .then((res) => res.json())
       .then((data) => {
         if (!Array.isArray(data?.main_categories)) throw new Error("catalog unavailable");

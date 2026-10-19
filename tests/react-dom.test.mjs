@@ -230,6 +230,8 @@ test("catalog browsing, search and add-to-cart still work with fixture products"
     const search = document.querySelector('input[placeholder="საძიებო სიტყვა..."]');
     await React.act(async () => { Simulate.change(search, { target: { value: "Focus" } }); });
     await React.act(async () => { await new Promise(resolve => setTimeout(resolve, 20)); });
+    assert.ok(!calls.some(url => url.includes("search=Focus")), "no API call per keystroke");
+    await React.act(async () => { await new Promise(resolve => setTimeout(resolve, 350)); });
     assert.ok(calls.some(url => url.includes("search=Focus")));
     const add = Array.from(document.querySelectorAll("button")).find(button => button.textContent.includes("კალათაში დამატება") || button.getAttribute("aria-label") === "კალათაში დამატება");
     assert.ok(add);
@@ -350,7 +352,7 @@ test("catalog: product and pagination are real <a href> links and pages are craw
     // search keeps working across pages and always restarts from page 1
     const search = document.querySelector('input[placeholder="საძიებო სიტყვა..."]');
     await React.act(async () => { Simulate.change(search, { target: { value: "Foc" } }); });
-    await settle();
+    await settle(350);
     assert.ok(calls.some(url => url.includes("search=Foc") && url.includes("page=1") && url.includes("category=Fixture")));
     await clickLink("/products/category/Fixture/page/3?search=Foc");
     assert.ok(calls.some(url => url.includes("search=Foc") && url.includes("page=3")), "search term survives pagination");

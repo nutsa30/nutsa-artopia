@@ -3,4 +3,8 @@
 /contact     /contacts                  301!
 /blogs/:slug /blog/:slug                301!
 
+# საჯარო API იმავე დომენიდან (src/utils/apiBase.js → PUBLIC_API). Netlify-ის CDN
+# ინახავს პასუხს იმდენ ხანს, რამდენსაც backend-ის Netlify-CDN-Cache-Control ამბობს.
+/api/*  https://artopia-backend-2024-54872c79acdd.herokuapp.com/:splat  200
+
 /*    /index.html   200

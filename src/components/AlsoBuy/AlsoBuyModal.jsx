@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./AlsoBuyModal.module.css";
 import { cld, IMG } from "../../utils/cloudinary";
 
-const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+import { PUBLIC_API } from "../../utils/apiBase";
 const NO_IMAGE = "/noimage.jpeg";
 
 const getImage = (p) =>
@@ -21,7 +21,7 @@ export default function AlsoBuyModal({ alsoBuyIds = [], isOpen, onClose }) {
     let ignore = false;
     setLoading(true);
 
-    fetch(`${API_BASE}/products/also-buy?ids=${alsoBuyKey}`)
+    fetch(`${PUBLIC_API}/products/also-buy?ids=${alsoBuyKey}`)
       .then((r) => r.json())
       .then((data) => {
         if (!ignore) setProducts(Array.isArray(data) ? data : []);
