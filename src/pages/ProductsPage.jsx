@@ -117,14 +117,16 @@ const ProductsPage = () => {
   const invalidPage = pathPage == null;
   const currentPage = pathPage || 1;
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") || "");
   const selectedSubcategories = selectedMainCategory
     ? [...new Set((searchParams.get("categories") || "").split(",").map((item) => item.trim()).filter(Boolean))]
     : [];
   const filteredPath = (category, page, mainCategory = "") => {
     const path = catalogPath({ category, mainCategory, page });
-    if (!mainCategory || selectedSubcategories.length === 0) return path;
-    return `${path}?categories=${encodeURIComponent(selectedSubcategories.join(","))}`;
+    const params = new URLSearchParams();
+    if (mainCategory && selectedSubcategories.length) params.set("categories", selectedSubcategories.join(","));
+    if (searchTerm.trim()) params.set("search", searchTerm.trim());
+    return `${path}${params.size ? `?${params}` : ""}`;
   };
   const [catalog, setCatalog] = useState({ main_categories: [], featured_sections: [] });
   const [catalogResolved, setCatalogResolved] = useState(false);
@@ -279,6 +281,7 @@ const ProductsPage = () => {
     else next.add(slug);
     const params = new URLSearchParams();
     if (next.size) params.set("categories", [...next].join(","));
+    if (searchTerm.trim()) params.set("search", searchTerm.trim());
     navigate(`${catalogPath({ mainCategory: selectedMainCategory })}${params.size ? `?${params}` : ""}`);
   };
 
@@ -343,8 +346,8 @@ const ProductsPage = () => {
         description={meta.description}
         url={meta.url}
         // ცარიელი კატეგორია (პროდუქტი დროებით არ აქვს) ინდექსში არ უნდა მოხვდეს
-        noIndex={selectedSubcategories.length > 0 || (!landingMode && loaded && products.length === 0 && !searchTerm.trim())}
-        noIndexFollow={selectedSubcategories.length > 0}
+        noIndex={Boolean(searchTerm.trim()) || selectedSubcategories.length > 0 || (!landingMode && loaded && products.length === 0)}
+        noIndexFollow={Boolean(searchTerm.trim()) || selectedSubcategories.length > 0}
       />
       {products.length > 0 && (
         <script

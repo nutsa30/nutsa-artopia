@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
 import styles from "./HomePage.module.css";
 import HomeCarousel from "../components/home/HomeCarousel";
 import HomeSaleProducts from "../components/home/HomeSaleProducts";
@@ -24,10 +25,18 @@ const srOnly = {
 };
 
 export default function HomePage() {
-
+  const navigate = useNavigate();
   const [homeImages, setHomeImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [productSearch, setProductSearch] = useState("");
+
+  const submitProductSearch = (event) => {
+    event.preventDefault();
+    const query = productSearch.trim();
+    if (!query) return;
+    navigate(`/products?search=${encodeURIComponent(query)}`);
+  };
   // 🔥 HOME IMAGES FETCH (admin-იდან)
   useEffect(() => {
     const fetchImages = async () => {
@@ -72,7 +81,7 @@ export default function HomePage() {
       </header>
 
       {/* 🔥 HERO / CAROUSEL */}
-      <section className={styles.section}>
+      <section className={`${styles.section} ${styles.heroSection}`}>
         {/* ჩატვირთვისას იმავე ზომის ადგილი იჯავშნება, რაც carousel-ს აქვს (16:9) —
             ქვემოთ მდებარე სექციები აღარ „ხტება" (CLS) */}
         {loading && <div className={styles.carouselPlaceholder} aria-hidden="true" />}
@@ -80,6 +89,23 @@ export default function HomePage() {
 
         {!loading && homeImages.length > 0 && (
           <HomeCarousel images={homeImages} />
+        )}
+
+        {!loading && (
+          <form className={styles.productSearch} onSubmit={submitProductSearch}
+            role="search" aria-label="პროდუქტების ძიება">
+            <div className={styles.searchCopy}>
+              <span>იპოვე სწრაფად</span>
+              <strong>რას ეძებ?</strong>
+            </div>
+            <div className={styles.searchControl}>
+              <Search size={21} aria-hidden="true" />
+              <input type="search" value={productSearch}
+                onChange={(event) => setProductSearch(event.target.value)}
+                placeholder="მოძებნე პროდუქტი..." aria-label="პროდუქტის დასახელება" />
+              <button type="submit" disabled={!productSearch.trim()}>ძებნა</button>
+            </div>
+          </form>
         )}
       </section>
 

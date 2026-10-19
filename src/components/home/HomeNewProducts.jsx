@@ -6,7 +6,7 @@ import styles from "./HomeNewProduct.module.css";
 
 /* API BASE */
 const API_BASE =
-  (import.meta?.env?.VITE_API_BASE ?? "").trim() ||
+  (import.meta.env.VITE_API_BASE ?? "").trim() ||
   "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 /** იგივე sorting logic */

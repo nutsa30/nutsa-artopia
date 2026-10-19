@@ -6,7 +6,7 @@ import styles from "./HomeSaleProducts.module.css";
 
 /* API BASE — იგივე ლოგიკა, რაც სხვაგან გაქვს */
 const API_BASE =
-  (import.meta?.env?.VITE_API_BASE ?? "").trim() ||
+  (import.meta.env.VITE_API_BASE ?? "").trim() ||
   "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
 export default function HomeSaleProducts({ limit = 4, titleKa, titleEn }) {

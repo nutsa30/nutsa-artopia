@@ -23,7 +23,7 @@ globalThis.fetch = async () => { throw Error("Unmocked network is forbidden"); }
 const React = await import("react");
 const { createRoot } = await import("react-dom/client");
 const { Simulate } = await import("react-dom/test-utils");
-const { MemoryRouter, Routes, Route } = await import("react-router-dom");
+const { MemoryRouter, Routes, Route, useLocation } = await import("react-router-dom");
 const server = await createServer({ configFile: false, plugins: [react()], ssr: { noExternal: ["react-helmet-async"] }, server: { middlewareMode: true, hmr: false }, appType: "custom" });
 const { HelmetProvider } = await server.ssrLoadModule("react-helmet-async");
 const { default: SEO } = await server.ssrLoadModule("/src/components/SEO.jsx");
@@ -34,6 +34,7 @@ const { default: ContactsPage } = await server.ssrLoadModule("/src/pages/Contact
 const { default: BlogPage } = await server.ssrLoadModule("/src/pages/BlogsDetailPage.jsx");
 const { default: Checkout } = await server.ssrLoadModule("/src/components/Checkout/Checkout.jsx");
 const { default: ProductsPage } = await server.ssrLoadModule("/src/pages/ProductsPage.jsx");
+const { default: HomePage } = await server.ssrLoadModule("/src/pages/HomePage.jsx");
 const { CartUiProvider } = await server.ssrLoadModule("/src/components/Navbar/Navbar.jsx");
 after(async () => { await server.close(); dom.window.close(); });
 
@@ -256,6 +257,10 @@ const storefront = (entry) => React.createElement(HelmetProvider, null, React.cr
 const hrefs = () => Array.from(document.querySelectorAll("a[href]")).map(a => a.getAttribute("href"));
 const robotsMeta = () => document.querySelector('meta[name="robots"]')?.content;
 const canonicalHref = () => document.querySelector('link[rel="canonical"]')?.getAttribute("href");
+const LocationProbe = () => {
+  const location = useLocation();
+  return React.createElement("output", { "data-location": true }, `${location.pathname}${location.search}`);
+};
 const clickLink = async (href) => {
   const link = Array.from(document.querySelectorAll("a[href]")).find(a => a.getAttribute("href") === href);
   assert.ok(link, `link ${href} not found`);
@@ -277,6 +282,46 @@ function catalogApi({ total = 45, exists = true, items } = {}) {
   };
   return calls;
 }
+
+test("homepage search opens the catalogue with a trimmed query", async () => {
+  document.head.innerHTML = ""; sessionStorage.clear(); localStorage.clear();
+  globalThis.fetch = async () => Response.json([]);
+  const routes = React.createElement(Routes, null,
+    React.createElement(Route, { path: "/", element: React.createElement(HomePage) }),
+    React.createElement(Route, { path: "/products", element: React.createElement(LocationProbe) }));
+  const cleanup = await render(React.createElement(HelmetProvider, null,
+    React.createElement(MemoryRouter, { initialEntries: ["/"], future },
+      React.createElement(CartProvider, null,
+        React.createElement(CartUiProvider, null, routes)))));
+  try {
+    const form = document.querySelector('form[role="search"]');
+    const input = document.querySelector('input[aria-label="პროდუქტის დასახელება"]');
+    const button = form.querySelector('button[type="submit"]');
+    assert.equal(button.disabled, true);
+
+    await React.act(async () => { Simulate.change(input, { target: { value: "  აკვარელი  " } }); });
+    assert.equal(button.disabled, false);
+    await React.act(async () => { Simulate.submit(form); });
+    await settle();
+
+    const location = new URL(document.querySelector("[data-location]").textContent, "https://artopia.ge");
+    assert.equal(location.pathname, "/products");
+    assert.equal(location.searchParams.get("search"), "აკვარელი");
+  } finally { await cleanup(); }
+});
+
+test("catalogue restores a homepage search query and keeps it in pagination", async () => {
+  document.head.innerHTML = ""; sessionStorage.clear(); localStorage.clear();
+  const calls = catalogApi();
+  const cleanup = await render(storefront("/products?search=აკვარელი"));
+  try {
+    const search = document.querySelector('input[placeholder="საძიებო სიტყვა..."]');
+    assert.equal(search.value, "აკვარელი");
+    assert.ok(calls.some(url => url.includes("search=აკვარელი") && url.includes("page=1")));
+    assert.ok(hrefs().includes("/products/page/2?search=%E1%83%90%E1%83%99%E1%83%95%E1%83%90%E1%83%A0%E1%83%94%E1%83%9A%E1%83%98"));
+    assert.equal(robotsMeta(), "noindex,follow");
+  } finally { await cleanup(); }
+});
 
 test("catalog: product and pagination are real <a href> links and pages are crawlable", async () => {
   document.head.innerHTML = ""; sessionStorage.clear(); localStorage.clear();
@@ -305,7 +350,7 @@ test("catalog: product and pagination are real <a href> links and pages are craw
     await React.act(async () => { Simulate.change(search, { target: { value: "Foc" } }); });
     await settle();
     assert.ok(calls.some(url => url.includes("search=Foc") && url.includes("page=1") && url.includes("category=Fixture")));
-    await clickLink("/products/category/Fixture/page/3");
+    await clickLink("/products/category/Fixture/page/3?search=Foc");
     assert.ok(calls.some(url => url.includes("search=Foc") && url.includes("page=3")), "search term survives pagination");
 
   } finally { await cleanup(); }
