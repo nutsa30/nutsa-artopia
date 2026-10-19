@@ -158,6 +158,7 @@ const ProductsPage = () => {
 
   const landingCandidate = selectedCategory === ALL && !selectedMainCategory && currentPage === 1 && !querySearch;
   const landingMode = landingCandidate && catalogResolved && catalog.main_categories.length > 0;
+  const waitingForCatalog = landingCandidate && !catalogResolved;
   const loaded = result.key === requestKey;
   const products = loaded ? result.items : [];
   const total = loaded ? result.total : 0;
@@ -229,7 +230,7 @@ const ProductsPage = () => {
 
   useEffect(() => {
     if (invalidPage || hasLegacyQuery) return;
-    if (landingCandidate && !catalogResolved) return;
+    if (waitingForCatalog) return;
     if (landingMode) {
       setResult({ key: requestKey, items: [], total: 0, categoryExists: true, mainCategoryExists: true });
       setIsLoading(false);
@@ -282,7 +283,9 @@ const ProductsPage = () => {
     };
     // requestKey = selectedCategory + currentPage + querySearch
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestKey, invalidPage, hasLegacyQuery, landingMode, landingCandidate, catalogResolved]);
+    // catalogResolved პირდაპირ აქ არ არის: კატალოგის ჩატვირთვა სხვა გვერდზე მიმდინარე
+    // მოთხოვნას აღარ წყვეტს და სია ორჯერ აღარ ითხოვება
+  }, [requestKey, invalidPage, hasLegacyQuery, landingMode, waitingForCatalog]);
 
   useEffect(() => {
     if (embeddedTreeRef.current) return;

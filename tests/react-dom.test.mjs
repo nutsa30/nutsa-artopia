@@ -322,6 +322,7 @@ test("catalogue restores a homepage search query and keeps it in pagination", as
     const search = document.querySelector('input[placeholder="საძიებო სიტყვა..."]');
     assert.equal(search.value, "აკვარელი");
     assert.ok(calls.some(url => url.includes("search=აკვარელი") && url.includes("page=1")));
+    assert.equal(calls.filter(url => url.includes("/products/list?")).length, 1, "the list is requested once, not again when the category tree arrives");
     assert.ok(hrefs().includes("/products/page/2?search=%E1%83%90%E1%83%99%E1%83%95%E1%83%90%E1%83%A0%E1%83%94%E1%83%9A%E1%83%98"));
     assert.equal(robotsMeta(), "noindex,follow");
   } finally { await cleanup(); }
