@@ -9,9 +9,8 @@ npm run dev       # start dev server (Vite, port 5173)
 npm run build     # production build → dist/
 npm run preview   # preview the production build locally
 npm run lint      # ESLint check
+npm test          # node --test (tests/*.test.mjs)
 ```
-
-No test suite exists in this project.
 
 ## Architecture
 
@@ -23,7 +22,7 @@ No test suite exists in this project.
 
 | File | Purpose | Auth |
 |---|---|---|
-| `src/api.js` | Public-facing API calls | None (uses `loadingBus` for global loading state) |
+| `src/api.js` | **Unused** — nothing imports it and its `loadingBus` import path does not exist. Storefront pages call `fetch` with `PUBLIC_API` / `API_BASE` from `src/utils/apiBase.js` | None |
 | `src/admin/api.js` | Admin CRUD calls | `Authorization: Bearer <JWT>` from `ADMIN_TOKEN` in storage (`authHeaders()`) |
 
 Both files expose `jfetch` (JSON) and `ffetch` (FormData/multipart) helpers. Don't mix them — the admin version adds the auth header automatically.
@@ -187,9 +186,23 @@ compiled out of production builds.
   checkbox reads `manually_hidden`. **The repo is public — no secret in code or `.env`.**
 - Promo codes are checked only by `POST /promo-codes/validate`.
 
-**Checking a change**: `npm test` (71). Deploy previews cannot load API data in a browser (CORS); for real
-data run `npm run build && npx vite preview --port 5173 --strictPort`. The real edge runtime runs locally
-with `npx netlify dev`. Deploy: branch → PR → Netlify preview → merge to `main`.
+### API base and the `/api` proxy (2026-10-19)
+
+- **Never read `import.meta.env.VITE_API_BASE` directly.** Netlify's value is `"✅ https://…"`; reading it
+  raw (05aa597) sent every homepage/footer request to `artopia.ge/✅…` (404) and broke production. Import
+  `API_BASE` / `PUBLIC_API` from `src/utils/apiBase.js`, which keeps only the real URL.
+- **Public, read-only GETs use `PUBLIC_API`** (`/api` in production → Heroku via `public/_redirects`):
+  same-origin, no extra TLS handshake to the US, and Netlify's CDN caches them for 60 s
+  (backend `app/http_perf.py` sends `Netlify-CDN-Cache-Control`). **Cart, checkout, payments, engraving and
+  every POST stay on `API_BASE`** — they need live stock and must never be cached.
+- Edge `initial-data` must match what React would fetch: never embed a list on `?search=` / `?categories=`
+  pages (the edge list is unfiltered). `/products` and group pages embed the category tree as `data.catalog`.
+- Route loading and the catalogue skeleton reserve `100vh` so the footer never jumps (CLS).
+
+**Checking a change**: `npm test` (76). Deploy previews load real data through `/api` (same origin), so
+check them in a browser; checkout stock calls still hit Heroku directly and are CORS-blocked on previews.
+The real edge runtime runs locally with `npx netlify dev`. Deploy: branch → PR → Netlify preview → merge
+to `main`.
 
 **Still open (not code)**: Search Console data (page indexing, sitemaps, Core Web Vitals, crawl stats,
 URL inspection) to confirm what Google really indexes; 228 in-stock products without a photo; mobile LCP
