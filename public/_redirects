@@ -1,4 +1,5 @@
 /sitemap.xml  /.netlify/functions/sitemap  200
+/merchant-feed.xml  /.netlify/functions/merchant-feed  200
 /contact     /contacts                  301!
 /blogs/:slug /blog/:slug                301!
 

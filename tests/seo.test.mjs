@@ -61,6 +61,7 @@ test("legacy redirects precede SPA fallback, and robots preserves HTTPS sitemap"
   const rules = await readFile(new URL("../public/_redirects", import.meta.url), "utf8");
   assert.match(rules, /\/contact\s+\/contacts\s+301!/);
   assert.match(rules, /\/blogs\/:slug\s+\/blog\/:slug\s+301!/);
+  assert.match(rules, /\/merchant-feed\.xml\s+\/\.netlify\/functions\/merchant-feed\s+200/);
   assert.ok(rules.indexOf("/contact") < rules.indexOf("/*"));
   assert.match(await readFile(new URL("../public/robots.txt", import.meta.url), "utf8"), /Sitemap: https:\/\/artopia.ge\/sitemap.xml/);
 });
