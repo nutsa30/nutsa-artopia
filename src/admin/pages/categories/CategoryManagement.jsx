@@ -15,7 +15,8 @@ export default function CategoryManagement() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState("");
   const [error, setError] = useState("");
-  const [draft, setDraft] = useState({ name: "", slug: "" });
+  // slug-ს backend კატეგორიის სახელიდან ქმნის (app/category_slugs.py) — ადმინში მისი ველი აღარ არის
+  const [draft, setDraft] = useState({ name: "" });
 
   const load = async () => {
     setLoading(true);
@@ -66,7 +67,7 @@ export default function CategoryManagement() {
     try {
       const created = await createMainCategory(draft);
       setData((current) => ({ ...current, main_categories: [...current.main_categories, created] }));
-      setDraft({ name: "", slug: "" });
+      setDraft({ name: "" });
     } catch (e) { setError(e.message); }
     finally { setSaving(""); }
   };
@@ -89,8 +90,6 @@ export default function CategoryManagement() {
       <form className={styles.create} onSubmit={createMain}>
         <Plus size={20} /><input aria-label="მთავარი კატეგორიის სახელი" placeholder="ახალი მთავარი კატეგორია"
           value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-        <input aria-label="slug" placeholder="slug (არასავალდებულო)" value={draft.slug}
-          onChange={(e) => setDraft({ ...draft, slug: e.target.value })} />
         <button disabled={saving === "new"}>დამატება</button>
       </form>
 
@@ -111,7 +110,6 @@ export default function CategoryManagement() {
               </div>
               <div className={styles.fields}>
                 <input name="name" defaultValue={main.name} aria-label="დასახელება" />
-                <input name="slug" defaultValue={main.slug} aria-label="slug" />
                 <textarea name="description" defaultValue={main.description || ""} placeholder="აღწერა" />
                 <input name="meta_title" defaultValue={main.meta_title || ""} placeholder="SEO title" />
                 <textarea name="meta_description" defaultValue={main.meta_description || ""} placeholder="Meta description" />

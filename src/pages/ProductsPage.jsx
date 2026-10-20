@@ -157,6 +157,7 @@ const ProductsPage = () => {
     categoryExists: embedded.category_exists !== false,
     mainCategoryExists: embedded.main_category_exists !== false,
     categoryMovedTo: typeof embedded.category_moved_to === "string" ? embedded.category_moved_to : null,
+    mainCategoryMovedTo: typeof embedded.main_category_moved_to === "string" ? embedded.main_category_moved_to : null,
   } : { key: "", items: [], total: 0, categoryExists: true });
 
   const landingCandidate = selectedCategory === ALL && !selectedMainCategory && currentPage === 1 && !querySearch;
@@ -271,6 +272,7 @@ const ProductsPage = () => {
           categoryExists: data.category_exists !== false,
           mainCategoryExists: data.main_category_exists !== false,
           categoryMovedTo: typeof data.category_moved_to === "string" ? data.category_moved_to : null,
+          mainCategoryMovedTo: typeof data.main_category_moved_to === "string" ? data.main_category_moved_to : null,
         });
       })
       .catch(() => {
@@ -338,6 +340,10 @@ const ProductsPage = () => {
   // გადარქმეული კატეგორიის ძველი მისამართი → ახალი (HTTP 301-ს edge function აბრუნებს)
   if (loaded && result.categoryMovedTo) {
     return <Navigate replace to={filteredPath(result.categoryMovedTo, 1)} />;
+  }
+  // გადარქმეული მთავარი კატეგორიის ძველი მისამართი → ახალი (HTTP 301-ს edge function აბრუნებს)
+  if (loaded && result.mainCategoryMovedTo) {
+    return <Navigate replace to={`${catalogPath({ mainCategory: result.mainCategoryMovedTo })}${location.search}`} />;
   }
 
   // არარსებული კატეგორია, არასწორი /page/<...> ან ბოლო გვერდს გაცდენილი ნომერი.
@@ -408,9 +414,14 @@ const ProductsPage = () => {
         {selectedMain && <section className={styles.mainIntro}>
           <div>
             {/* უკან — ყველა კატეგორიის სიაზე (/products) */}
+            {/* padding/margin `!`-ით: გლობალური CSS ბმულს padding: 0-ს უწერს (Tailwind ფენაზე დაბლაა) */}
             <Link to="/products"
-              className="tw:mb-4 tw:inline-flex tw:items-center tw:gap-2 tw:rounded-full tw:border tw:border-white/15 tw:bg-white/5 tw:px-4 tw:py-2 tw:text-sm tw:font-semibold tw:text-sky-100 tw:no-underline tw:shadow-sm tw:transition tw:hover:border-sky-300/50 tw:hover:bg-sky-500/15 tw:hover:text-white">
-              <ArrowLeft size={16} aria-hidden="true" /> ყველა კატეგორია
+              className="tw:group tw:mb-5! tw:inline-flex tw:items-center tw:gap-3 tw:rounded-2xl tw:border tw:border-sky-300/25 tw:bg-linear-to-r tw:from-sky-500/25 tw:to-indigo-500/10 tw:py-1.5! tw:pl-1.5! tw:pr-5! tw:text-[15px] tw:font-bold tw:text-white! tw:no-underline! tw:shadow-lg tw:shadow-black/30 tw:backdrop-blur tw:transition tw:duration-200 tw:hover:-translate-y-0.5 tw:hover:border-sky-300/60 tw:hover:from-sky-500/40 tw:focus-visible:outline-2 tw:focus-visible:outline-sky-300">
+              <i aria-hidden="true"
+                className="tw:grid tw:size-9 tw:place-items-center tw:rounded-xl tw:bg-white tw:not-italic tw:text-sky-700 tw:shadow-md tw:transition tw:duration-200 tw:group-hover:-translate-x-0.5">
+                <ArrowLeft size={18} strokeWidth={2.5} />
+              </i>
+              ყველა კატეგორია
             </Link>
             <h2>{selectedMain.name}</h2>
             {selectedMain.description && <span>{selectedMain.description}</span>}</div>

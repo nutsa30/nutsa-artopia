@@ -370,3 +370,15 @@ test("product page uses the first existing photo even when slot 1 is empty (prel
   assert.ok(body.includes(`imagesrcset="${responsiveImage(photo, "detail").srcSet}"`));
   assert.deepEqual(nodes(body, "Product")[0].image, [photo]);
 });
+
+test("a renamed main category answers 301 to its new slug (the API says so in JSON)", async () => {
+  const api = async (url) => (url.includes("/products/list?")
+    ? json({ items: [], total: 0, category_exists: true, main_category_exists: false, main_category_moved_to: "helouini-da-sachuqrebi" })
+    : url.includes("/categories/") ? json({ message: "not found" }, 404) : noNetwork(url));
+  const moved = await visit("/products/group/sachuqrebi?categories=sadghesastsaulo", api);
+  assert.equal(moved.status, 301);
+  assert.equal(moved.response.headers.get("location"), "https://artopia.ge/products/group/helouini-da-sachuqrebi?categories=sadghesastsaulo");
+  const unknown = await visit("/products/group/nope", async (url) => (url.includes("/products/list?")
+    ? json({ items: [], total: 0, main_category_exists: false, main_category_moved_to: null }) : noNetwork(url)));
+  assert.equal(unknown.status, 404);
+});

@@ -9,7 +9,7 @@ import {
   NotebookPen, Package, PaintBucket, PaintRoller, Paintbrush, Palette, Paperclip, PartyPopper, Pen,
   Pencil, PencilLine, Pin, Pipette, Presentation, Puzzle, Ribbon, Ruler, Scissors, Scroll, Shapes,
   Shell, Shirt, ShoppingBag, Smile, Sparkles, StickyNote, Tag, ToyBrick, TreePine, Trophy,
-  WandSparkles,
+  WandSparkles, Ghost,
 } from "lucide-react";
 
 const BY_SLUG = {
@@ -76,7 +76,9 @@ const BY_SLUG = {
   "misalotsi-baratebi": Mail,
   "suvenirebi": Gift,
   "brelokebi": KeyRound,
-  "sadghesastsaulo": PartyPopper,
+  // ჰელოუინი (ყოფილი „სადღესასწაულო"): ძველი slug 301-ით ახალზე გადადის
+  "sadghesastsaulo": Ghost,
+  "helouini": Ghost,
   "saakhaltslo-nivtebi": TreePine,
   // წიგნები
   "skhva-sastsavlo-tsignebi": Library,
@@ -96,7 +98,7 @@ const BY_WORD = [
   ["საღებავ", PaintBucket], ["ფუნჯ", Brush], ["ფანქ", Pencil], ["კალამ", Pen], ["ქაღალდ", FileText],
   ["რვეულ", BookOpen], ["ბლოკნოტ", Notebook], ["წიგნ", Library], ["სათამაშ", ToyBrick],
   ["თამაშ", Dices], ["საჩუქ", Gift], ["წებო", Pipette], ["მაკრატ", Scissors], ["სტიკერ", StickyNote],
-  ["მარკერ", Highlighter], ["ტილო", Frame], ["თიხ", Amphora], ["ბისერ", Gem], ["ელექტრ", Cpu],
+  ["მარკერ", Highlighter], ["ტილო", Frame], ["თიხ", Amphora], ["ბისერ", Gem], ["ელექტრ", Cpu], ["ჰელოუ", Ghost],
 ];
 
 // მთავარი კატეგორიის slug → ფონის გრადიენტი (Tailwind-ს სრული კლასები სჭირდება)
@@ -113,7 +115,20 @@ const TONES = {
   "eleqtronika-da-khelsatsyoebi": "tw:from-cyan-500 tw:to-sky-600",
   "silamaze-da-aqsesuarebi": "tw:from-fuchsia-500 tw:to-pink-500",
 };
+// slug სახელს მიჰყვება (backend app/category_slugs.py): სახელის შესაბამისი slug-ებიც
+Object.assign(TONES, {
+  "sakantselario-da-saofise-nivtebi": TONES["sakancelario-da-saofise"],
+  "satamashoebi-da-sabavshvo-shemoqmedeba": TONES["satamashoebi-da-shemoqmedeba"],
+  "khelsaqme-da-dekoratsia": TONES["khelsaqme-da-dekoracia"],
+  "sachuqrebi-da-sadghesastsaulo-nivtebi": TONES["sachuqrebi-da-sadghesastsavlo"],
+  "tsignebi-da-sastsavlo-literatura": TONES["tsignebi-da-literatura"],
+});
 const DEFAULT_TONE = "tw:from-slate-500 tw:to-slate-700";
+// ცალკეულ ქვეკატეგორიას საკუთარი ფერი (მთავარი კატეგორიის ფერის ნაცვლად)
+const SLUG_TONES = {
+  "sadghesastsaulo": "tw:from-orange-500 tw:via-amber-500 tw:to-purple-700",   // ჰელოუინი (ძველი slug)
+  "helouini": "tw:from-orange-500 tw:via-amber-500 tw:to-purple-700",
+};
 
 const SIZES = {
   sm: "tw:size-8 tw:rounded-lg",
@@ -133,7 +148,7 @@ export default function SubcategoryIcon({ slug, name, mainSlug, size = "md", cla
   return (
     // <i> და არა <span>: კატალოგის/ადმინის CSS-ში `span`-ზე წესებია (overflow, ფერი)
     <i aria-hidden="true"
-      className={`tw:not-italic tw:inline-grid tw:shrink-0 tw:place-items-center tw:bg-linear-to-br tw:text-white tw:shadow-md tw:shadow-black/25 tw:ring-1 tw:ring-white/20 ${SIZES[size] || SIZES.md} ${TONES[mainSlug] || DEFAULT_TONE} ${className}`}>
+      className={`tw:not-italic tw:inline-grid tw:shrink-0 tw:place-items-center tw:bg-linear-to-br tw:text-white tw:shadow-md tw:shadow-black/25 tw:ring-1 tw:ring-white/20 ${SIZES[size] || SIZES.md} ${SLUG_TONES[slug] || TONES[mainSlug] || DEFAULT_TONE} ${className}`}>
       <Icon size={ICON_PX[size] || ICON_PX.md} strokeWidth={2} />
     </i>
   );

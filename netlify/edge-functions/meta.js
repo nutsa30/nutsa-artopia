@@ -535,6 +535,11 @@ async function handle(request, context) {
             return new Response(null, { status: 301, headers: { location: `${SITE}${catalogPath({ category: movedTo })}${["1", "true"].includes(url.searchParams.get("include_out_of_stock")) ? "?include_out_of_stock=1" : ""}` } });
           }
           if (data?.category_exists === false) return notFoundResponse(shell, source, 404);
+          // გადარქმეული მთავარი კატეგორია: ძველი /products/group/<slug> მუდმივად ახალზე გადადის
+          const mainMovedTo = data?.main_category_exists === false ? data?.main_category_moved_to : null;
+          if (typeof mainMovedTo === "string" && /^[a-z0-9-]+$/.test(mainMovedTo) && mainMovedTo !== mainCategory) {
+            return new Response(null, { status: 301, headers: { location: `${SITE}${catalogPath({ mainCategory: mainMovedTo, page })}${url.search}` } });
+          }
           if (data?.main_category_exists === false) return notFoundResponse(shell, source, 404);
           if (items && items.length) firstImage = items[0]?.image_url1 || null;
           if (items && page > 1 && items.length === 0) return notFoundResponse(shell, source, 404);
