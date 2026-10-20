@@ -23,6 +23,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import NotFound from "./components/NotFound";
 import { StorefrontDataProvider } from "./context/StorefrontDataContext";
 import RouteMetadata from "./components/RouteMetadata";
+import { edgeArticleFor } from "./utils/edgeArticle";
 
 const ProductsPage = React.lazy(() => import("./pages/ProductsPage"));
 const BlogsPage = React.lazy(() => import("./pages/BlogsPage"));
@@ -71,7 +72,17 @@ const CatalogRootPage = () => {
   return <ProductsPage key={searchParams.get("search") || ""} />;
 };
 
-const RouteFallback = () => <div style={{ minHeight: "100vh" }} aria-busy="true" />;
+// ბლოგის სტატიაზე edge-მა ტექსტი უკვე ჩაწერა: სანამ გვერდის კოდი იტვირთება, ცარიელი ადგილის ნაცვლად
+// იგივე სტატია ჩანს (src/utils/edgeArticle.js) — ტექსტი არ ქრება და არ ციმციმებს
+const RouteFallback = () => {
+  const { pathname } = useLocation();
+  const article = edgeArticleFor(pathname);
+  if (article) {
+    return <div style={{ minHeight: "100vh", color: "#e2e8f0", lineHeight: 1.75 }} aria-busy="true"
+      dangerouslySetInnerHTML={{ __html: article }} />;
+  }
+  return <div style={{ minHeight: "100vh" }} aria-busy="true" />;
+};
 const DeferredPage = ({ children }) => <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 
 const OldAddProductRedirect = () => {

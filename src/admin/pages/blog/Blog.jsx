@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "./Blog.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
 import { useNavigate, useLocation } from "react-router-dom";
-import { authHeaders } from "../../api";
+import { authHeaders, uploadAdminImage } from "../../api";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 const modules = {
   toolbar: [
-    [{ header: [1, 2, 3, false] }],   // სათაურები
+    // H1 მხოლოდ სტატიის სათაურია — ტექსტში სათაურები 2 და 3 (ბაზაში შემთხვევით მოხვედრილ h1-ს გამწმენდი h2-ად აქცევს)
+    [{ header: [2, 3, false] }],   // სათაურები
     ["bold", "italic", "underline"],
     [{ color: [] }, { background: [] }], // ფერები
     [{ size: ["small", false, "large", "huge"] }], // ზომა
@@ -19,28 +20,8 @@ const modules = {
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
 const MAX_SECTIONS = 10;
 
-const CLOUD_NAME = "dch8gnj7d";
-const UPLOAD_PRESET = "artopia_unsigned";
-
-async function uploadToCloudinary(file) {
-  if (!file) return null;
-
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("upload_preset", UPLOAD_PRESET);
-
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-    method: "POST",
-    body: fd,
-  });
-
-  if (!res.ok) {
-    throw new Error("Cloudinary upload failed");
-  }
-
-  const data = await res.json();
-  return data?.secure_url || null;
-}
+// ფოტოს ატვირთვა: მხოლოდ backend-ის გავლით, ადმინის ტოკენით (src/admin/api.js)
+const uploadToCloudinary = (file) => uploadAdminImage(file, { kind: "blog" });
 const emptySection = () => ({
   text: "",
   image_file: null,
@@ -138,7 +119,9 @@ const resolvedCoverImage =
   /* ---------------- FETCH LIST ---------------- */
   const fetchBlogs = async () => {
     try {
-      const res = await fetch(BASE);
+      // ადმინის სია: გამოუქვეყნებელი სტატიებიც (საჯარო /blogs მათ აღარ აბრუნებს)
+      const res = await fetch(`${BASE}/admin`, { headers: authHeaders() });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setBlogs(Array.isArray(data) ? data : []);
     } catch {
@@ -167,7 +150,7 @@ useEffect(() => {
   /* ---------------- FETCH DETAIL ---------------- */
   const fetchDetail = async (id) => {
     try {
-      const res = await fetch(`${BASE}/${id}`);
+      const res = await fetch(`${BASE}/admin/${id}`, { headers: authHeaders() });
       if (!res.ok) return;
       const data = await res.json();
 
@@ -380,7 +363,14 @@ try {
     return;
   }
 
-  alert(editingId ? "განახლდა" : "დაემატა");
+  // სათაური შეიცვალა → შეიცვალა მისამართიც; ძველს backend 301-ით გადაამისამართებს
+  const moved = editingId && data?.previous_slug && data.previous_slug !== data.slug;
+  alert(editingId
+    ? (moved
+      ? `განახლდა. ახალი მისამართი: artopia.ge/blog/${data.slug}
+ძველი მისამართი ავტომატურად გადამისამართდება ახალზე.`
+      : "განახლდა")
+    : "დაემატა");
 
   resetForm();
   fetchBlogs();

@@ -92,6 +92,91 @@ async function ffetch(url, formData, method = "POST") {
 }
 
 /* =========================================================
+   ფოტოს ატვირთვა (Cloudinary — მხოლოდ backend-ის გავლით)
+   ========================================================= */
+// ადრე ადმინის გვერდები Cloudinary-ში პირდაპირ ტვირთავდნენ unsigned preset-ით, რომლის სახელიც
+// საჯარო კოდში იყო — ანუ ატვირთვა ნებისმიერს შეეძლო. ახლა ფაილი backend-ზე მიდის ადმინის ტოკენით
+// (POST /admin/uploads/image), backend ამოწმებს, რომ ის ნამდვილი სურათია, და თვითონ ტვირთავს.
+// XMLHttpRequest (და არა fetch): ატვირთვის პროცენტი ღილაკზე ჩანს. kind: "product" | "blog" | "home".
+//
+// სერვერი (app/abuse_protection.py) ერთდროულად მხოლოდ 3 ფაილის ატვირთვას იღებს და მეტზე 429-ს
+// („დაკავებულია") აბრუნებს. ამიტომ ატვირთვები რიგში დგას — ერთდროულად მაქსიმუმ 2 — და 429-ზე
+// მოკლე პაუზის შემდეგ თავიდან იცდება. პროდუქტზე 6 ფოტოს ერთად არჩევაც უპრობლემოდ აიტვირთება.
+const UPLOAD_CONCURRENCY = 2;
+const UPLOAD_RETRIES = 3;
+let activeUploads = 0;
+const waitingUploads = [];
+
+function withUploadSlot(task) {
+  return new Promise((resolve, reject) => {
+    const run = () => {
+      activeUploads += 1;
+      task().then(resolve, reject).finally(() => {
+        activeUploads -= 1;
+        waitingUploads.shift()?.();
+      });
+    };
+    if (activeUploads < UPLOAD_CONCURRENCY) run();
+    else waitingUploads.push(run);
+  });
+}
+
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function sendUpload(file, kind, onProgress) {
+  return new Promise((resolve, reject) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("kind", kind);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${BASE}/admin/uploads/image`);
+    const auth = authHeaders();
+    if (auth.Authorization) xhr.setRequestHeader("Authorization", auth.Authorization);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) onProgress(event.loaded, event.total);
+    };
+    xhr.onload = () => {
+      let body = {};
+      try { body = JSON.parse(xhr.responseText || "{}"); } catch { body = {}; }
+      if (xhr.status === 401) {
+        // ვადაგასული/არასწორი ტოკენი — იგივე ქცევა, რაც სხვა ადმინის გვერდებზე: ხელახალი შესვლა
+        ["ADMIN_TOKEN", "ADMIN_ROLE"].forEach((key) => {
+          try { localStorage.removeItem(key); sessionStorage.removeItem(key); } catch { /* ignore */ }
+        });
+        window.location.href = "/admin/login";
+        return reject(new Error("სესიას ვადა გაუვიდა — შედით ხელახლა"));
+      }
+      if (xhr.status === 429) {
+        const seconds = Number(xhr.getResponseHeader("Retry-After")) || 3;
+        const busy = new Error("სერვერი დაკავებულია — სცადეთ ცოტა ხანში");
+        busy.retryAfterMs = Math.min(Math.max(seconds, 1), 10) * 1000;
+        return reject(busy);
+      }
+      if (xhr.status < 200 || xhr.status >= 300 || !body.secure_url) {
+        return reject(new Error(body.message || "ფოტოს ატვირთვა ვერ მოხერხდა"));
+      }
+      resolve(body.secure_url);
+    };
+    xhr.onerror = () => reject(new Error("ფოტოს ატვირთვა ვერ მოხერხდა — შეამოწმეთ ინტერნეტი"));
+    xhr.send(fd);
+  });
+}
+
+export function uploadAdminImage(file, { kind = "product", onProgress } = {}) {
+  if (!file) return Promise.resolve(null);
+  return withUploadSlot(async () => {
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        return await sendUpload(file, kind, onProgress);
+      } catch (error) {
+        if (!error.retryAfterMs || attempt >= UPLOAD_RETRIES) throw error;
+        await pause(error.retryAfterMs);
+      }
+    }
+  });
+}
+
+/* =========================================================
    Generic JSON helper
    ========================================================= */
 export const apiJson = (path, init) => {

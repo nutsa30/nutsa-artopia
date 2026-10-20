@@ -1,24 +1,9 @@
 import React, { useEffect, useState } from "react";
 import s from "./AddHomeImg.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
-const CLOUD_NAME = "dch8gnj7d";
-const UPLOAD_PRESET = "artopia_unsigned";
-
-async function uploadToCloudinary(file) {
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("upload_preset", UPLOAD_PRESET);
-
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-    method: "POST",
-    body: fd,
-  });
-
-  if (!res.ok) throw new Error("Cloudinary upload failed");
-
-  const data = await res.json();
-  return data.secure_url;
-}
+import { uploadAdminImage } from "../../api";
+// ფოტოს ატვირთვა: მხოლოდ backend-ის გავლით, ადმინის ტოკენით (src/admin/api.js)
+const uploadToCloudinary = (file) => uploadAdminImage(file, { kind: "home" });
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 function getAdminToken() {
   return (
@@ -109,7 +94,7 @@ sort_index: sortIndex !== "" ? Number(sortIndex) : null,
 
   } catch (err) {
     console.error(err);
-    setError("ატვირთვის შეცდომა");
+    setError(err?.message ? `ატვირთვის შეცდომა: ${err.message}` : "ატვირთვის შეცდომა");
   }
 };
 

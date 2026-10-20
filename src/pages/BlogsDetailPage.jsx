@@ -8,6 +8,7 @@ import { blogArticleMeta } from "../utils/catalogMeta";
 import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
 import { readInitialData } from "../utils/initialData";
 import Breadcrumbs from "../components/Breadcrumbs";
+import { articleHasH1, sanitizeBlogHtml } from "../utils/blogHtml";
 
 import { PUBLIC_API } from "../utils/apiBase";
 const BASE = `${PUBLIC_API}/blogs`;
@@ -73,6 +74,17 @@ const cacheRef = useRef({});
 
         const res = await fetch(`${BASE}/slug/${slug}`);
 
+        // სათაური შეიცვალა: API ძველ მისამართზე 301-ს და ახალ slug-ს აბრუნებს (Location-ის გარეშე)
+        if (res.status === 301) {
+          const moved = await res.json().catch(() => null);
+          const target = typeof moved?.moved_to === "string" ? moved.moved_to : "";
+          if (alive && /^[a-z0-9-]+$/.test(target) && target !== slug) {
+            navigate(`/blog/${target}`, { replace: true });
+            return;
+          }
+          if (alive) setNotFound(true);
+          return;
+        }
         if (res.status === 404) {
           if (alive) setNotFound(true);     // არარსებული სტატია (და არა ქსელის შეცდომა)
           return;
@@ -85,6 +97,11 @@ const cacheRef = useRef({});
         const data = await res.json();
         if (!alive) return;
 
+        // დამატებითი დაცვა (მაგ. ძველი CDN cache): გამოუქვეყნებელი სტატია არ ჩანს
+        if (data?.is_active === false) {
+          setNotFound(true);
+          return;
+        }
         setBlog(data);
       } catch {
         if (!alive) return;
@@ -97,10 +114,11 @@ const cacheRef = useRef({});
 const fetchSimilar = async () => {
   try {
     const res = await fetch(`${BASE}/similar/${slug}`);
+    if (!res.ok) return;      // 301 / 404 — მსგავსები არ ჩანს
     const data = await res.json();
 
     if (!alive) return;
-    setSimilarBlogs(data);
+    setSimilarBlogs(Array.isArray(data) ? data : []);
   } catch (err) {
     console.error("similar blogs error:", err);
   }
@@ -111,7 +129,7 @@ fetchSimilar();
     return () => {
       alive = false;
     };
-  }, [slug]);
+  }, [slug, navigate]);
 
 
 
@@ -158,8 +176,11 @@ const handleMouseOver = async (e) => {
       const res = await fetch(
         `${PUBLIC_API}/blogs/slug/${slug}`
       );
-      const json = await res.json();
-      data = { type: "blog", data: json };
+      // არარსებული, გამოუქვეყნებელი ან გადატანილი სტატიისთვის preview არ ჩანს
+      if (res.ok) {
+        const json = await res.json();
+        data = { type: "blog", data: json };
+      }
     }
 
     if (data) {
@@ -260,7 +281,7 @@ if (loading) {
   </div>;
 }
 
-  if (notFound) return <NotFound what="სტატია" />;
+  if (notFound || blog?.is_active === false) return <NotFound what="სტატია" />;
 
   if (err) {
     return (
@@ -359,7 +380,7 @@ if (loading) {
       {hasText && (
         <div
           className={styles.sectionText}
-          dangerouslySetInnerHTML={{ __html: section.text }}
+          dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(section.text, { demoteHeadings: articleHasH1([section.text]) }) }}
         />
       )}
 
