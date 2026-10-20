@@ -346,7 +346,7 @@ export default function EngravingPage() {
     <div className={styles.page}>
       <SEO
         title="გრავირება თბილისში — გრავირებული კალამი და ბრელოკი | Engraving"
-        description="ლაზერული გრავირება (engraving) Artopia-ში: გრავირებული კალმები 16–32₾, ხის და ტყავის ბრელოკები წარწერით ან ფოტოთი — 13₾, ორივე მხარე 20₾. გრავირება თქვენს ნივთზე — 10₾. 3D პრევიუ და ონლაინ შეკვეთა."
+        description="ლაზერული გრავირება Artopia-ში — კალმები, ხის და ტყავის ბრელოკები წარწერით ან ფოტოთი. შექმენი დიზაინი 3D პრევიუში და შეუკვეთე ონლაინ."
         url="https://artopia.ge/engraving"
         image="https://artopia.ge/images/engraving/pen.webp"
       />

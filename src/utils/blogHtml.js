@@ -8,13 +8,15 @@ import createDOMPurify from "dompurify";
 export const ALLOWED_TAGS = [
   "p", "br", "h2", "h3", "h4", "strong", "b", "em", "i", "u", "s",
   "ul", "ol", "li", "a", "blockquote", "span", "sub", "sup",
-  "table", "thead", "tbody", "tr", "th", "td",
+  "table", "thead", "tbody", "tr", "th", "td", "img",
 ];
 const ALLOWED_ATTRIBUTES = {
   a: ["href", "target", "rel"],
   span: ["class", "style"],
   p: ["class", "style"],
   li: ["class", "style"],
+  img: ["src", "alt", "width", "height"],
+  td: ["colspan", "rowspan"], th: ["colspan", "rowspan"],
 };
 const STYLE_PROPERTIES = new Set(["color", "background-color"]);
 const QUILL_CLASS = /^ql-(?:size-(?:small|large|huge)|align-(?:center|right|justify)|indent-[1-9])$/;
@@ -51,7 +53,13 @@ export function createBlogSanitizer(win) {
     const tag = node.nodeName.toLowerCase();
     const name = data.attrName;
     if (!(ALLOWED_ATTRIBUTES[tag] || []).includes(name)) { data.keepAttr = false; return; }
-    if (name === "href") {
+    if (tag === "img" && name === "src") {
+      const value = String(data.attrValue || "").trim();
+      if (/^(?:https?:\/\/|\/(?!\/))/i.test(value) && ![...value].some(char => char === "\\" || char.charCodeAt(0) <= 32)) data.attrValue = value;
+      else data.keepAttr = false;
+    } else if (["width", "height", "colspan", "rowspan"].includes(name)) {
+      if (!/^\d+$/.test(data.attrValue) || Number(data.attrValue) < 1 || Number(data.attrValue) > 4096) data.keepAttr = false;
+    } else if (name === "href") {
       const value = String(data.attrValue || "").trim();
       if (SAFE_HREF.test(value)) data.attrValue = value;
       else data.keepAttr = false;
@@ -69,13 +77,14 @@ export function createBlogSanitizer(win) {
     }
   });
   purify.addHook("afterSanitizeAttributes", (node) => {
+    if (node.nodeName.toLowerCase() === "img" && !node.getAttribute("src")) node.remove();
     if (node.nodeName.toLowerCase() === "a" && node.getAttribute("target") === "_blank") {
       node.setAttribute("rel", "noopener noreferrer");
     }
   });
   const config = {
     ALLOWED_TAGS,
-    ALLOWED_ATTR: ["href", "target", "rel", "class", "style"],
+    ALLOWED_ATTR: ["href", "target", "rel", "class", "style", "src", "alt", "width", "height", "colspan", "rowspan"],
     // href-ს ზემოთ hook ამოწმებს (SAFE_HREF); DOMPurify-ის ნაგულისხმევი URI წესიც რჩება. ALLOWED_URI_REGEXP
     // აქ განზრახ არ არის — DOMPurify მას target/rel-ის მნიშვნელობაზეც ამოწმებს და _blank-ს შლიდა
     ALLOW_DATA_ATTR: false,

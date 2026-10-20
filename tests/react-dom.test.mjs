@@ -1,5 +1,6 @@
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
+import { fileURLToPath } from "node:url";
 import { JSDOM, VirtualConsole } from "jsdom";
 import { createServer } from "vite";
 import react from "@vitejs/plugin-react";
@@ -14,6 +15,10 @@ globalThis.localStorage = dom.window.localStorage;
 globalThis.sessionStorage = dom.window.sessionStorage;
 globalThis.requestAnimationFrame = dom.window.requestAnimationFrame.bind(dom.window);
 globalThis.cancelAnimationFrame = dom.window.cancelAnimationFrame.bind(dom.window);
+for (const name of ['Node','Element','HTMLElement','Text','MutationObserver','DOMParser']) globalThis[name]=dom.window[name];
+globalThis.getComputedStyle=dom.window.getComputedStyle.bind(dom.window);
+dom.window.Range.prototype.getBoundingClientRect=()=>({left:0,top:0,right:0,bottom:0,width:0,height:0});
+dom.window.Range.prototype.getClientRects=()=>[];
 window.scrollTo = () => {};
 dom.window.HTMLElement.prototype.animate = () => ({ finished: Promise.resolve() });
 dom.window.HTMLElement.prototype.scrollTo = () => {};
@@ -23,8 +28,13 @@ globalThis.fetch = async () => { throw Error("Unmocked network is forbidden"); }
 const React = await import("react");
 const { createRoot } = await import("react-dom/client");
 const { Simulate } = await import("react-dom/test-utils");
-const { MemoryRouter, Routes, Route, useLocation, useNavigate } = await import("react-router-dom");
-const server = await createServer({ configFile: false, plugins: [react()], ssr: { noExternal: ["react-helmet-async"] }, server: { middlewareMode: true, hmr: false }, appType: "custom" });
+const routerAlias = [
+  { find: /^react-router-dom$/, replacement: fileURLToPath(new URL("../node_modules/react-router-dom/dist/index.mjs", import.meta.url)) },
+  { find: /^react-router$/, replacement: fileURLToPath(new URL("../node_modules/react-router/dist/development/index.mjs", import.meta.url)) },
+  { find: /^react-router\/dom$/, replacement: fileURLToPath(new URL("../node_modules/react-router/dist/development/dom-export.mjs", import.meta.url)) },
+];
+const server = await createServer({ configFile: false, plugins: [react()], resolve: { alias: routerAlias }, ssr: { noExternal: ["react-helmet-async", "react-router", "react-router-dom"] }, server: { middlewareMode: true, hmr: false }, appType: "custom" });
+const { MemoryRouter, Routes, Route, useLocation, useNavigate } = await server.ssrLoadModule("react-router-dom");
 const { HelmetProvider } = await server.ssrLoadModule("react-helmet-async");
 const { default: SEO } = await server.ssrLoadModule("/src/components/SEO.jsx");
 const { default: PaymentResult } = await server.ssrLoadModule("/src/components/Checkout/PaymentResult.jsx");
@@ -57,6 +67,77 @@ test("actual contact component preserves the /contacts canonical", async () => {
     assert.equal(document.querySelectorAll('link[rel="canonical"]').length, 1);
     assert.equal(document.querySelector('link[rel="canonical"]').href, "https://artopia.ge/contacts");
   } finally { await cleanup(); }
+});
+
+test("staff sessions default to tab storage; explicit remember persists and refresh preserves it",async()=>{
+  const session=await server.ssrLoadModule('/src/utils/staffSession.js');
+  const token=(exp)=>`a.${btoa(JSON.stringify({exp}))}.z`;
+  localStorage.clear();sessionStorage.clear();
+  session.storeStaffSession(token(Date.now()/1000+600),'admin');
+  assert.ok(sessionStorage.getItem('ADMIN_TOKEN'));assert.equal(localStorage.getItem('ADMIN_TOKEN'),null);
+  const remembered=token(Date.now()/1000+601);session.storeStaffSession(remembered,'admin',true);
+  const refreshed=token(Date.now()/1000+36000);let calls=0;
+  globalThis.fetch=async()=>{calls++;return Response.json({token:refreshed});};
+  await Promise.all([session.refreshStaffSession(),session.refreshStaffSession()]);
+  assert.equal(calls,1);assert.equal(localStorage.getItem('ADMIN_TOKEN'),refreshed);assert.equal(sessionStorage.getItem('ADMIN_TOKEN'),null);
+  await session.endStaffSession();assert.equal(session.staffToken(),'');
+});
+
+test("slow refresh never overwrites a newer login and logout clears credentials on network failure",async()=>{
+  const session=await server.ssrLoadModule('/src/utils/staffSession.js');
+  const near=`a.${btoa(JSON.stringify({exp:Date.now()/1000+100}))}.z`;
+  session.storeStaffSession(near,'admin');let release;
+  globalThis.fetch=()=>new Promise(resolve=>{release=resolve;});
+  const pending=session.refreshStaffSession();session.storeStaffSession('new-login','admin');
+  release(Response.json({token:'stale-refresh'}));await pending;assert.equal(session.staffToken(),'new-login');
+  globalThis.fetch=async()=>{throw Error('offline');};
+  await assert.rejects(session.endStaffSession());assert.equal(session.staffToken(),'');
+});
+
+test("empty also-buy renders no overlay and does not lock body scroll",async()=>{
+  const {default:AlsoBuyModal}=await server.ssrLoadModule('/src/components/Alsobuy/AlsoBuyModal.jsx');
+  globalThis.fetch=async()=>Response.json([]);
+  const cleanup=await render(React.createElement(MemoryRouter,null,React.createElement(AlsoBuyModal,{alsoBuyIds:[2,3],isOpen:true,onClose:()=>{}})));
+  try{assert.doesNotMatch(document.body.textContent,/ასევე შეიძლება მოგეწონოს/);assert.equal(document.body.style.overflow,'');}
+  finally{await cleanup();}
+});
+
+test("operator reconciliation renders exceptions and requires explicit confirmation before action",async()=>{
+  const {default:Reconciliation}=await server.ssrLoadModule('/src/admin/pages/Reconciliation.jsx');
+  sessionStorage.setItem('ADMIN_TOKEN','fixture-token');const calls=[];
+  globalThis.fetch=async(url,init)=>{calls.push({url,method:init?.method||'GET'});return Response.json({issues:[{ref:'fixture',order_id:1,reason:'paid_stock_unavailable'}],handoffs:[],legacy_expired_count:9,latest_sync_run_id:42});};
+  const prior=window.confirm;window.confirm=()=>false;
+  const cleanup=await render(React.createElement(Reconciliation));
+  try{
+    assert.match(document.body.textContent,/გადახდა მიღებულია/);
+    const button=[...document.querySelectorAll('button')].find(node=>node.textContent.includes('ხელახლა დაჯავშნა'));
+    await React.act(async()=>button.click());assert.equal(calls.filter(call=>call.method==='POST').length,0);
+  }finally{window.confirm=prior;await cleanup();sessionStorage.clear();}
+});
+
+test("actual Quill2 editor round-trip preserves six article texts, links, lists and safe images/tables",async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const {default:ReactQuill}=await import('react-quill-new');
+  const {sanitizeBlogHtml}=await server.ssrLoadModule('/src/utils/blogHtml.js');
+  const articles=JSON.parse(await readFile(new URL('./fixtures/blog_articles.json',import.meta.url),'utf8'));
+  const sources=articles.flatMap(article=>article.sections).concat(['<p>სურათი</p><p><img src="https://res.cloudinary.com/example/image/upload/test.jpg" alt="ფოტო"></p><table><tbody><tr><td>A</td><td>B</td></tr></tbody></table>']);
+  const text=html=>{const host=document.createElement('div');host.innerHTML=html;return host.textContent.replace(/\s+/g,'');};
+  for(const source of sources){
+    let editor;
+    const safe=sanitizeBlogHtml(source);
+    const cleanup=await render(React.createElement(ReactQuill,{ref:value=>{editor=value;},value:safe,modules:{toolbar:false,table:true},formats:['header','bold','italic','underline','strike','color','background','size','list','link','align','indent','blockquote','script','table','image']}));
+    try{
+      const output=sanitizeBlogHtml(editor.getEditor().getSemanticHTML());
+      assert.equal(text(output),text(safe));
+      const host=document.createElement('div');host.innerHTML=safe;
+      const after=document.createElement('div');after.innerHTML=output;
+      assert.equal(after.querySelectorAll('a').length,host.querySelectorAll('a').length);
+      assert.equal(after.querySelectorAll('li').length,host.querySelectorAll('li').length);
+      assert.equal(after.querySelectorAll('img').length,host.querySelectorAll('img').length);
+      assert.equal(after.querySelectorAll('td').length,host.querySelectorAll('td').length);
+      assert.doesNotMatch(output,/<script|onerror=|javascript:/i);
+    }finally{await cleanup();}
+  }
 });
 test("actual blog component ignores an old incorrect database canonical", async () => {
   document.head.innerHTML = canonicalHtml("<head></head>", "/blog/fixture").replace(/<\/?head>/g, "");

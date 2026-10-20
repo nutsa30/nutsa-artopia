@@ -1,0 +1,6 @@
+.page { max-width: 1100px; margin: 24px auto; padding: 20px; line-height: 1.7; }
+.card { border: 1px solid #d4dce7; border-radius: 12px; padding: 16px; margin: 16px 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.page button { padding: 10px 14px; border: 1px solid #64748b; border-radius: 8px; cursor: pointer; }
+.page button:disabled { opacity: .6; cursor: wait; }
+.page [role="alert"] { color: #b42318; }

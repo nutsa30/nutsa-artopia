@@ -360,7 +360,8 @@ test("static shell: one robots tag, no render-blocking translate script, valid s
   assert.equal(canonicalUrl("/index.html"), "https://artopia.ge/");
   const headers = await readFile(new URL("../public/_headers", import.meta.url), "utf8");
   assert.match(headers, /\/assets\/\*\s+Cache-Control: public, max-age=31536000, immutable/);
-  assert.doesNotMatch(headers, /^\/\*\s/m);                                   // HTML itself is never given a long cache
+  const globalHeaders=headers.split(/^\/\*\s*$/m)[1]?.split(/^\//m)[0] || "";
+  assert.doesNotMatch(globalHeaders, /Cache-Control/i);                       // Security headers must not cache HTML long-term.
   const notFound = await visit("/nope/nope", noNetwork);
   assert.equal(notFound.body.match(/<meta\s+name="robots"/g).length, 1);
 });

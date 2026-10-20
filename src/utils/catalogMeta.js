@@ -7,9 +7,18 @@ export const PRODUCTS_PER_PAGE = 20;
 
 export function productPageMeta(p) {
   const name = String(p?.name || "").trim();
-  const raw = String(p?.seo_description || p?.description || `${name} — იყიდე Artopia-ში, სამხატვრო და საკანცელარიო მაღაზია. მიტანა მთელ საქართველოში.`).replace(/\s+/g, " ").trim();
-  const code = p?.seo_description ? ` კოდი ${p.id}.` : "";
-  return { title: p?.seo_title || `${name} | Artopia`, description: raw.length > 160 ? `${raw.slice(0, 157 - code.length).trim()}…${code}` : raw };
+  const source = String(p?.description || "").replace(/\s+/g, " ").trim();
+  const code = p?.seo_title ? ` კოდი ${p.id}.` : "";
+  // Different records sharing boilerplate descriptions retain their real product name.
+  const raw = source ? (source.startsWith(name) ? source : `${name} — ${source}`) : `${name} — Artopia. მიტანა მთელ საქართველოში.`;
+  const budget = 160 - code.length;
+  let text = raw;
+  if (raw.length > budget) {
+    const candidate = raw.slice(0, budget - 1);
+    const boundary = candidate.lastIndexOf(" ");
+    text = `${candidate.slice(0, boundary > budget * 0.6 ? boundary : candidate.length).trim()}…`;
+  }
+  return { title: p?.seo_title || `${name} | Artopia`, description: `${text}${code}` };
 }
 
 export function catalogMeta({ category, mainCategory, displayName, title: customTitle, description: customDescription, page } = {}) {
@@ -29,7 +38,7 @@ export function catalogMeta({ category, mainCategory, displayName, title: custom
     url,
     heading: "პროდუქტები",
     title: `პროდუქტები${pageSuffix} — Artopia | სამხატვრო და საკანცელარიო ნივთები ონლაინ`,
-    description: `Artopia-ს სრული კატალოგი — სამხატვრო მასალა (აკვარელი, აკრილის და ზეთის საღებავი, ფუნჯები, ტილო, მოლბერტი, პასტელი), საკანცელარიო, სასკოლო და საოფისე ნივთები. მიტანა მთელ საქართველოში.${n > 1 ? ` გვერდი ${n}.` : ""}`,
+    description: `Artopia-ს კატალოგი: სამხატვრო მასალები, საღებავები, ფუნჯები, ტილოები, საკანცელარიო, სასკოლო და საოფისე ნივთები. მიტანა მთელ საქართველოში.${n > 1 ? ` გვერდი ${n}.` : ""}`,
   };
 }
 

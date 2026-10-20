@@ -145,7 +145,7 @@ export default function BlogsPage() {
             <>
               {visibleBlogs.length > 0 ? (
                 <section className={styles.grid}>
-                  {visibleBlogs.map((blog) => {
+                  {visibleBlogs.map((blog, index) => {
                     const image = getCardImage(blog);
 const rawDescription = getCardDescription(blog);
 const description = stripHtml(rawDescription);
@@ -162,7 +162,8 @@ const description = stripHtml(rawDescription);
                             {...responsiveImage(image, "blog")}
                             alt={blog.title || "ბლოგის ქავერი"}
                             className={styles.image}
-                            loading="lazy"
+                            loading={index < 2 ? "eager" : "lazy"}
+                            {...(index === 0 ? { fetchpriority: "high" } : {})}
                             decoding="async"
                           />
                         </div>

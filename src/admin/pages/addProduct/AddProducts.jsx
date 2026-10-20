@@ -44,6 +44,7 @@ const [form, setForm] = useState({
   weight: "",
   is_new: false,
   hide: false,
+  identifiers_absent: false,
 });
 
   const [images, setImages] = useState([]);   // [{file,isNew}|{removed}]
@@ -72,6 +73,7 @@ useEffect(() => {
     ...f,
     name: editingProduct.name || "",
     description: editingProduct.description || "",
+    identifiers_absent: editingProduct.identifiers_absent === true,
     slug: editingProduct.slug || "",
     category_id: editingProduct.category_id
       ? String(editingProduct.category_id)
@@ -140,6 +142,7 @@ useEffect(() => {
         ...f,
         name: det.name || "",
         description: det.description || "",
+        identifiers_absent: det.identifiers_absent === true,
         slug: det.slug || "",
         category_id: det.category_id ? String(det.category_id) : "",
         price: det.price ?? "",
@@ -229,6 +232,7 @@ useEffect(() => {
 
 fd.append("name", form.name ?? "");
 fd.append("description", form.description ?? "");
+fd.append("identifiers_absent", form.identifiers_absent ? "true" : "null");
 fd.append("slug", form.slug ?? "");
 
     fd.append("price", String(parseFloat(form.price || 0)));
@@ -431,6 +435,11 @@ return (
           </label>
         </div>
 
+        <label>
+          <input type="checkbox" name="identifiers_absent" checked={Boolean(form.identifiers_absent)} onChange={handleChange} />
+          დადასტურებულია: მწარმოებლის მიერ მინიჭებული GTIN, ბრენდი ან MPN არ აქვს
+        </label>
+        <small>თუ იდენტიფიკატორები უბრალოდ არ იცით, დატოვეთ გამორთული.</small>
         <button type="submit" className={styles.submitBtn} disabled={Boolean(saving)} aria-busy={Boolean(saving)}>
           {saving ? (
             <span className={styles.submitBusy}>

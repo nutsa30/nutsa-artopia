@@ -3,6 +3,7 @@ import styles from "./loginPage.module.css";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail, Loader2 } from "lucide-react";
 import logo from "../../assets/IMG_4970.JPG";
+import { storeStaffSession } from "../../../utils/staffSession";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 
@@ -45,9 +46,7 @@ const LoginPage = () => {
       const role = data?.role;
       if (!token) throw new Error("სერვერმა ტოკენი არ დააბრუნა");
 
-      const storage = remember ? localStorage : sessionStorage;
-      storage.setItem("ADMIN_TOKEN", token);
-      if (role) storage.setItem("ADMIN_ROLE", role);
+      storeStaffSession(token, role, remember);
 
       if (role === "support") {
         navigate("/admin/support-panel/products");

@@ -5,23 +5,28 @@ import { responsiveImage } from "../../utils/cloudinary";
 export default function HomeCarousel({ images = [], autoPlayMs = 5000 }) {
   const items = Array.isArray(images) ? images : [];
   const [idx, setIdx] = useState(0);
+  const [initialReady, setInitialReady] = useState(false);
   const timerRef = useRef(null);
 
   // swipe
   const startX = useRef(0);
   const deltaX = useRef(0);
 
-  useEffect(() => { setIdx(0); }, [images]);
+  useEffect(() => { setIdx(0); setInitialReady(false); }, [images]);
+  useEffect(() => {
+    const timer = setTimeout(() => setInitialReady(true), 8000);
+    return () => clearTimeout(timer);
+  }, [images]);
 
   // autoplay
   useEffect(() => {
-    if (!autoPlayMs || items.length <= 1) return;
+    if (!autoPlayMs || items.length <= 1 || !initialReady) return;
     clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setIdx((i) => (i + 1) % items.length);
+      if (!document.hidden) setIdx((i) => (i + 1) % items.length);
     }, autoPlayMs);
     return () => clearInterval(timerRef.current);
-  }, [items.length, autoPlayMs]);
+  }, [items.length, autoPlayMs, initialReady]);
 
   const go = (n) => setIdx((n + items.length) % items.length);
   const next = () => go(idx + 1);
@@ -72,7 +77,7 @@ export default function HomeCarousel({ images = [], autoPlayMs = 5000 }) {
           {items.map((it, slideIndex) => {
             const previous = (idx - 1 + items.length) % items.length;
             const nextIndex = (idx + 1) % items.length;
-            const shouldLoad = slideIndex === idx || slideIndex === previous || slideIndex === nextIndex;
+            const shouldLoad = slideIndex === idx || (initialReady && (slideIndex === previous || slideIndex === nextIndex));
             return (
             <div key={it.id} className={styles.slide}>
               {shouldLoad && (
@@ -90,10 +95,10 @@ export default function HomeCarousel({ images = [], autoPlayMs = 5000 }) {
 
         {items.length > 1 && (
           <>
-            <button className={`${styles.nav} ${styles.left}`} onClick={prev} aria-label="Previous">
+            <button className={`${styles.nav} ${styles.left}`} onClick={prev} aria-label="წინა სურათი">
               ‹
             </button>
-            <button className={`${styles.nav} ${styles.right}`} onClick={next} aria-label="Next">
+            <button className={`${styles.nav} ${styles.right}`} onClick={next} aria-label="შემდეგი სურათი">
               ›
             </button>
           </>
@@ -107,7 +112,8 @@ export default function HomeCarousel({ images = [], autoPlayMs = 5000 }) {
               key={i}
               className={`${styles.dot} ${i === idx ? styles.active : ""}`}
               onClick={() => go(i)}
-              aria-label={`Go to slide ${i + 1}`}
+              aria-label={`სურათი ${i + 1}`}
+              aria-current={i === idx ? "true" : undefined}
             />
           ))}
         </div>

@@ -6,6 +6,7 @@ import {
 import { responsiveImage } from "../../src/utils/cloudinary.js";
 import { indexPolicy, utilityTitle } from "../../src/utils/indexPolicy.js";
 import { catalogJsonLd } from "../../src/utils/catalogSchema.js";
+import { secureResponse } from "../lib/security.js";
 
 // Netlify Edge Function — bakes correct per-page SEO into the SPA's index.html
 // for all visitors and crawlers so
@@ -219,7 +220,7 @@ function blogArticleBody(post, { title, description }) {
 // The production site also answers on Netlify's own hostnames
 // (<site>.netlify.app, main--<site>.netlify.app). They are copies of artopia.ge
 // and must never be indexed themselves.
-export default async (request, context) => {
+async function renderPage(request, context) {
   let response = await handle(request, context);
   const filterUrl = new URL(request.url);
   const policy = indexPolicy(filterUrl.href);
@@ -435,7 +436,7 @@ async function handle(request, context) {
       const out = applyMeta(html, {
         title: "გრავირება თბილისში — გრავირებული კალამი და ბრელოკი | Engraving | Artopia",
         description:
-          "ლაზერული გრავირება (engraving) Artopia-ში: გრავირებული კალმები 16–32₾, ხის და ტყავის ბრელოკები წარწერით ან ფოტოთი — 13₾, ორივე მხარე 20₾. გრავირება თქვენს ნივთზე — 10₾. 3D პრევიუ და ონლაინ შეკვეთა.",
+          "ლაზერული გრავირება Artopia-ში — კალმები, ხის და ტყავის ბრელოკები წარწერით ან ფოტოთი. შექმენი დიზაინი 3D პრევიუში და შეუკვეთე ონლაინ.",
         url: `${SITE}/engraving`,
         image: `${SITE}/images/engraving/pen.webp`,
         type: "website",
@@ -694,6 +695,8 @@ async function handle(request, context) {
 }
 
 // Runs for every page URL so that unknown paths get a real 404. Static asset
+export default async (request, context) => secureResponse(await renderPage(request, context));
+
 // folders are excluded (and any non-HTML response is passed through untouched).
 export const config = {
   path: "/*",

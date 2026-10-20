@@ -1,4 +1,9 @@
 # Netlify headers.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=31536000
 # გრავირების 3D მოდელები, შრიფტები და სურათები ბრაუზერში ერთი წლით ინახება —
 # მეორე ვიზიტზე აღარ იწერება და სერვერსაც აღარ ეკითხება.
 # მოდელის შეცვლისას src/utils/engraving.js-ში MODEL_VERSION გაზარდეთ

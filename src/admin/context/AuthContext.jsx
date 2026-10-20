@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { storeStaffSession, refreshStaffSession, endStaffSession } from "../../utils/staffSession";
 
 const AuthContext = createContext(null);
 
@@ -21,6 +22,11 @@ export const AuthProvider = ({ children }) => {
     setAdminToken(t || null);
     setAdminRole(r || null);
     setAuthReady(true);
+    const refresh = async () => { const token = await refreshStaffSession(); if (token) setAdminToken(token); };
+    const timer = setInterval(refresh, 5 * 60 * 1000);
+    window.addEventListener("focus", refresh);
+    refresh();
+    return () => { clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, []);
 
   const value = useMemo(
@@ -28,14 +34,13 @@ export const AuthProvider = ({ children }) => {
       adminToken,
       adminRole,
       authReady,
-      login: (t, role, remember = true) => {
-        const storage = remember ? localStorage : sessionStorage;
-        storage.setItem("ADMIN_TOKEN", t);
-        if (role) storage.setItem("ADMIN_ROLE", role);
+      login: (t, role, remember = false) => {
+        storeStaffSession(t, role, remember);
         setAdminToken(t);
         setAdminRole(role || null);
       },
       logout: () => {
+        endStaffSession().catch(() => {});
         clearStored("ADMIN_TOKEN");
         clearStored("ADMIN_ROLE");
         setAdminToken(null);

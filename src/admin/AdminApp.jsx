@@ -16,6 +16,7 @@ import Analytics from "./pages/analytics/Analytics";
 import SupportPanel from "./pages/supportPanel/SupportPanel";
 import AdminRestock from "./pages/restock/AdminRestock";
 import CategoryManagement from "./pages/categories/CategoryManagement";
+import Reconciliation from "./pages/Reconciliation";
 
 import { AuthProvider } from "./context/AuthContext";
 
@@ -40,6 +41,7 @@ function AdminShell() {
       {!isLoginPage && !isSupport && hasToken && <AdminNavbar />}
 
       <Routes>
+        <Route path="reconciliation" element={<ProtectedRoute><Reconciliation /></ProtectedRoute>} />
         {/* ავტორიზაცია */}
         <Route index element={<LoginPage />} />
         <Route path="login" element={<LoginPage />} />

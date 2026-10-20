@@ -13,7 +13,9 @@ export default function AlsoBuyModal({ alsoBuyIds = [], isOpen, onClose }) {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadedKey, setLoadedKey] = useState("");
   const alsoBuyKey = alsoBuyIds.join(",");
+  const visible = isOpen && !loading && loadedKey === alsoBuyKey && products.length > 0;
 
   useEffect(() => {
     if (!isOpen || !alsoBuyIds.length) return;
@@ -24,7 +26,10 @@ export default function AlsoBuyModal({ alsoBuyIds = [], isOpen, onClose }) {
     fetch(`${PUBLIC_API}/products/also-buy?ids=${alsoBuyKey}`)
       .then((r) => r.json())
       .then((data) => {
-        if (!ignore) setProducts(Array.isArray(data) ? data : []);
+        if (!ignore) {
+          setProducts(Array.isArray(data) ? data.filter(item => item?.slug && Number(item.quantity)>0 && !item.manually_hidden && (!item.optimo_state || item.optimo_state==="active")) : []);
+          setLoadedKey(alsoBuyKey);
+        }
       })
       .catch(() => {
         if (!ignore) setProducts([]);
@@ -40,21 +45,21 @@ export default function AlsoBuyModal({ alsoBuyIds = [], isOpen, onClose }) {
 
   // ESC კლავიში
   useEffect(() => {
-    if (!isOpen) return;
+    if (!visible) return;
     const handler = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [isOpen, onClose]);
+  }, [visible, onClose]);
 
   // body scroll lock
   useEffect(() => {
-    if (isOpen) {
+    if (visible) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
     return () => { document.body.style.overflow = ""; };
-  }, [isOpen]);
+  }, [visible]);
 
   const handleProductClick = (product) => {
     if (!product?.slug) return;
@@ -64,6 +69,7 @@ export default function AlsoBuyModal({ alsoBuyIds = [], isOpen, onClose }) {
 
   if (!isOpen) return null;
   if (!alsoBuyIds.length) return null;
+  if (!visible) return null;
 
   return (
     <div className={styles.overlay} onClick={onClose}>

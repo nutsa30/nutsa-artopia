@@ -18,8 +18,9 @@ import {
 } from 'lucide-react';
 import styles from "./AdminNavbar.module.css";
 import artopiaLogo from "../assets/IMG_4970.JPG";
-import { apiJson, syncOptimo, getOptimoStatus, uploadStockExcel } from "../api";
+import { syncOptimo, getOptimoStatus, uploadStockExcel } from "../api";
 import { syncSummary } from "../../utils/syncSummary";
+import { endStaffSession } from "../../utils/staffSession";
 
 const AdminNavbar = () => {
   const [open, setOpen] = useState(false);
@@ -40,7 +41,7 @@ const AdminNavbar = () => {
 
   const onLogout = async () => {
     try {
-      await apiJson("/admin/logout", "POST", {});
+      await endStaffSession();
     } catch { /* Logout clears local credentials even if the server is unavailable. */ }
     ["ADMIN_TOKEN", "ADMIN_ROLE"].forEach((k) => {
       localStorage.removeItem(k);
@@ -193,6 +194,9 @@ const onSyncOptimo = async (dryRun = false) => {
                 <Link to="/admin/categories" className={styles.navLink}>
                   <Tags size={18} />
                   <span>კატეგორიების მართვა</span>
+                </Link>
+                <Link to="/admin/reconciliation" className={styles.navLink}>
+                  <ClipboardList size={18} /><span>გადახდები და მარაგის გადამოწმება</span>
                 </Link>
 
                 <Link to="/blog" className={styles.navLink}>

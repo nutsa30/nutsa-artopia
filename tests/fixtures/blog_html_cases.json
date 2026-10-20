@@ -24,5 +24,7 @@
   {"name": "quill classes only", "html": "<p class=\"ql-align-center evil\">a</p><span class=\"ql-size-large x\">b</span>", "absent": ["evil", " x\""], "present": ["ql-align-center", "ql-size-large"]},
   {"name": "lists and formatting kept", "html": "<ul><li><strong>a</strong></li></ul><ol><li><em>b</em></li></ol><h3>c</h3><blockquote>d</blockquote>", "absent": [], "present": ["<strong>a</strong>", "<em>b</em>", "<h3>c</h3>", "<blockquote>d</blockquote>", "<ul>", "<ol>"]},
   {"name": "table kept", "html": "<table><tr><th>h</th></tr><tr><td>1</td></tr></table>", "absent": [], "present": ["<table>", "<th>h</th>", "<td>1</td>"]},
-  {"name": "image removed but text kept", "html": "<p>before <img src=\"https://res.cloudinary.com/x.jpg\"> after</p>", "absent": ["<img", "cloudinary"], "present": ["before", "after"]}
+  {"name": "safe image and text kept", "html": "<p>before <img src=\"https://res.cloudinary.com/x.jpg\" alt=\"მასალა\"> after</p>", "absent": ["onerror"], "present": ["before", "after", "<img", "cloudinary", "მასალა"]},
+  {"name": "image scheme rejected", "html": "<img src=\"data:image/svg+xml,x\"><img src=\"javascript:alert(1)\"><p>safe</p>", "absent": ["<img", "javascript:", "data:"], "present": ["<p>safe</p>"]},
+  {"name": "mathml mutation payload", "html": "<math><mtext><table><mglyph><style><!--</style><img title=\"--><img src=x onerror=alert(1)>\"></table></mtext></math><p>tail</p>", "absent": ["<math", "onerror", "alert(1)"], "present": ["tail"]}
 ]

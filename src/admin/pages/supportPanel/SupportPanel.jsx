@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Search, X, LogOut, Plus, Check, ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import styles from "./SupportPanel.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
+import { endStaffSession } from "../../../utils/staffSession";
 import {
   getSupportProducts,
   getSupportCategories,
@@ -145,7 +146,8 @@ export default function SupportPanel() {
   };
 
   /* ── logout ── */
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await endStaffSession(); } catch { /* Local logout still works during an outage. */ }
     ["ADMIN_TOKEN", "ADMIN_ROLE"].forEach((k) => {
       localStorage.removeItem(k);
       sessionStorage.removeItem(k);

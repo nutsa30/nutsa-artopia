@@ -3,9 +3,11 @@ import styles from "./Blog.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authHeaders, uploadAdminImage } from "../../api";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+import { sanitizeBlogHtml } from "../../../utils/blogHtml";
 const modules = {
+  table: true,
   toolbar: [
     // H1 მხოლოდ სტატიის სათაურია — ტექსტში სათაურები 2 და 3 (ბაზაში შემთხვევით მოხვედრილ h1-ს გამწმენდი h2-ად აქცევს)
     [{ header: [2, 3, false] }],   // სათაურები
@@ -17,6 +19,8 @@ const modules = {
     ["clean"] // clear formatting
   ]
 };
+// Formula/video HTML-export paths are not part of this editor. Output is also sanitized.
+const formats = ['header','bold','italic','underline','strike','color','background','size','list','link','align','indent','blockquote','script','table','image'];
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
 const MAX_SECTIONS = 10;
 
@@ -254,7 +258,7 @@ const handleChange = (e) => {
 };
   const handleTextChange = (idx, value) => {
     setSections((arr) =>
-      arr.map((s, i) => (i === idx ? { ...s, text: value } : s))
+        arr.map((s, i) => (i === idx ? { ...s, text: sanitizeBlogHtml(value) } : s))
     );
   };
 
@@ -673,9 +677,10 @@ const renderLabel = (text, key, helpText) => (
 
 {renderLabel("ტექსტი", `section_text_${idx}`, FIELD_HELP.section_text)}
  <ReactQuill
-  value={s.text}
-  onChange={(value) => handleTextChange(idx, value)}
+  value={sanitizeBlogHtml(s.text)}
+  onChange={(value, _delta, source) => { if (source === "user") handleTextChange(idx, value); }}
   modules={modules}
+  formats={formats}
   theme="snow"
 />
                     </div>
