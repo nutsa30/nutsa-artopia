@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styles from "./HomeBlogs.module.css";
 import { responsiveImage } from "../../utils/cloudinary";
 
@@ -31,7 +31,6 @@ const compareBlogs = (a, b) => {
 };
 
 export default function HomeBlogs({ items = [], loading = false, limit = 4, titleKa, titleEn }) {
-  const navigate = useNavigate();
   const visibleItems = (Array.isArray(items) ? items : [])
     .filter((blog) => blog?.is_active !== false).sort(compareBlogs).slice(0, limit);
 
@@ -81,29 +80,12 @@ export default function HomeBlogs({ items = [], loading = false, limit = 4, titl
 
             const excerpt = stripHtml(rawExcerpt);
 
-            const openBlog = () => {
-              if (!slug) {
-                console.warn("HomeBlogs: slug not found for blog:", b);
-                return;
-              }
-              navigate(`/blog/${slug}`);
-            };
-
             return (
-              <article
+              <Link
                 key={id}
                 className={styles.cardLike}
-                style={{ cursor: slug ? "pointer" : "default", position: "relative" }}
-                onClick={openBlog}
-                role="button"
-                tabIndex={slug ? 0 : -1}
-                onKeyDown={(e) => {
-                  if ((e.key === "Enter" || e.key === " ") && slug) {
-                    e.preventDefault();
-                    openBlog();
-                  }
-                }}
-                aria-label={`${title} - ბლოგის გახსნა`}
+                style={{ position: "relative", textDecoration: "none", color: "inherit" }}
+                to={slug ? `/blog/${slug}` : "/blogs"}
               >
                 <div className={styles.cardImageWrap}>
                   <img
@@ -130,18 +112,13 @@ export default function HomeBlogs({ items = [], loading = false, limit = 4, titl
                 </div>
 
                 <div className={styles.actions}>
-                  <button
+                  <span
                     className={styles.readMoreBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openBlog();
-                    }}
-                    type="button"
                   >
                     წაიკითხე მეტი
-                  </button>
+                  </span>
                 </div>
-              </article>
+              </Link>
             );
           })}
         </div>
