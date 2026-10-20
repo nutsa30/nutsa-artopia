@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { JSDOM } from "jsdom";
-import { createBlogSanitizer } from "../src/utils/blogHtml.js";
+import { articleHasH1, createBlogSanitizer } from "../src/utils/blogHtml.js";
 
 // tests/fixtures/blog_html_cases.json იგივე ფაილია, რასაც backend-ის tests/test_blog_sanitize.py
 // ამოწმებს (nh3) — ორივე მხარე ერთი და იგივე წესებით უნდა მუშაობდეს.
@@ -18,7 +18,7 @@ const style = (value) => String(value || "").split(";")
   .join(";");
 
 // HTML → ნორმალიზებული მოვლენები (იგივე წესით, რაც backend-ის ტესტში): h1 ≡ h2, rel და ატრიბუტების რიგი არ ითვლება
-function normalized(html) {
+function normalized(html, demote = false) {
   const host = window.document.createElement("div");
   host.innerHTML = html;
   const events = [];
@@ -31,7 +31,8 @@ function normalized(html) {
         if (last && last[0] === "text") last[1] += ` ${text}`;
         else events.push(["text", text]);
       } else if (child.nodeType === 1) {
-        const tag = child.nodeName.toLowerCase() === "h1" ? "h2" : child.nodeName.toLowerCase();
+        const name = child.nodeName.toLowerCase();
+        const tag = demote && /^h[1-4]$/.test(name) ? `h${Math.min(Number(name[1]) + 1, 4)}` : name === "h1" ? "h2" : name;
         const attrs = [...child.attributes].filter((a) => a.name !== "rel")
           .map((a) => [a.name, a.name === "style" ? style(a.value) : a.value.split(/\s+/).filter(Boolean).join(" ")])
           .sort((x, y) => x[0].localeCompare(y[0]));
@@ -62,13 +63,22 @@ test("sanitizing is idempotent and empty input stays empty", () => {
   }
 });
 
-test("the six published articles keep their content (only h1 becomes h2)", () => {
+test("the six published articles keep their content (only heading levels move)", () => {
   assert.equal(articles.length, 6);
+  assert.deepEqual(articles.filter((a) => articleHasH1(a.sections)).map((a) => a.slug), ["rogor-wavikitkhot-taro-sruli-gzamkvlevi-damwyebtatvis"]);
   for (const article of articles) {
+    const demoteHeadings = articleHasH1(article.sections);
     article.sections.forEach((html, index) => {
-      const out = sanitize(html);
-      assert.deepEqual(normalized(out), normalized(html), `${article.slug} section ${index}`);
+      const out = sanitize(html, { demoteHeadings });
+      assert.deepEqual(normalized(out), normalized(html, demoteHeadings), `${article.slug} section ${index}`);
       assert.ok(!/<h1/i.test(out), `${article.slug} section ${index} has no h1`);
     });
   }
+});
+
+test("an article that uses h1 keeps its heading hierarchy", () => {
+  assert.equal(sanitize("<h1>ნაწილი</h1><h2>ქვეთავი</h2><h3>პუნქტი</h3><h4>დეტალი</h4>", { demoteHeadings: true }),
+    "<h2>ნაწილი</h2><h3>ქვეთავი</h3><h4>პუნქტი</h4><h4>დეტალი</h4>");
+  assert.equal(sanitize("<h2>ა</h2><h3>ბ</h3>"), "<h2>ა</h2><h3>ბ</h3>");
+  assert.equal(articleHasH1(["<h2>ა</h2>", null]), false);
 });

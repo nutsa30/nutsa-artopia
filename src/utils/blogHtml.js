@@ -21,6 +21,14 @@ const QUILL_CLASS = /^ql-(?:size-(?:small|large|huge)|align-(?:center|right|just
 const SAFE_HREF = /^(?:https?:|mailto:|tel:|\/(?!\/))/i;
 const H1_OPEN = /<h1(?=[\s>/])/gi;
 const H1_CLOSE = /<\/h1\s*>/gi;
+const HEADING = /<(\/?)h([1-4])(?=[\s>/])/gi;
+const HAS_H1 = /<h1(?=[\s>/])/i;
+
+// სტატიის რომელიმე სექციაში h1 არის თუ არა (მაშინ ყველა სათაური ერთი დონით ჩამოდის) — იგივე, რაც
+// backend-ის article_has_h1
+export function articleHasH1(texts) {
+  return (texts || []).some((text) => HAS_H1.test(String(text || "")));
+}
 
 function filterStyle(value) {
   return String(value || "")
@@ -75,17 +83,20 @@ export function createBlogSanitizer(win) {
     // DOMPurify target-ს ცალკე ნებართვის გარეშე ყოველთვის შლის; მნიშვნელობას ზემოთ hook ამოწმებს (_blank)
     ADD_ATTR: ["target"],
   };
-  return (html) => {
+  // სტატიაში მხოლოდ ერთი H1 უნდა იყოს (სტატიის სათაური). თუ ავტორს ტექსტში h1 აქვს, demoteHeadings
+  // ყველა სათაურს ერთი დონით ჩამოწევს (h1→h2, h2→h3, h3→h4) — სტრუქტურა და ზომების სხვაობა რჩება
+  return (html, { demoteHeadings = false } = {}) => {
     if (!html) return "";
-    // სტატიაში მხოლოდ ერთი H1 უნდა იყოს (სათაური) — შიგნით h1 → h2
-    const source = String(html).replace(H1_OPEN, "<h2").replace(H1_CLOSE, "</h2>");
+    const source = demoteHeadings
+      ? String(html).replace(HEADING, (match, slash, level) => `<${slash}h${Math.min(Number(level) + 1, 4)}`)
+      : String(html).replace(H1_OPEN, "<h2").replace(H1_CLOSE, "</h2>");
     return purify.sanitize(source, config);
   };
 }
 
 let browserSanitizer = null;
 
-export function sanitizeBlogHtml(html) {
+export function sanitizeBlogHtml(html, options) {
   if (!browserSanitizer) browserSanitizer = createBlogSanitizer(window);
-  return browserSanitizer(html);
+  return browserSanitizer(html, options);
 }
