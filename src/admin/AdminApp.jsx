@@ -15,7 +15,6 @@ import AddHomeImg from "./pages/home/AddHomeImg";
 import Analytics from "./pages/analytics/Analytics";
 import SupportPanel from "./pages/supportPanel/SupportPanel";
 import AdminRestock from "./pages/restock/AdminRestock";
-import ConsultantPhotos from "./pages/consultantPhotos/ConsultantPhotos";
 import CategoryManagement from "./pages/categories/CategoryManagement";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -49,13 +48,14 @@ function AdminShell() {
         <Route path="support-panel">
           <Route index element={<Navigate to="products" replace />} />
           <Route
-            path=":tab"
+            path="products"
             element={
               <SupportRoute>
                 <SupportPanel />
               </SupportRoute>
             }
           />
+          <Route path="*" element={<Navigate to="products" replace />} />
         </Route>
 
         {/* პროდუქტები */}
@@ -165,14 +165,6 @@ function AdminShell() {
           }
         />
 
-        <Route
-          path="consultant-photos"
-          element={
-            <ProtectedRoute>
-              <ConsultantPhotos />
-            </ProtectedRoute>
-          }
-        />
 
         {/* სხვა ყველაფერი */}
         <Route path="*" element={<Navigate to="login" replace />} />

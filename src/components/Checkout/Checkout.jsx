@@ -4,6 +4,7 @@ import { cld, IMG } from "../../utils/cloudinary";
 import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
 import DeliverySection from "./DeliverySection";
+import { checkoutIntent, clearCheckoutIntent } from "../../utils/checkoutIntent";
 import { TruckIcon, StoreIcon, ClockIcon, PinIcon, CardIcon, WarningIcon } from "./icons";
 import { trackBeginCheckout, getGaContext } from "../../utils/analytics";
 import {
@@ -92,7 +93,7 @@ const LBL = {
 };
 
 const Checkout = () => {
-  const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, clearCart, refreshPrices } = useCart();
   const navigate = useNavigate();
   const T = LBL;
 
@@ -390,10 +391,9 @@ const Checkout = () => {
     ) {
       setSubmitting(true);
       try {
-        const res = await fetch(`${API_BASE}/orders`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        const pickupDraft = {
+            deliveryOption: "storePickup", paymentMethod: "on_site",
+            totals: { subtotal: Number(preview.subtotal), total: Number(preview.subtotal) },
             customer: {
               first_name: formData.first_name,
               last_name: formData.last_name,
@@ -405,14 +405,20 @@ const Checkout = () => {
               product_id: it.id,
               quantity: it.quantity,
             })),
-          }),
+          };
+        const res = await fetch(`${API_BASE}/orders`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Idempotency-Key": await checkoutIntent("pickup", pickupDraft) },
+          body: JSON.stringify(pickupDraft),
         });
         const data = await res.json();
         if (!res.ok) {
+          if (data?.error === "price_changed") refreshPrices?.(data.current_items);
           throw new Error(data?.message || T.errOrderCreate);
         }
 
         clearCart();
+        clearCheckoutIntent("pickup");
         setSuccessMessage(
           `შეკვეთა მიღებულია — #${data.order_number}. გადასახდელია ${fmt(data.total)} ₾ ადგილზე. მზად იქნება: ${data.pickup_ready_label}.`
         );
@@ -472,13 +478,27 @@ const Checkout = () => {
     try {
       const res = await fetch(`${API_BASE}/payments/bog/create`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": await checkoutIntent("bank", draft) },
         body: JSON.stringify(draft),
       });
 
       const data = await res.json();
 
+      if (data?.error === "payment_processing_pending" && data.state) {
+        try { sessionStorage.setItem("payment_reference", JSON.stringify({ state: data.state, order_id: "", has_engraving: hasEngraving })); } catch { /* state can resolve without storage */ }
+        navigate(`/payment/result?state=${encodeURIComponent(data.state)}`);
+        return;
+      }
+
       if (!res.ok || !data?.redirect_url) {
+        if (data?.error === "price_changed") {
+          refreshPrices?.(data.current_items);
+          if (data.coupon) {
+            setPromo(prev => ({ ...prev, status: data.coupon.code ? "valid" : "invalid",
+              code: data.coupon.code || "", percent: Number(data.coupon.percent || 0),
+              discount: Number(data.coupon.discount || 0) }));
+          }
+        }
         throw new Error(data?.message || `HTTP ${res.status} – redirect_url not provided`);
       }
 

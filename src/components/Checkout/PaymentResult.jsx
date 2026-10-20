@@ -4,6 +4,7 @@ import styles from "./Checkout.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../CartContext/CartContext";
 import { confirmedPayment, paymentReference } from "../../utils/paymentStatus";
+import { clearCheckoutIntent } from "../../utils/checkoutIntent";
 
 const labels = {
   pending: ["გადახდა მოწმდება", "გადახდის დადასტურებას ველოდებით. თანხა ხელახლა არ გადაიხადოთ."],
@@ -39,6 +40,7 @@ const PaymentResult = () => {
         const result = await confirmedPayment(ref, { signal: controller.signal });
         if (controller.signal.aborted) return;
         setStatus(result);
+        if (result === "success" || result === "fail") clearCheckoutIntent("bank");
         if (result === "success") {
           const key = `payment_cart_cleared_${ref.state}`;
           let alreadyCleared = clearedStates.current.has(ref.state);

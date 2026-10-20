@@ -25,19 +25,18 @@ for (const status of ["success", "pending", "fail"]) {
 test("mismatched server identity cannot confirm the order", async () => {
   assert.equal(await confirmedPayment(ref, { fetcher: async () => Response.json({ ok: true, ...ref, state: "wrong", status: "success" }) }), "invalid");
 });
-test("old backend compatibility verifies receipt state and persists the order", async () => {
+test("missing status endpoint never falls back to provider receipt or client webhook", async () => {
   const calls = [];
   const fetcher = async (url, init) => {
     calls.push([url, init]);
     if (url.includes("/status?")) return new Response(null, { status: 404 });
-    if (url.includes("/receipt?")) return Response.json({ status: "success", receipt: { external_order_id: ref.state } });
-    return Response.json({ ok: true });
+    throw Error("Provider receipt and webhook must not be requested by the browser");
   };
-  assert.equal(await confirmedPayment(ref, { fetcher }), "success");
-  assert.equal(calls[2][1].method, "POST");
+  await assert.rejects(confirmedPayment(ref, { fetcher }), /payment_status_unavailable/);
+  assert.equal(calls.length, 1);
 });
-test("old backend processing warning cannot show success", async () => {
-  assert.equal(await confirmedPayment(ref, { fetcher: async url => url.includes("/status?") ? new Response(null, { status: 404 }) : url.includes("/receipt?") ? Response.json({ status: "success", receipt: { external_order_id: ref.state } }) : Response.json({ ok: true, warning: "fixture" }) }), "pending");
+test("rejected or expired state cannot confirm payment", async () => {
+  assert.equal(await confirmedPayment(ref, { fetcher: async () => Response.json({ ok: false }, { status: 403 }) }), "invalid");
 });
 test("status requests time out instead of confirming an unavailable bank", async () => {
   await assert.rejects(confirmedPayment(ref, { timeoutMs: 5, fetcher: async (_url, { signal }) => new Promise((_resolve, reject) => signal.addEventListener("abort", () => reject(Error("aborted")), { once: true })) }));

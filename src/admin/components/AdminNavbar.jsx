@@ -202,11 +202,6 @@ const onSyncOptimo = async (dryRun = false) => {
                   <span>მოსატანები</span>
                 </Link>
 
-                <Link to="/admin/consultant-photos" className={styles.navLink}>
-                  <ImageIcon size={18} />
-                  <span>კონსულტანტის ატვირთული ფოტოები</span>
-                </Link>
-
                 <Link to="/order_history" className={styles.navLink}>
                   <Package size={18} />
                   <span>შეკვეთების ისტორია</span>

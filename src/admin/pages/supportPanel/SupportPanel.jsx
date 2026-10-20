@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Search, X, LogOut, Plus, Check, ChevronLeft, ChevronRight, ShoppingBag, ImageOff } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Search, X, LogOut, Plus, Check, ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import styles from "./SupportPanel.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
-import NoPhotoProducts from "./NoPhotoProducts";
 import {
   getSupportProducts,
   getSupportCategories,
@@ -30,11 +28,6 @@ function handleAuthError(err) {
 }
 
 export default function SupportPanel() {
-  const { tab: routeTab } = useParams();
-  const navigate = useNavigate();
-  const tab = routeTab === "no-photo" ? "nophoto" : "products";
-  const setTab = (newTab) =>
-    navigate(`/admin/support-panel/${newTab === "nophoto" ? "no-photo" : "products"}`, { replace: false });
   const [products, setProducts] = useState([]);
   const [pages, setPages] = useState(1);
   const [page, setPage] = useState(1);
@@ -174,29 +167,6 @@ export default function SupportPanel() {
         </button>
       </header>
 
-      {/* ── tabs ── */}
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${tab === "products" ? styles.tabActive : ""}`}
-          onClick={() => setTab("products")}
-        >
-          <ShoppingBag size={15} />
-          პროდუქტების სია
-        </button>
-        <button
-          className={`${styles.tab} ${tab === "nophoto" ? styles.tabActive : ""}`}
-          onClick={() => setTab("nophoto")}
-        >
-          <ImageOff size={15} />
-          ფოტოების გარეშე
-        </button>
-      </div>
-
-      {tab === "nophoto" ? (
-        <div className={styles.noPhotoWrap}>
-          <NoPhotoProducts />
-        </div>
-      ) : (
       <div className={styles.body}>
         {/* ── main area ── */}
         <main className={styles.main}>
@@ -339,7 +309,6 @@ export default function SupportPanel() {
           )}
         </aside>
       </div>
-      )}
     </div>
   );
 }

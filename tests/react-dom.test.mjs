@@ -211,6 +211,54 @@ test("checkout still blocks an empty cart", async () => {
   } finally { await cleanup(); }
 });
 
+test("stale checkout refreshes prices, keeps the cart and form, and sends a fresh reviewed quote", async () => {
+  setupPayment("pending");
+  window.gtag = (_op, _id, key, receive) => { if (receive) receive(key === "client_id" ? "123.456" : "123456"); };
+  const calls = [];
+  globalThis.fetch = async (url, init) => {
+    if (url.includes("/products/101")) return Response.json({ quantity: 10 });
+    if (url.includes("/payments/bog/create")) {
+      calls.push({ body: JSON.parse(init.body), key: init.headers["Idempotency-Key"] });
+      return Response.json({ error: "price_changed", message: "ფასი შეიცვალა",
+        current_items: [{ id: 101, price: 42, sale: 0 }], totals: { subtotal: 42, total: 42 },
+        coupon: { code: "", percent: 0, discount: 0 } }, { status: 409 });
+    }
+    throw Error("Unexpected fixture request");
+  };
+  const cleanup = await render(React.createElement(MemoryRouter, { initialEntries: ["/checkout"], future: { v7_startTransition: true, v7_relativeSplatPath: true } },
+    React.createElement(CartProvider, null, React.createElement(Checkout))));
+  try {
+    for (const [name, value] of Object.entries({ first_name: "Test", last_name: "Fixture", email: "fixture@example.invalid", phone: "000", deliveryOption: "storePickup" })) {
+      await React.act(async () => { Simulate.change(document.querySelector(`[name="${name}"]`), { target: { name, value } }); });
+    }
+    await React.act(async () => { Simulate.submit(document.querySelector("form")); await new Promise(resolve => setTimeout(resolve, 40)); });
+    assert.match(document.body.textContent, /ფასი შეიცვალა/);
+    assert.equal(JSON.parse(localStorage.getItem("artopia.cart.v1"))[0].price, 42);
+    assert.equal(document.querySelector('[name="first_name"]').value, "Test");
+    await React.act(async () => { Simulate.submit(document.querySelector("form")); await new Promise(resolve => setTimeout(resolve, 40)); });
+    assert.equal(calls.length, 2);
+    assert.deepEqual(calls.map(call => call.body.totals.total), [41, 42]);
+    assert.notEqual(calls[0].key, calls[1].key);
+  } finally { await cleanup(); }
+});
+
+test("consultant product/restock panel no longer exposes photo uploads", async () => {
+  const { default: SupportPanel } = await server.ssrLoadModule("/src/admin/pages/supportPanel/SupportPanel.jsx");
+  globalThis.fetch = async url => {
+    if (url.includes("/support/products")) return Response.json({ items: [], pages: 1 });
+    if (url.includes("/support/restock")) return Response.json({ items: [] });
+    if (url.includes("/products/categories")) return Response.json([]);
+    throw Error("Unexpected fixture request");
+  };
+  const cleanup = await render(React.createElement(SupportPanel));
+  try {
+    assert.match(document.body.textContent, /კონსულტანტის პანელი/);
+    assert.match(document.body.textContent, /მოსატანი სია/);
+    assert.doesNotMatch(document.body.textContent, /ფოტოების გარეშე|ფოტოების ატვირთვა/);
+    assert.equal(document.querySelectorAll('input[type="file"]').length, 0);
+  } finally { await cleanup(); }
+});
+
 test("catalog browsing, search and add-to-cart still work with fixture products", async () => {
   sessionStorage.clear(); localStorage.clear();
   const events = []; window.gtag = (...args) => events.push(args);

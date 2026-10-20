@@ -181,6 +181,15 @@ const getTotalPrice = () => {
 };
 
   // კალათის გაწმენდა
+  const refreshPrices = (products) => {
+    const latest = new Map((products || []).map(p => [String(p.id), p]));
+    setCartItems(previous => previous.map(item => {
+      const product = latest.get(String(item.id));
+      if (!product || isEngravingItem(item)) return item;
+      return { ...item, price: Number(product.price), sale: Number(product.sale || 0) };
+    }));
+  };
+
   const clearCart = () => {
     setCartItems([]);
   };
@@ -195,6 +204,7 @@ const getTotalPrice = () => {
         updateQuantity,
         getTotalPrice,
         clearCart,
+        refreshPrices,
         showToast,
       }}
     >

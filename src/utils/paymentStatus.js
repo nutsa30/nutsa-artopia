@@ -18,24 +18,7 @@ export function paymentReference(search, storage) {
 async function readPayment(reference, { signal, fetcher }) {
   if (!reference) return "invalid";
   const query = new URLSearchParams({ state: reference.state, order_id: reference.order_id });
-  let response = await fetcher(`${API}/payments/bog/status?${query}`, { signal, cache: "no-store" });
-  if (response.status === 404 && reference.order_id) {
-    // Temporary compatibility with the old backend, which already fetches BOG's receipt.
-    response = await fetcher(`${API}/payments/bog/receipt?order_id=${encodeURIComponent(reference.order_id)}`, { signal, cache: "no-store" });
-    if (!response.ok) throw new Error("payment_status_unavailable");
-    const legacy = await response.json();
-    if (legacy.receipt?.external_order_id !== reference.state) return "invalid";
-    if (legacy.status === "success") {
-      const processed = await fetcher(`${API}/payments/bog/webhook`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: reference.order_id }), signal,
-      });
-      if (!processed.ok) throw new Error("payment_processing_unavailable");
-      const result = await processed.json();
-      return result.ok && !result.warning ? "success" : "pending";
-    }
-    return legacy.status === "fail" ? "fail" : "pending";
-  }
+  const response = await fetcher(`${API}/payments/bog/status?${query}`, { signal, cache: "no-store" });
   if (response.status === 400 || response.status === 403) return "invalid";
   if (!response.ok) throw new Error("payment_status_unavailable");
   const data = await response.json();
