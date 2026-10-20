@@ -8,31 +8,40 @@ import {
 import styles from "./AddProducts.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 /** Max images */
 const MAX_IMAGES = 6;
 
 /* -------- API BASE -------- */
-const API_BASE =
-  (import.meta?.env?.VITE_API_BASE ?? "").trim() ||
-  "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
+// `import.meta?.env?.X` Vite-ს არასდროს ჩაუსვამს — production-ში ყოველთვის ეს
+// ნაგულისხმევი მნიშვნელობები მუშაობდა. ახლა იგივე მნიშვნელობები პირდაპირაა.
+import { API_BASE } from "../../../utils/apiBase";
 
 /* -------- Cloudinary (unsigned upload) -------- */
-const CLOUD_NAME    = (import.meta?.env?.VITE_CLOUDINARY_CLOUD_NAME || "dch8gnj7d").trim();
-const UPLOAD_PRESET = (import.meta?.env?.VITE_CLOUDINARY_UPLOAD_PRESET || "artopia_unsigned").trim();
+const CLOUD_NAME    = "dch8gnj7d";
+const UPLOAD_PRESET = "artopia_unsigned";
 
-async function uploadToCloudinary(file) {
-  if (!file) return null;
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("upload_preset", UPLOAD_PRESET);
-  const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-    method: "POST",
-    body: fd,
+// XMLHttpRequest (და არა fetch): ატვირთვის პროცენტი ღილაკზე ჩანს
+function uploadToCloudinary(file, onProgress) {
+  if (!file) return Promise.resolve(null);
+  return new Promise((resolve, reject) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", UPLOAD_PRESET);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) onProgress(event.loaded, event.total);
+    };
+    xhr.onload = () => {
+      if (xhr.status < 200 || xhr.status >= 300) return reject(new Error("ფოტოს ატვირთვა ვერ მოხერხდა"));
+      try { resolve(JSON.parse(xhr.responseText)?.secure_url || null); }
+      catch { reject(new Error("ფოტოს ატვირთვა ვერ მოხერხდა")); }
+    };
+    xhr.onerror = () => reject(new Error("ფოტოს ატვირთვა ვერ მოხერხდა — შეამოწმეთ ინტერნეტი"));
+    xhr.send(fd);
   });
-  if (!r.ok) throw new Error("Cloudinary upload failed");
-  const data = await r.json();
-  return data?.secure_url || null;
 }
 
 // ---- დასახელებების ნორმალიზაცია / შედარება ----
@@ -60,6 +69,9 @@ const [form, setForm] = useState({
 
   const [images, setImages] = useState([]);   // [{file,isNew}|{removed}]
   const [previews, setPreviews] = useState([]); // [url|null]
+  // შენახვის მდგომარეობა: null | { stage: "upload", percent } | { stage: "save" }
+  const [saving, setSaving] = useState(null);
+  const savingRef = useRef(false);   // ორმაგი დაჭერისგან დაცვა (state-ის განახლებამდეც)
   const originalUrlsRef = useRef(Array(MAX_IMAGES).fill(null));
 
 useEffect(() => {
@@ -233,7 +245,7 @@ useEffect(() => {
   }
 
   /** -------- Compose FormData -------- */
-  const buildFormData = async () => {
+  const buildFormData = async (onUploadProgress) => {
     const fd = new FormData();
 
 fd.append("name", form.name ?? "");
@@ -252,6 +264,24 @@ fd.append("slug", form.slug ?? "");
     const catObj = categories.find((c) => String(c.id) === String(form.category_id));
     if (catObj?.base_name) fd.append("category", catObj.base_name);
 
+    // ახალი ფოტოები ერთდროულად იტვირთება (ადრე სათითაოდ — ამიტომ იყო 20–30 წამი)
+    const uploads = {};
+    const progress = {};
+    const newSlots = [];
+    for (let slot = 1; slot <= MAX_IMAGES; slot++) {
+      const item = images[slot - 1];
+      if (item && !item.removed && item.isNew && item.file instanceof File) newSlots.push(slot);
+    }
+    const totalBytes = newSlots.reduce((sum, slot) => sum + (images[slot - 1].file.size || 0), 0) || 1;
+    const report = () => {
+      const loaded = Object.values(progress).reduce((sum, value) => sum + value, 0);
+      onUploadProgress?.(Math.min(100, Math.round((loaded / totalBytes) * 100)));
+    };
+    if (newSlots.length) onUploadProgress?.(0);
+    await Promise.all(newSlots.map(async (slot) => {
+      uploads[slot] = await uploadToCloudinary(images[slot - 1].file, (loaded) => { progress[slot] = loaded; report(); });
+    }));
+
     for (let slot = 1; slot <= MAX_IMAGES; slot++) {
       const item = images[slot - 1];
 
@@ -262,7 +292,7 @@ fd.append("slug", form.slug ?? "");
       if (!item) continue;
 
       if (item.isNew && item.file instanceof File) {
-        const url = await uploadToCloudinary(item.file);
+        const url = uploads[slot];
         if (url) fd.append(`image_url${slot}`, url);
         continue;
       }
@@ -282,9 +312,13 @@ fd.append("slug", form.slug ?? "");
 if (!form.name.trim())
 return alert("სახელი სავალდებულოა");
     if (!form.price) return alert("ფასი სავალდებულოა");
+    if (savingRef.current) return;   // უკვე ინახება
+    savingRef.current = true;
+    setSaving({ stage: "save" });
 
     try {
-      const fd = await buildFormData();
+      const fd = await buildFormData((percent) => setSaving({ stage: "upload", percent }));
+      setSaving({ stage: "save" });
 
       if (editingProduct?.id || routeId) {
         const pid = editingProduct?.id || routeId;
@@ -314,6 +348,10 @@ setForm({
     } catch (err) {
       console.error(err);
       alert(`შეცდომა: ${err.message || err}`);
+    } finally {
+      // წარმატებისას გვერდი იცვლება; შეცდომისას ღილაკი ისევ აქტიურდება
+      savingRef.current = false;
+      setSaving(null);
     }
   };
 
@@ -414,8 +452,13 @@ return (
           </label>
         </div>
 
-        <button type="submit" className={styles.submitBtn}>
-          {editingProduct?.id || routeId ? "შენახვა" : "დამატება"}
+        <button type="submit" className={styles.submitBtn} disabled={Boolean(saving)} aria-busy={Boolean(saving)}>
+          {saving ? (
+            <span className={styles.submitBusy}>
+              <Loader2 size={18} className="tw:animate-spin" aria-hidden="true" />
+              {saving.stage === "upload" ? `ფოტოები იტვირთება… ${saving.percent}%` : "ინახება…"}
+            </span>
+          ) : (editingProduct?.id || routeId ? "შენახვა" : "დამატება")}
         </button>
       </div>
 

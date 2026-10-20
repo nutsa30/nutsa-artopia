@@ -98,8 +98,22 @@
   cursor: pointer;
 }
 
-.submitBtn:hover {
+.submitBtn:hover:not(:disabled) {
   background: #2563eb;
+}
+
+/* შენახვის დროს: გათიშული, ტრიალით (მეორედ დაჭერა შეუძლებელია) */
+.submitBtn:disabled {
+  background: #1d4ed8;
+  cursor: wait;
+  opacity: 0.9;
+}
+
+.submitBusy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 /* IMAGE */

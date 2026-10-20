@@ -609,3 +609,45 @@ test("catalogue landing has the same all-category search as the homepage", async
     assert.ok(form.querySelector('input[aria-label="პროდუქტის დასახელება"]'));
   } finally { await cleanup(); }
 });
+
+test("admin product save: the button locks and shows progress until the server answers", async () => {
+  const { default: AddProducts } = await server.ssrLoadModule("/src/admin/pages/addProduct/AddProducts.jsx");
+  localStorage.setItem("ADMIN_TOKEN", "fixture");
+  let release;
+  const saves = [];
+  globalThis.fetch = async (url, init = {}) => {
+    const method = init.method || "GET";
+    if (String(url).endsWith("/categories")) return Response.json([{ id: 1, name: "Fixture" }]);
+    if (method === "GET" && String(url).endsWith("/products/9")) {
+      return Response.json({ id: 9, name: "Focus", price: 41, quantity: 2, category_id: 1, image_url1: "https://res.cloudinary.com/x/image/upload/v1/a.png" });
+    }
+    if (method === "PUT" && String(url).endsWith("/products/9")) {
+      saves.push(url);
+      await new Promise(resolve => { release = resolve; });   // the server is still working
+      return Response.json({ id: 9 });
+    }
+    return Response.json({});
+  };
+  const alerts = []; const oldAlert = window.alert; window.alert = (m) => alerts.push(m); globalThis.alert = window.alert;
+  const cleanup = await render(React.createElement(MemoryRouter, { initialEntries: ["/admin/addProducts/9"], future },
+    React.createElement(Routes, null,
+      React.createElement(Route, { path: "/admin/addProducts/:id", element: React.createElement(AddProducts) }),
+      React.createElement(Route, { path: "/admin/menu", element: React.createElement(LocationProbe) }))));
+  try {
+    await settle(60);
+    const form = document.querySelector("form");
+    const button = () => document.querySelector('form button[type="submit"]');
+    assert.equal(button().disabled, false);
+    await React.act(async () => { Simulate.submit(form); });
+    await settle(30);
+    assert.equal(button().disabled, true, "locked while saving");
+    assert.match(button().textContent, /ინახება/);
+    await React.act(async () => { Simulate.submit(form); });            // a second click does nothing
+    await settle(30);
+    assert.equal(saves.length, 1);
+    await React.act(async () => { release(); });
+    await settle(60);
+    assert.ok(alerts.some(m => m.includes("განახლდა")));
+    assert.equal(document.querySelector("[data-location]")?.textContent, "/admin/menu");
+  } finally { window.alert = oldAlert; release?.(); await cleanup(); localStorage.clear(); }
+});
