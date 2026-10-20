@@ -24,8 +24,8 @@ const H1_CLOSE = /<\/h1\s*>/gi;
 const HEADING = /<(\/?)h([1-4])(?=[\s>/])/gi;
 const HAS_H1 = /<h1(?=[\s>/])/i;
 
-// სტატიის რომელიმე სექციაში h1 არის თუ არა (მაშინ ყველა სათაური ერთი დონით ჩამოდის) — იგივე, რაც
-// backend-ის article_has_h1
+// ტექსტ(ებ)ში h1 არის თუ არა — იგივე, რაც backend-ის article_has_h1. მოწმდება სექციაზე: h1-იან
+// სექციაში ყველა სათაური ერთი დონით ჩამოდის, დანარჩენი სექციები უცვლელია (h1→h3 ნახტომი არ ჩნდება)
 export function articleHasH1(texts) {
   return (texts || []).some((text) => HAS_H1.test(String(text || "")));
 }

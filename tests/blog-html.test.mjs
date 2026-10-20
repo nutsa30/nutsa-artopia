@@ -67,13 +67,25 @@ test("the six published articles keep their content (only heading levels move)",
   assert.equal(articles.length, 6);
   assert.deepEqual(articles.filter((a) => articleHasH1(a.sections)).map((a) => a.slug), ["rogor-wavikitkhot-taro-sruli-gzamkvlevi-damwyebtatvis"]);
   for (const article of articles) {
-    const demoteHeadings = articleHasH1(article.sections);
     article.sections.forEach((html, index) => {
+      const demoteHeadings = articleHasH1([html]);
       const out = sanitize(html, { demoteHeadings });
       assert.deepEqual(normalized(out), normalized(html, demoteHeadings), `${article.slug} section ${index}`);
       assert.ok(!/<h1/i.test(out), `${article.slug} section ${index} has no h1`);
     });
   }
+});
+
+test("tarot outline never skips a level; sections without h1 stay as written", () => {
+  // გვერდის h1 = სტატიის სათაური; სათაური წინაზე მაქსიმუმ ერთი დონით ღრმაა (Lighthouse heading-order)
+  const article = articles.find((a) => articleHasH1(a.sections));
+  const levels = [1];
+  for (const html of article.sections) {
+    const out = sanitize(html, { demoteHeadings: articleHasH1([html]) });
+    levels.push(...[...out.matchAll(/<h([2-6])/g)].map((m) => Number(m[1])));
+  }
+  assert.deepEqual(levels.filter((level, i) => i > 0 && level > levels[i - 1] + 1), []);
+  assert.deepEqual([...sanitize(article.sections[0]).matchAll(/<h([1-6])/g)].map((m) => m[1]), ["2", "3", "3"]);
 });
 
 test("an article that uses h1 keeps its heading hierarchy", () => {

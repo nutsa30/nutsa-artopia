@@ -216,7 +216,6 @@ document.addEventListener("mouseout", handleMouseOut);
   const sections = useMemo(() => {
     return Array.isArray(blog?.sections) ? blog.sections : [];
   }, [blog]);
-  const demoteHeadings = useMemo(() => articleHasH1(sections.map((section) => section?.text)), [sections]);
 
   const title = normalizeText(blog?.meta_title) || normalizeText(blog?.title);
   // იგივე წესი, რაც საწყის HTML-შია (edge function): JS-მდე და JS-ის შემდეგ metadata ემთხვევა
@@ -381,7 +380,7 @@ if (loading) {
       {hasText && (
         <div
           className={styles.sectionText}
-          dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(section.text, { demoteHeadings }) }}
+          dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(section.text, { demoteHeadings: articleHasH1([section.text]) }) }}
         />
       )}
 

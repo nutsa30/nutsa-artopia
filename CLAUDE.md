@@ -221,8 +221,8 @@ is 3.7–6.1 s in the lab — the rest is the SPA itself (prerender only if Sear
   the edge function turns it into a real 301 to `/blog/<new>`, React navigates there (`replace`).
 - Section HTML passes `src/utils/blogHtml.js` (DOMPurify, blog chunk only) — **same allowlist as the backend's
   `app/html_sanitize.py`; change both together.** `tests/fixtures/blog_html_cases.json` is shared with the backend;
-  `blog_articles.json` proves the six live articles keep their content. If an article uses h1, every heading
-  moves down one level. The Quill toolbar offers H2/H3 only.
+  `blog_articles.json` proves the six live articles keep their content. In a section that contains an h1 every
+  heading moves down one level; sections without an h1 stay as written (no h1→h3 skip). The Quill toolbar offers H2/H3 only.
 - `netlify/edge-functions/meta.js` writes the article (breadcrumbs, h1, date, description, cover, sanitized
   sections) into `#root` for crawlers that do not run JS; any section with script/iframe/svg/on*/javascript:
   skips it. `src/utils/edgeArticle.js` keeps that copy and App.jsx's route fallback shows it while the article
