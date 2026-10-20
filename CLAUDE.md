@@ -76,8 +76,8 @@ Checkout shows the rule rather than applying it silently:
 
 ### Checkout & payments
 
-QuickShipper was removed (2026-09) — no more third-party courier lookup, map
-picker, or per-provider selection. Delivery is flat and city-based; the shared
+There is no third-party courier lookup, map picker, or per-provider selection.
+Delivery is flat and city-based; the shared
 math lives in `src/utils/pricing.js` (`courierDeliveryInfo`,
 `pickupReadyLabel`) and mirrors the backend's
 `app/delivery.py` — that backend file is authoritative, this is only for the

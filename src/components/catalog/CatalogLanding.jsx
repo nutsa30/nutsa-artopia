@@ -60,9 +60,7 @@ function ProductRail({ section, eagerImages, onAddToCart, onBuyNow }) {
   const { category } = section;
   // „ყველას ნახვა" → მთავარი კატეგორიის გვერდი, ეს ქვეკატეგორია უკვე არჩეული
   // (ისევე, როგორც მთავარი კატეგორიიდან შესვლისას); ძველ მონაცემზე — ქვეკატეგორიის გვერდი
-  const seeAllHref = category.main_category_slug
-    ? `${catalogPath({ mainCategory: category.main_category_slug })}?${new URLSearchParams({ categories: category.slug })}`
-    : catalogPath({ category: category.slug });
+  const seeAllHref = catalogPath({ category: category.slug });
 
   return <section className="tw:min-w-0">
     <header className="tw:mb-4 tw:flex tw:items-center tw:justify-between tw:gap-4">
@@ -86,7 +84,7 @@ function ProductRail({ section, eagerImages, onAddToCart, onBuyNow }) {
         className="tw:flex tw:snap-x tw:snap-mandatory tw:gap-4 tw:overflow-x-auto tw:scroll-smooth tw:p-0.5 tw:pb-2 tw:lg:gap-5 tw:[scrollbar-width:none] tw:[&::-webkit-scrollbar]:hidden">
         {section.products.map((product, index) => <div key={product.id}
           className="tw:min-w-0 tw:shrink-0 tw:snap-start tw:basis-[72%] tw:sm:basis-[calc((100%_-_1rem)/2)] tw:lg:basis-[calc((100%_-_2.5rem)/3)] tw:xl:basis-[calc((100%_-_3.75rem)/4)] tw:[&_.product-card]:w-full!">
-          <ProductCard product={product} href={`/products/${product.slug}`} eager={eagerImages && index < 2}
+          <ProductCard product={product} href={`/products/${product.slug}`} eager={eagerImages && index < 2} deferImage
             onAddToCart={(e, quantity) => { e.stopPropagation(); onAddToCart(product, quantity); }}
             onBuyNow={(e, quantity) => { e.stopPropagation(); onBuyNow(product, quantity); }} />
         </div>)}

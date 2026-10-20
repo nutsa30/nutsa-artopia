@@ -4,6 +4,9 @@
   padding: 16px clamp(12px, 3vw, 24px);
   max-width: 1600px;
 }
+.homeIntro { margin: 28px 0; max-width: 1000px; color: #d3deed; line-height: 1.75; }
+.homeIntro h1 { color: #f8fafc; font-size: clamp(24px, 3.4vw, 36px); margin: 0 0 12px; }
+.homeIntro p { margin: 0; }
 
 /* 🔥 თითო ბლოკი */
 .section {

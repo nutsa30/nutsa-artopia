@@ -75,6 +75,7 @@ const DeliverySection = ({ delivery, onChange, subtotal = 0, hasEngraving = fals
       </div>
 
       <select
+        aria-label="მიწოდების ქალაქი"
         className={s.addrInput}
         style={{ paddingLeft: 14, marginBottom: 10 }}
         value={delivery.city || "თბილისი"}
@@ -89,6 +90,7 @@ const DeliverySection = ({ delivery, onChange, subtotal = 0, hasEngraving = fals
         className={s.addrInput}
         style={{ paddingLeft: 14, paddingRight: 14, marginBottom: 10 }}
         type="text"
+        aria-label="მისამართი (ქუჩა, ნომერი)"
         placeholder="მისამართი (ქუჩა, ნომერი)"
         value={delivery.address || ""}
         onChange={(e) => onChange({ address: e.target.value })}
@@ -101,8 +103,8 @@ const DeliverySection = ({ delivery, onChange, subtotal = 0, hasEngraving = fals
           { key: "apartment", label: "ბინა",       ph: "მაგ. 14" },
         ].map(({ key, label, ph }) => (
           <div key={key} className={s.extraCol}>
-            <label className={s.extraLabel}>{label}</label>
-            <input type="text" className={s.extraInput} placeholder={ph}
+            <label htmlFor={`delivery-${key}`} className={s.extraLabel}>{label}</label>
+            <input id={`delivery-${key}`} type="text" className={s.extraInput} placeholder={ph}
               value={delivery[key] || ""}
               onChange={(e) => onChange({ [key]: e.target.value })} />
           </div>

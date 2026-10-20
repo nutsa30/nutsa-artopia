@@ -296,3 +296,4 @@
     aspect-ratio: 16 / 12;
   }
 }
+.skeletonCard { min-height: 360px; border-radius: 18px; background: #1b3049; }

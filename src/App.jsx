@@ -3,6 +3,7 @@ import "../index.css";
 
 import React, { Suspense, useEffect, useState } from "react";
 import "./App.css";
+import "./components/SeoLayout.css";
 import { CartProvider } from "./components/CartContext/CartContext";
 import Navbar, { CartUiProvider } from "./components/Navbar/Navbar";
 import {
@@ -34,7 +35,6 @@ const SingleProductPage = React.lazy(() => import("./pages/SingleProductPage"));
 const TermsPage = React.lazy(() => import("./pages/TermsPage"));
 const ReturnsPage = React.lazy(() => import("./pages/ReturnsPage"));
 const PrivacyPage = React.lazy(() => import("./pages/PrivacyPage"));
-const ReviewsPage = React.lazy(() => import("./pages/ReviewsPage"));
 const ChatWidget = React.lazy(() => import("./components/ChatWidget"));
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 // 3D (three.js) მხოლოდ ამ გვერდს სჭირდება — ცალკე ჩანქად იტვირთება
@@ -105,7 +105,7 @@ function Chrome({ children, cartItems, showCart, lastAddedId }) {
       {!isAdmin && (
         <Navbar cartItems={cartItems} showCart={showCart} lastAddedId={lastAddedId} />
       )}
-      {children}
+      {isAdmin ? children : <main id="main-content">{children}</main>}
       {!isAdmin && <Footer />}
     </>
   );
@@ -188,7 +188,7 @@ const ChatMountIfNotAdmin = () => {
 <Route path="/terms" element={<DeferredPage><TermsPage /></DeferredPage>} />
 <Route path="/returns" element={<DeferredPage><ReturnsPage /></DeferredPage>} />
 <Route path="/privacy" element={<DeferredPage><PrivacyPage /></DeferredPage>} />
-<Route path="/reviews" element={<DeferredPage><ReviewsPage key="reviews" /></DeferredPage>} />
+<Route path="/reviews" element={<NotFound gone what="გვერდი" />} />
     {/* REDIRECTS */}
     <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
     <Route path="/addProducts" element={<Navigate to="/admin/addProducts" replace />} />

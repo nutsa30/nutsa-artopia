@@ -23,8 +23,8 @@ const linkStyle = {
 };
 
 export default function NotFound({ gone = false, what = "გვერდი" }) {
-  const title = gone ? `${what} აღარ იყიდება` : `${what} ვერ მოიძებნა`;
-  const text = gone
+  const title = gone ? (what === "გვერდი" ? "გვერდი აღარ არსებობს" : `${what} აღარ იყიდება`) : `${what} ვერ მოიძებნა`;
+  const text = gone && what !== "გვერდი"
     ? "ეს პროდუქტი გაყიდვიდან ამოღებულია. ნახეთ მსგავსი პროდუქტები კატალოგში."
     : "მისამართი არასწორია ან გვერდი აღარ არსებობს.";
   return (

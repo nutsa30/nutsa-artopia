@@ -109,7 +109,7 @@ const isTbilisiCity = (city) => {
   return lc === "tbilisi" || lc === "თბილისი";
 };
 
-// ახალი, ქალაქზე დამოკიდებული ფიქსირებული ტარიფი (QuickShipper-ის მოცილების შემდეგ)
+// ქალაქზე დამოკიდებული ფიქსირებული ტარიფი
 const calcDeliveryDiscount = (subtotal, city) => {
   const tbilisi = isTbilisiCity(city);
   const baseFee = tbilisi ? 5 : 7;

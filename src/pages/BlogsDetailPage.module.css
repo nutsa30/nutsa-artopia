@@ -1,4 +1,8 @@
 /* ===================== BLOG DETAIL PAGE ===================== */
+.skeletonTitle, .skeletonText, .skeletonCover { border-radius: 16px; background: #1b3049; margin-bottom: 24px; }
+.skeletonTitle { width: 80%; height: 100px; }
+.skeletonText { height: 110px; }
+.skeletonCover { width: 100%; aspect-ratio: 16 / 9; }
 
 .page {
   min-height: 100vh;
@@ -115,6 +119,7 @@
 /* ===================== COVER IMAGE ===================== */
 
 .coverWrap {
+  aspect-ratio: 16 / 9;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -127,7 +132,7 @@
 .coverImage {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: contain;
   border-radius: 22px;
 }
@@ -154,6 +159,7 @@
 /* ===================== SECTION IMAGE ===================== */
 
 .sectionImageWrap {
+  aspect-ratio: 16 / 9;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -166,7 +172,7 @@
 .sectionImage {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: contain;
   border-radius: 18px;
 }

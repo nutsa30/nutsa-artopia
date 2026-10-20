@@ -100,6 +100,29 @@
           "image": "https://artopia.ge/social-preview.png",
           "email": "info@artopia.ge",
           "telephone": "+995593204098",
+          "hasShippingService": {
+            "@type": "ShippingService",
+            "@id": "https://artopia.ge/terms#courier",
+            "name": "კურიერით მიტანა საქართველოში",
+            "description": "თბილისი: 5 ₾, 50 ₾-დან უფასო, 1–3 სამუშაო დღე. რეგიონები: 7 ₾, 70 ₾-დან უფასო, 2–4 სამუშაო დღე. გრავირების შემთხვევაში ემატება დამზადების 2–3 სამუშაო დღე.",
+            "url": "https://artopia.ge/terms",
+            "fulfillmentType": "https://schema.org/FulfillmentTypeDelivery",
+            "shippingConditions": [{
+              "@type": "ShippingConditions",
+              "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "GE" },
+              "orderValue": { "@type": "MonetaryAmount", "minValue": 70, "currency": "GEL" },
+              "shippingRate": { "@type": "MonetaryAmount", "value": 0, "currency": "GEL" }
+            }]
+          },
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "applicableCountry": "GE",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": 2,
+            "merchantReturnLink": "https://artopia.ge/returns",
+            "returnMethod": ["https://schema.org/ReturnByMail", "https://schema.org/ReturnInStore"],
+            "returnFees": "https://schema.org/ReturnFeesCustomerResponsibility"
+          },
           "knowsAbout": ["ლაზერული გრავირება", "Laser engraving", "სამხატვრო მასალები"],
           "sameAs": [
             "https://www.instagram.com/artopia_tbilisi/",

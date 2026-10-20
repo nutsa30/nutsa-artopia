@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styles from "./BlogsPage.module.css";
 import { responsiveImage } from "../utils/cloudinary";
 import SEO from "../components/SEO";
-import AppLoader from "../components/loaders/AppLoader";
 import { BLOG_INDEX_META } from "../utils/catalogMeta";
 
 import { PUBLIC_API } from "../utils/apiBase";
@@ -34,7 +33,6 @@ function getCardImage(blog) {
 }
 
 export default function BlogsPage() {
-  const navigate = useNavigate();
 
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -138,7 +136,9 @@ export default function BlogsPage() {
             </div>
           </header>
 
-{loading && <AppLoader />}
+{loading && <div className={styles.grid} aria-busy="true" aria-label="ბლოგები იტვირთება">
+  {Array.from({ length: 6 }, (_, i) => <div key={i} className={styles.skeletonCard} />)}
+</div>}
           {!loading && error && <div className={styles.error}>{error}</div>}
 
           {!loading && !error && (
@@ -150,20 +150,11 @@ export default function BlogsPage() {
 const rawDescription = getCardDescription(blog);
 const description = stripHtml(rawDescription);
                     return (
-                      <article
+                      <Link
                         key={blog.id}
                         className={styles.card}
-                        onClick={() => {
-                          if (!blog.slug) return;
-                          navigate(`/blog/${blog.slug}`);
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            navigate(`/blog/${blog.slug}`);
-                          }
-                        }}
+                        to={`/blog/${blog.slug}`}
+                        style={{ textDecoration: "none", color: "inherit" }}
                         aria-label={`${blog.title} - ბლოგის გახსნა`}
                       >
                         <div className={styles.imageWrap}>
@@ -198,7 +189,7 @@ const description = stripHtml(rawDescription);
                             <span className={styles.arrow}>→</span>
                           </div>
                         </div>
-                      </article>
+                      </Link>
                     );
                   })}
                 </section>

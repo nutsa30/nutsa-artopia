@@ -103,7 +103,7 @@ const Navbar = () => {
   <div className={styles.header}>
     <Link to="/" reloadDocument className={styles.brandLink} aria-label={L.home}>
       <img className={styles.logo} src={LogoImg} alt={L.brand} width="50" height="50" />
-      <h2 className={styles.h2}>{L.brand}</h2>
+      <span className={styles.h2}>{L.brand}</span>
     </Link>
   </div>
 

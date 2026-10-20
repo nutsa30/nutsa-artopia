@@ -347,7 +347,7 @@ test("catalog: product and pagination are real <a href> links and pages are craw
     assert.equal(canonicalHref(), "https://artopia.ge/products/category/Fixture/page/2");
     assert.match(document.querySelector("h1").textContent, /Fixture — გვერდი 2/);
     assert.match(document.title, /გვერდი 2/);
-    assert.equal(document.querySelector('nav [aria-current="page"]').textContent, "2");
+    assert.equal(document.querySelector('nav[aria-label="გვერდების ნავიგაცია"] [aria-current="page"]').textContent, "2");
     assert.equal(document.querySelector('a[rel="prev"]').getAttribute("href"), "/products/category/Fixture");
 
     // search keeps working across pages and always restarts from page 1

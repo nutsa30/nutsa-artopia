@@ -14,6 +14,7 @@ import CatalogLanding from "../components/catalog/CatalogLanding";
 import ProductSearchForm from "../components/search/ProductSearchForm";
 import SubcategoryIcon from "../components/catalog/SubcategoryIcon";
 import { readInitialData } from "../utils/initialData";
+import Breadcrumbs from "../components/Breadcrumbs";
 
 
 import { PUBLIC_API } from "../utils/apiBase";
@@ -80,17 +81,6 @@ const normalizeProduct = (product) => {
   };
 };
 // ვიზუალურად დამალული, მაგრამ crawler-ისთვის ხილული (display:none არა)
-const srOnly = {
-  position: "absolute",
-  width: "1px",
-  height: "1px",
-  padding: 0,
-  margin: "-1px",
-  overflow: "hidden",
-  clip: "rect(0, 0, 0, 0)",
-  whiteSpace: "nowrap",
-  border: 0,
-};
 
 const ALL = "ყველა";
 
@@ -175,6 +165,7 @@ const ProductsPage = () => {
     category: selectedCategory === ALL ? null : selectedCategory,
     mainCategory: selectedMainCategory || null,
     displayName: selectedSub?.name || selectedMain?.name,
+    title: selectedSub?.meta_title || selectedMain?.meta_title,
     description: selectedSub?.meta_description || selectedMain?.meta_description || selectedMain?.description,
     page: currentPage,
   });
@@ -287,9 +278,9 @@ const ProductsPage = () => {
       mounted = false;
     };
     // requestKey = selectedCategory + currentPage + querySearch
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     // catalogResolved პირდაპირ აქ არ არის: კატალოგის ჩატვირთვა სხვა გვერდზე მიმდინარე
     // მოთხოვნას აღარ წყვეტს და სია ორჯერ აღარ ითხოვება
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestKey, invalidPage, hasLegacyQuery, landingMode, waitingForCatalog]);
 
   useEffect(() => {
@@ -391,10 +382,17 @@ const ProductsPage = () => {
       )}
 
       <div ref={topRef} className={styles.pageWrapper}>
-        <h1 style={srOnly}>
+        <Breadcrumbs items={[
+          { name: "მთავარი", item: "/" },
+          { name: "პროდუქტები", item: "/products" },
+          ...(selectedSub?.main_category_slug ? [{ name: selectedSub.main_category_name, item: catalogPath({ mainCategory: selectedSub.main_category_slug }) }] : []),
+          ...(selectedMain || selectedSub ? [{ name: meta.heading, item: location.pathname }] : []),
+        ]} />
+        <h1 className="catalog-page-title">
           {meta.heading}
           {currentPage > 1 ? ` — გვერდი ${currentPage}` : ""}
         </h1>
+        {selectedSub?.description && <p className="category-description">{selectedSub.description}</p>}
         {landingMode ? (
           catalogResolved ? (
             <>
@@ -423,12 +421,11 @@ const ProductsPage = () => {
               </i>
               ყველა კატეგორია
             </Link>
-            <h2>{selectedMain.name}</h2>
-            {selectedMain.description && <span>{selectedMain.description}</span>}</div>
+            {selectedMain.description && <p className="category-description">{selectedMain.description}</p>}</div>
           <nav aria-label={`${selectedMain.name} ქვეკატეგორიები`} className={styles.subcategoryNav}>
             {selectedMain.subcategories.map((sub) => {
               const selected = selectedSubcategories.includes(sub.slug);
-              return <button key={sub.id} type="button" aria-pressed={selected}
+              return <div key={sub.id} className={styles.subcategoryChoice}><button type="button" aria-pressed={selected}
                 className={selected ? styles.subcategorySelected : ""}
                 onClick={() => toggleSubcategory(sub.slug)}>
                 <i className="tw:relative tw:inline-flex tw:not-italic">
@@ -438,7 +435,8 @@ const ProductsPage = () => {
                     <Check size={11} strokeWidth={3} /></i>}
                 </i>
                 <span>{sub.name}</span><small>{sub.product_count}</small>
-              </button>;
+              </button><Link className={styles.subcategoryLink} to={catalogPath({ category: sub.slug })}
+                aria-label={`${sub.name} — კატეგორიის გახსნა`} title={`${sub.name} — კატეგორიის გახსნა`}>↗</Link></div>;
             })}
           </nav>
         </section>}

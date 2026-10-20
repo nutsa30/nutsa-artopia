@@ -112,6 +112,7 @@ const RESPONSIVE = {
   hero: { w: IMG.HERO, widths: [800, 1200, 1600], sizes: "(max-width: 1600px) 100vw, 1600px" },
   // ბლოგის ბარათი: მობილურზე თითქმის სრული სიგანე, desktop-ზე ~300px
   blog: { w: IMG.BLOG_CARD, widths: [320, 480, 800], sizes: "(max-width: 700px) 92vw, 320px" },
+  article: { w: IMG.DETAIL, widths: [480, 800, 1120, 1600], sizes: "(max-width: 1160px) calc(100vw - 40px), 1120px" },
   // მთავარი კატეგორიის 16:9 ბარათი
   // ტელეფონზე 1, ტაბლეტზე 2, დიდ ეკრანზე 3 ბარათი ხაზზე
   category: { w: 1200, widths: [480, 800, 1200], sizes: "(max-width: 639px) 92vw, (max-width: 1023px) 46vw, 31vw" },

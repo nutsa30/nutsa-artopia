@@ -1,6 +1,6 @@
 import { canonicalHtml, canonicalUrl, catalogPath, parseCatalogPath } from "../../src/utils/canonical.js";
 import {
-  PRODUCTS_PER_PAGE, catalogMeta, productJsonLd, breadcrumbJsonLd, productBreadcrumbs,
+  PRODUCTS_PER_PAGE, catalogMeta, productJsonLd, breadcrumbJsonLd, productBreadcrumbs, productPageMeta,
   BLOG_INDEX_META, blogArticleMeta,
 } from "../../src/utils/catalogMeta.js";
 import { responsiveImage } from "../../src/utils/cloudinary.js";
@@ -158,6 +158,8 @@ function applyMeta(html, { title, description, url, image, type, jsonLd, keyword
 }
 
 const htmlResponse = (out, source) => {
+  out = out.replace(/<meta\b(?=[^>]*(?:name="(?:description|robots|theme-color|twitter:[^"]+)"|property="og:[^"]+"))[^>]*>/gi,
+    (tag) => /data-rh=/.test(tag) ? tag : tag.replace(/\s*\/?>$/, ' data-rh="true" />'));
   const headers = new Headers(source.headers);
   headers.set("content-type", "text/html; charset=utf-8");
   // Body transformations invalidate validators and encoded-body size metadata.
@@ -173,7 +175,7 @@ const breadcrumb = breadcrumbJsonLd;
 export default async (request, context) => {
   let response = await handle(request, context);
   const filterUrl = new URL(request.url);
-  if (parseCatalogPath(filterUrl.pathname) && ["1", "true"].includes(filterUrl.searchParams.get("include_out_of_stock"))
+  if (parseCatalogPath(filterUrl.pathname) && (filterUrl.searchParams.has("search") || filterUrl.searchParams.has("categories") || ["1", "true"].includes(filterUrl.searchParams.get("include_out_of_stock")))
       && response.status === 200 && (response.headers.get("content-type") || "").includes("text/html")) {
     let body = await response.text();
     body = setTag(body, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex,follow" data-rh="true" />`);
@@ -212,6 +214,9 @@ async function handle(request, context) {
     let rawPath = url.pathname.replace(/\/+$/, "") || "/";
     try { rawPath = decodeURIComponent(rawPath); } catch { /* keep as is */ }
     if (!isKnownRoute(rawPath)) return notFoundResponse(shell, source, 404);
+    if (/\/page\/1$/.test(rawPath) && parseCatalogPath(rawPath)) {
+      return new Response(null, { status: 301, headers: { location: `${SITE}${rawPath.replace(/\/page\/1$/, "")}${url.search}` } });
+    }
 
     const path = decodeURIComponent(new URL(pageCanonical).pathname);
 
@@ -259,6 +264,7 @@ async function handle(request, context) {
         url: pageUrl,
         image,
         type: "article",
+        headExtra: imagePreload(post.og_image || post.cover_image, "article"),
         keywords: post.keywords || undefined,
         jsonLd: {
           "@context": "https://schema.org",
@@ -289,7 +295,7 @@ async function handle(request, context) {
           ],
         },
       });
-      return htmlResponse(out, source);
+      return htmlResponse(embedInitialData(out, "blog", path, post), source);
     }
 
     /* ===================== BLOG INDEX: /blogs ===================== */
@@ -313,47 +319,8 @@ async function handle(request, context) {
       return htmlResponse(out, source);
     }
 
-    /* ===================== REVIEWS: /reviews ===================== */
-    if (path === "/reviews") {
-      const html = shell;
-      let agg = null;
-      try {
-        const rr = await fetch(`${API}/google-reviews`, { signal: AbortSignal.timeout(2500) });
-        if (rr.ok) {
-          const j = await rr.json();
-          const ratingValue = Number(j?.rating || 0);
-          const reviewCount = Number(j?.total_reviews || (Array.isArray(j?.reviews) ? j.reviews.length : 0));
-          if (ratingValue > 0 && reviewCount > 0) {
-            agg = {
-              "@type": "AggregateRating",
-              ratingValue: ratingValue.toFixed(1),
-              reviewCount: String(reviewCount),
-              bestRating: "5",
-              worstRating: "1",
-            };
-          }
-        }
-      } catch { /* ignore — page still gets correct meta below */ }
-
-      const out = applyMeta(html, {
-        title: "მომხმარებელთა შეფასებები — Artopia | სამხატვრო მაღაზია",
-        description:
-          "ნახე Artopia-ს რეალური მომხმარებლების შეფასებები. რას ფიქრობენ ჩვენზე — სამხატვრო მაღაზია თბილისში, ხარისხიანი მასალები და მომსახურება.",
-        url: `${SITE}/reviews`,
-        image: DEFAULT_IMAGE,
-        type: "website",
-        jsonLd: {
-          "@context": "https://schema.org",
-          "@type": "Store",
-          "@id": `${SITE}/#store`,
-          name: "Artopia — სამხატვრო მაღაზია",
-          url: SITE,
-          image: DEFAULT_IMAGE,
-          ...(agg ? { aggregateRating: agg } : {}),
-        },
-      });
-      return htmlResponse(out, source);
-    }
+    // The retired reviews page has no replacement. Preserve an explicit 410.
+    if (path === "/reviews") return notFoundResponse(shell, source, 410);
 
     /* ===================== CONTACTS: /contacts ===================== */
     if (path === "/contacts") {
@@ -568,7 +535,7 @@ async function handle(request, context) {
         ? imagePreload(firstCategoryImage, "category")
         : imagePreload(firstImage, "card");
 
-      const meta = catalogMeta({ category, mainCategory, displayName: categoryContext?.name,
+      const meta = catalogMeta({ category, mainCategory, displayName: categoryContext?.name, title: categoryContext?.meta_title,
         description: categoryContext?.meta_description || categoryContext?.description, page });
       meta.url += filterSuffix;
       const crumbs = [
@@ -643,16 +610,15 @@ async function handle(request, context) {
     const p = data && data.product;
     if (!p || !p.name) return page();
 
-    const name = String(p.name).trim();
     // პირველი არსებული ფოტო (ძველ ჩანაწერებში 1-ლი სლოტი შეიძლება ცარიელი იყოს)
     const photo = [1, 2, 3, 4, 5, 6].map((i) => p[`image_url${i}`]).find((u) => typeof u === "string" && u.trim()) || null;
     const image = photo || DEFAULT_IMAGE;
     const pageUrl = `${SITE}/products/${slug}`;
-    const description = clip(p.description || `${name} — იყიდე Artopia-ში, სამხატვრო და საკანცელარიო მაღაზია. მიტანა მთელ საქართველოში.`, 160);
+    const description = productPageMeta(p).description;
 
     const html = shell;
     const out = applyMeta(html, {
-      title: `${name} | Artopia`,
+      title: productPageMeta(p).title,
       description,
       url: pageUrl,
       image,

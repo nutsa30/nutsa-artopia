@@ -3,6 +3,24 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import edge from "../netlify/edge-functions/meta.js";
 import { canonicalUrl, canonicalHtml } from "../src/utils/canonical.js";
+import { productJsonLd, productPageMeta } from "../src/utils/catalogMeta.js";
+
+test("shipping structured data never promises nationwide free delivery below 70 GEL", () => {
+  for (const price of [1, 49.99, 50, 69.99]) {
+    assert.equal(productJsonLd({ id: 1, price }).offers.shippingDetails, undefined);
+  }
+  assert.equal(productJsonLd({ id: 1, price: 70 }).offers.shippingDetails.shippingRate.value, 0);
+  assert.equal(productJsonLd({ id: 1, price: 100, sale: 40 }).offers.shippingDetails, undefined);
+  assert.equal(productJsonLd({ id: 1, price: 100 }).offers.hasMerchantReturnPolicy.merchantReturnDays, 2);
+});
+
+test("derived duplicate-product metadata preserves the source name and unique code", () => {
+  const p = { id: 123, name: "კალამი", seo_title: "კალამი — კოდი 123 | Artopia", seo_description: "კალამი · კოდი 123." };
+  const meta = productPageMeta(p);
+  assert.match(meta.title, /კოდი 123/);
+  assert.match(meta.description, /კოდი 123/);
+  assert.equal(p.name, "კალამი");
+});
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const canonical = (text) => Array.from(text.matchAll(/<link\b[^>]*rel="canonical"[^>]*>/g)).map(x => x[0].match(/href="([^"]+)"/)[1]);
@@ -25,7 +43,8 @@ for (const path of ["/", "/products", "/products/fixture", "/products/category/�
           next: async () => new Response(html, { headers: { "content-type": "text/html", "strict-transport-security": "max-age=31536000", "content-length": "123", etag: "fixture", "cache-control": "public, max-age=0" } }),
         });
         const body = await response.text(); bodies.push(body);
-        assert.deepEqual(canonical(body), [canonicalUrl(path)]);
+        assert.deepEqual(canonical(body), path === "/reviews" ? [] : [canonicalUrl(path)]);
+        if (path === "/reviews") assert.equal(response.status, 410);
         assert.match(body, /data-rh="true"/);
         assert.equal(response.headers.get("strict-transport-security"), "max-age=31536000");
         assert.equal(response.headers.get("etag"), null);
@@ -187,7 +206,7 @@ test("catalog pagination: self canonical per page, prev/next, 404 past the end o
   assert.doesNotMatch(last.body, /rel="next"/);
 
   assert.equal((await visit("/products/page/2", list([product()]))).status, 200);
-  assert.deepEqual(canonical((await visit("/products/page/1", noNetwork)).body), ["https://artopia.ge/products"]);
+  assert.equal((await visit("/products/page/1", noNetwork)).status, 301);
   assert.equal((await visit(`/products/category/${encodeURIComponent(category)}/page/9`, list([]))).status, 404);
   assert.equal((await visit("/products/category/nonexistent", list([], { category_exists: false, total: 0 }))).status, 404);
   for (const bad of ["/products/page/abc", "/products/page/0", "/products/page/-1", "/products/category/x/page/2.5"]) {

@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styles from "./BlogsDetailPage.module.css";
-import { cld, IMG } from "../utils/cloudinary";
+import { cld, IMG, responsiveImage } from "../utils/cloudinary";
 import SEO from "../components/SEO";
 import NotFound from "../components/NotFound";
 import { blogArticleMeta } from "../utils/catalogMeta";
 import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
-import AppLoader from "../components/loaders/AppLoader";
+import { readInitialData } from "../utils/initialData";
+import Breadcrumbs from "../components/Breadcrumbs";
 
 import { PUBLIC_API } from "../utils/apiBase";
 const BASE = `${PUBLIC_API}/blogs`;
@@ -41,13 +42,14 @@ export default function BlogsDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
 
-  const [blog, setBlog] = useState(null);
+  const embeddedRef = useRef(readInitialData("blog", `/blog/${slug}`));
+  const [blog, setBlog] = useState(embeddedRef.current);
 const [similarBlogs, setSimilarBlogs] = useState([]);
   
   const [preview, setPreview] = useState(null);
 const [previewPos, setPreviewPos] = useState({ x: 0, y: 0 });
 const cacheRef = useRef({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!embeddedRef.current);
   const [err, setErr] = useState("");
   const [notFound, setNotFound] = useState(false);
 
@@ -59,6 +61,10 @@ const cacheRef = useRef({});
     let alive = true;
 
     const fetchBlog = async () => {
+      if (embeddedRef.current?.slug === slug) {
+        embeddedRef.current = null;
+        return;
+      }
       
       try {
         setLoading(true);
@@ -123,7 +129,6 @@ const handleMouseOver = async (e) => {
   const href = el.getAttribute("href");
   if (!href) return;
 
-  console.log("HOVER:", href); // 👈 ეს უნდა გამოჩნდეს
 
   const rect = el.getBoundingClientRect();
   setPreviewPos({
@@ -139,7 +144,7 @@ const handleMouseOver = async (e) => {
   try {
     let data = null;
 
-    if (href.includes("/products/")) {
+    if (/^\/?products\/[^/?#]+$/.test(href.replace("https://artopia.ge/", ""))) {
       const slug = href.split("/products/")[1];
       const res = await fetch(
         `${PUBLIC_API}/products/full/${slug}`
@@ -247,7 +252,12 @@ document.addEventListener("mouseout", handleMouseOut);
   };
 
 if (loading) {
-  return <AppLoader />;
+  return <div className={styles.page} aria-busy="true" aria-label="სტატია იტვირთება">
+    <div className={styles.container}><div className={styles.skeletonTitle} />
+      <div className={styles.skeletonText} /><div className={styles.skeletonCover} />
+      <div className={styles.skeletonText} /><div className={styles.skeletonText} />
+    </div>
+  </div>;
 }
 
   if (notFound) return <NotFound what="სტატია" />;
@@ -293,6 +303,7 @@ if (loading) {
 
       <div className={styles.page}>
         <div className={styles.container}>
+          <Breadcrumbs items={[{ name: "მთავარი", item: "/" }, { name: "ბლოგი", item: "/blogs" }, { name: title, item: `/blog/${slug}` }]} />
           <Link to="/blogs" className={styles.back}>
             ← ყველა ბლოგი
           </Link>
@@ -320,7 +331,8 @@ if (loading) {
               {coverImage && (
                 <div className={styles.coverWrap}>
                   <img
-                    src={cld(coverImage, { w: IMG.DETAIL })}
+                    {...responsiveImage(coverImage, "article")}
+                    width="1120" height="630" fetchpriority="high"
                     alt={title}
                     className={styles.coverImage}
                     loading="eager"
@@ -354,7 +366,8 @@ if (loading) {
       {hasImage && (
         <div className={styles.sectionImageWrap}>
           <img
-            src={cld(section.image_url, { w: IMG.DETAIL })}
+            {...responsiveImage(section.image_url, "article")}
+            width="1120" height="630"
             alt={stripHtml(section.text || title).slice(0, 100) || title}
             className={styles.sectionImage}
             loading="lazy"
@@ -395,7 +408,8 @@ if (loading) {
           }}
         >
    <img
-  src={cld(b.cover_image, { w: IMG.BLOG_CARD }) || "/noimage.jpeg"}
+  {...responsiveImage(b.cover_image || "/noimage.jpeg", "blog")}
+  width="800" height="450"
   alt={b.title || "ბლოგი"}
   loading="lazy"
   style={{

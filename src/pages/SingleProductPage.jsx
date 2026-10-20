@@ -12,8 +12,9 @@ import { trackViewItem } from "../utils/analytics";
 import CategoryIcon from "../utils/categoryIcons";
 import { cld, IMG, responsiveImage } from "../utils/cloudinary";
 import NotFound from "../components/NotFound";
-import { productJsonLd, breadcrumbJsonLd, productBreadcrumbs } from "../utils/catalogMeta";
+import { productJsonLd, breadcrumbJsonLd, productBreadcrumbs, productPageMeta } from "../utils/catalogMeta";
 import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
+import Breadcrumbs from "../components/Breadcrumbs";
 import { readInitialData } from "../utils/initialData";
 
 import { PUBLIC_API } from "../utils/apiBase";
@@ -247,7 +248,7 @@ const canGoRelatedNext = relatedStartIndex < maxRelatedStart;
 
 if (status === "loading") {
   return (
-    <main className={styles.page} aria-label="პროდუქტი იტვირთება" aria-busy="true">
+    <div className={styles.page} aria-label="პროდუქტი იტვირთება" aria-busy="true">
       <div className={`${styles.skeletonBlock} ${styles.skeletonBack}`} />
       <div className={styles.hero}>
         <div className={`${styles.galleryCard} ${styles.skeletonGallery}`}>
@@ -262,7 +263,7 @@ if (status === "loading") {
           <div className={`${styles.skeletonBlock} ${styles.skeletonButton}`} />
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -314,8 +315,8 @@ if (status === "loading") {
   return (
     <>
       <SEO
-        title={title || "პროდუქტი"}
-        description={seoDescription}
+        title={productPageMeta(product).title}
+        description={productPageMeta(product).description || seoDescription}
         url={`https://artopia.ge/products/${slug}`}
         image={seoImage}
         type="product"
@@ -328,6 +329,7 @@ if (status === "loading") {
   </Helmet>
 )}
       <div className={styles.page}>
+        <Breadcrumbs items={productBreadcrumbs(product, pageUrl)} />
         <div className={styles.topBar}>
           <button
             className={styles.backBtn}
@@ -364,6 +366,7 @@ navigate(-1);
               {images.length > 1 && (
              <button
   className={`${styles.arrowBtn} ${styles.left}`}
+  aria-label="წინა ფოტო"
   onClick={() =>
     setCurrentImageIndex((idx) =>
       idx === 0 ? images.length - 1 : idx - 1
@@ -392,6 +395,7 @@ navigate(-1);
               {images.length > 1 && (
       <button
   className={`${styles.arrowBtn} ${styles.right}`}
+  aria-label="შემდეგი ფოტო"
   onClick={() =>
     setCurrentImageIndex((idx) =>
       idx === images.length - 1 ? 0 : idx + 1
@@ -458,6 +462,7 @@ navigate(-1);
             {description ? (
               <p className={styles.description}>{description}</p>
             ) : null}
+            {product.seo_title && <p className={styles.category}>კოდი: {product.id}</p>}
 
             {hasSale ? (
               <div className={styles.priceRow}>

@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from "react";
+import React, { useRef, useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import styles from "./ProductsCard.module.css";
 import { useFlyToCart } from "../useFlyToCart";
@@ -15,10 +15,20 @@ const LBL = {
   category: "კატეგორია",
 };
 
-export default function ProductsCard({ product, onAddToCart, onBuyNow, href, linkState, eager = false, priority = false }) {
+export default function ProductsCard({ product, onAddToCart, onBuyNow, href, linkState, eager = false, priority = false, deferImage = false }) {
   const { cartRef } = useCartUiRefs();
   const flyToCart = useFlyToCart(cartRef);
   const imgRef = useRef(null);
+  const [imageVisible, setImageVisible] = useState(!deferImage);
+  useEffect(() => {
+    if (!deferImage || imageVisible) return;
+    if (typeof IntersectionObserver === "undefined") { setImageVisible(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setImageVisible(true); observer.disconnect(); }
+    }, { rootMargin: "200px 100px" });
+    if (imgRef.current) observer.observe(imgRef.current);
+    return () => observer.disconnect();
+  }, [deferImage, imageVisible]);
 
   const T = LBL;
 
@@ -106,8 +116,8 @@ export default function ProductsCard({ product, onAddToCart, onBuyNow, href, lin
 <img
   ref={imgRef}
   className={styles.image}
-  src={picture.src || "/noimage.jpeg"}
-  srcSet={picture.srcSet}
+  src={imageVisible ? (picture.src || "/noimage.jpeg") : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'/%3E"}
+  srcSet={imageVisible ? picture.srcSet : undefined}
   sizes={picture.sizes}
   alt={`${title} - ${category} Artopia`}
   // პირველი ეკრანის ბარათები მაშინვე იტვირთება (LCP), დანარჩენი — გადახვევისას
