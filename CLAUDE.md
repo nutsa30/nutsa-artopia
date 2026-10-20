@@ -110,11 +110,16 @@ instant UI preview.
   `src/admin/pages/orders/OrderHistory.jsx` once the customer pays in store.
 - Small inline SVG icons (truck/store/clock/pin/card/warning) live in
   `src/components/Checkout/icons.jsx` — used instead of emoji throughout
-  checkout, matching the plain CSS-Modules styling already used in this folder
-  (this app does **not** have Tailwind wired into its build despite it being a
-  listed dependency — `vite.config.js` has no Tailwind plugin and no CSS file
-  imports `@tailwind`/`@import "tailwindcss"`; Tailwind classes here would be
-  silently inert).
+  checkout, matching the plain CSS-Modules styling already used in this folder.
+
+### Tailwind (since 2026-10-20)
+
+Tailwind v4 is wired via `@tailwindcss/vite` and `src/tailwind.css` (imported in `src/main.jsx`), with two
+deliberate limits: **no Preflight** (the reset would restyle every heading, button and image of the existing
+CSS-Modules design) and **the `tw:` prefix** on every class (`tw:flex tw:md:grid-cols-3`) so it never collides
+with global class names like the chat widget's `.grid` / `.row`. Utilities live in a CSS layer, so an
+unlayered CSS-Modules rule wins over them; override one with the `!` suffix (`tw:w-full!`). Descendant
+module rules such as `.subcategoryNav span` also hit Tailwind elements — the icon tiles use `<i>` for that.
 
 ### Engraving (`/engraving`, გრავირება)
 
@@ -234,6 +239,9 @@ and robots remain. Edge validates pagination against the same inclusive API filt
 Explicit inactive products get API-backed 410/301; unverified products keep 200 and cannot be bought.
 Admin sync never offers deletion confirmation; preview downloads the backend dry-run report.
 This frontend requires the safety and category backend migrations. `/products` renders 11 main-category
-cards (two per desktop row), bounded featured-product rails, and legacy-compatible fallbacks;
-`/products/group/:mainSlug` renders a paginated group view. Main-category images are managed in admin,
+cards (1 / 2 / 3 per row), the all-category search, and featured-product rails (20 products each, 4 / 3 / 2 /
+~1.4 per view, arrows hide at the ends; "ყველას ნახვა" opens the group page with that subcategory selected);
+`/products/group/:mainSlug` renders a paginated group view with a "← ყველა კატეგორია" link. Subcategory
+icons are automatic (`src/components/catalog/SubcategoryIcon.jsx`: lucide icon per slug, colour per main
+category, keyword fallback for new Optimo categories) — the admin emoji picker is gone. Main-category images are managed in admin,
 with 1600 × 900 px documented as the recommended 16:9 size. Match backend and frontend deployments.
