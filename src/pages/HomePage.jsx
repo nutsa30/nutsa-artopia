@@ -6,6 +6,9 @@ import HomeNewProducts from "../components/home/HomeNewProducts";
 import HomeBlogs from "../components/home/HomeBlogs";
 import SEO from "../components/SEO";
 import { useStorefrontData } from "../context/StorefrontDataContext";
+import { ArrowUpRight, MapPin } from "lucide-react";
+
+const MAPS_URL = "https://www.google.com/maps/search/?api=1&query=Artopia&query_place_id=ChIJIZJRgK9zREARDgmuTzhwb9o";
 
 
 export default function HomePage() {
@@ -58,21 +61,20 @@ export default function HomePage() {
       <section className={styles.section}>
         <HomeBlogs items={data.blogs} loading={loading} />
       </section>
-      {/* ⭐ GOOGLE REVIEWS CTA */}
+      {/* Google Maps — მაღაზიის ადგილმდებარეობა */}
       <section className={styles.section}>
-        <div className={styles.reviewCta}>
-          <div className={styles.reviewCtaContent}>
-            <h2 className={styles.reviewTitle}>
-              ნახეთ მომხმარებელთა რეალური შეფასებები
-            </h2>
-            <p className={styles.reviewText}>
-             ჩვენთვის მნიშვნელოვანია რას ფიქრობენ მომხმარებლები ჩვენზე — ნახე მათი შეფასებები და დაგვიტოვე შენიც.
-            </p>
+        <div className={styles.mapsCta}>
+          <span className={styles.mapsIcon} aria-hidden="true">
+            <MapPin size={30} strokeWidth={2.2} />
+          </span>
+          <div className={styles.mapsText}>
+            <h2 className={styles.mapsTitle}>ნახე Artopia Google Maps-ზე</h2>
+            <p>იპოვე ჩვენი მაღაზია რუკაზე და დაგეგმე მარშრუტი.</p>
           </div>
-
-          <div className={styles.reviewStatCard}>
-            <a href="https://www.google.com/maps/search/?api=1&query=Artopia&query_place_id=ChIJIZJRgK9zREARDgmuTzhwb9o" target="_blank" rel="noopener noreferrer">შეფასებები Google Maps-ზე</a>
-          </div>
+          <a className={styles.mapsBtn} href={MAPS_URL} target="_blank" rel="noopener noreferrer">
+            რუკის გახსნა
+            <ArrowUpRight size={18} strokeWidth={2.5} aria-hidden="true" />
+          </a>
         </div>
       </section>
     </div>
