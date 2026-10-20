@@ -15,6 +15,7 @@ import ProductSearchForm from "../components/search/ProductSearchForm";
 import SubcategoryIcon from "../components/catalog/SubcategoryIcon";
 import { readInitialData } from "../utils/initialData";
 import Breadcrumbs from "../components/Breadcrumbs";
+import CategoryGuide from "../components/catalog/CategoryGuide";
 
 
 import { PUBLIC_API } from "../utils/apiBase";
@@ -348,6 +349,12 @@ const ProductsPage = () => {
   }
 
   const totalPages = Math.ceil(total / PRODUCTS_PER_PAGE);
+  // კატეგორიის გზამკვლევი მხოლოდ კატეგორიის პირველ, ფილტრის გარეშე გვერდზე ჩანს —
+  // მეორე გვერდზე, ძიებასა და ქვეკატეგორიების ფილტრზე იგივე ტექსტი არ მეორდება
+  const guideTarget = currentPage === 1 && !searchTerm.trim() && selectedSubcategories.length === 0
+    ? (selectedSub?.id != null ? { kind: "sub", id: Number(selectedSub.id) }
+      : selectedMain?.id != null ? { kind: "main", id: Number(selectedMain.id) } : null)
+    : null;
 
   // CollectionPage + BreadcrumbList-ს edge function წერს საწყის HTML-ში; აქ მხოლოდ
   // ამ გვერდის პროდუქტების სიაა (ItemList), რომ ორი კონკურენტი CollectionPage არ გამოვიდეს.
@@ -493,6 +500,10 @@ const ProductsPage = () => {
 
             {total > PRODUCTS_PER_PAGE && (
               <EdgePager totalPages={totalPages} currentPage={currentPage} hrefFor={hrefFor} />
+            )}
+
+            {guideTarget && products.length > 0 && (
+              <CategoryGuide kind={guideTarget.kind} id={guideTarget.id} catalog={catalog} />
             )}
           </>
         )}
