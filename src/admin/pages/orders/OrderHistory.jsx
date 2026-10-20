@@ -474,7 +474,7 @@ const OrderHistory = () => {
                       {o.status === "paid" ? "სულ გადახდილია" : "სულ გადასახდელია"}
                     </div>
                     <div className={styles.totalValue}>{fmtMoney(o.total)}</div>
-                    {o.status !== "paid" && o.payment_method === "cash_on_pickup" && (
+                    {["placed", "pending"].includes(o.status) && o.payment_method === "cash_on_pickup" && (
                       <button
                         type="button"
                         className={styles.primaryBtn}
@@ -715,7 +715,7 @@ const OrderHistory = () => {
                               <span>{d.status === "paid" ? "სულ გადახდილია" : "სულ გადასახდელია"}</span>
                               <b>{fmtMoney(d.total)}</b>
                             </div>
-                            {d.status !== "paid" && o.payment_method === "cash_on_pickup" && (
+                            {["placed", "pending"].includes(d.status) && o.payment_method === "cash_on_pickup" && (
                               <button
                                 type="button"
                                 className={styles.primaryBtn}
