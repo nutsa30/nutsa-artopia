@@ -213,6 +213,21 @@ to `main`.
 URL inspection) to confirm what Google really indexes; 228 in-stock products without a photo; mobile LCP
 is 3.7–6.1 s in the lab — the rest is the SPA itself (prerender only if Search Console shows a problem).
 
+### Blog: drafts, renamed slugs, sanitizer, article in the initial HTML (2026-10-20)
+- Public blog API hides `is_active=false` articles (JSON 404); the admin page (`src/admin/pages/blog/Blog.jsx`)
+  reads `/blogs/admin` and `/blogs/admin/<id>` with `authHeaders()`. `BlogsDetailPage` also renders `NotFound`
+  for `is_active === false` (old CDN answer).
+- A title change moves the URL: the API answers the old slug with `301 {"moved_to"}` **without Location**;
+  the edge function turns it into a real 301 to `/blog/<new>`, React navigates there (`replace`).
+- Section HTML passes `src/utils/blogHtml.js` (DOMPurify, blog chunk only) — **same allowlist as the backend's
+  `app/html_sanitize.py`; change both together.** `tests/fixtures/blog_html_cases.json` is shared with the backend;
+  `blog_articles.json` proves the six live articles keep their content. If an article uses h1, every heading
+  moves down one level. The Quill toolbar offers H2/H3 only.
+- `netlify/edge-functions/meta.js` writes the article (breadcrumbs, h1, date, description, cover, sanitized
+  sections) into `#root` for crawlers that do not run JS; any section with script/iframe/svg/on*/javascript:
+  skips it. `src/utils/edgeArticle.js` keeps that copy and App.jsx's route fallback shows it while the article
+  chunk loads (no blank flash). `main.jsx` must stay `createRoot` (not hydrate).
+
 ### Admin navbar (mobile)
 
 `src/admin/components/AdminNavbar.jsx` renders a single dropdown menu (`AdminNavbar.module.css` → `.dropdownMenu`). The dropdown has `max-height: calc(100vh - 110px)` + `overflow-y: auto` so it **scrolls** when the link list is taller than the viewport (it previously had `overflow: hidden` with no height cap, making the bottom items unreachable on mobile). On `max-width: 768px` it also narrows to `min(320px, calc(100vw - 40px))`. Keep these constraints if you add more menu items.
