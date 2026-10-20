@@ -92,6 +92,47 @@ async function ffetch(url, formData, method = "POST") {
 }
 
 /* =========================================================
+   ფოტოს ატვირთვა (Cloudinary — მხოლოდ backend-ის გავლით)
+   ========================================================= */
+// ადრე ადმინის გვერდები Cloudinary-ში პირდაპირ ტვირთავდნენ unsigned preset-ით, რომლის სახელიც
+// საჯარო კოდში იყო — ანუ ატვირთვა ნებისმიერს შეეძლო. ახლა ფაილი backend-ზე მიდის ადმინის ტოკენით
+// (POST /admin/uploads/image), backend ამოწმებს, რომ ის ნამდვილი სურათია, და თვითონ ტვირთავს.
+// XMLHttpRequest (და არა fetch): ატვირთვის პროცენტი ღილაკზე ჩანს. kind: "product" | "blog" | "home".
+export function uploadAdminImage(file, { kind = "product", onProgress } = {}) {
+  if (!file) return Promise.resolve(null);
+  return new Promise((resolve, reject) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("kind", kind);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${BASE}/admin/uploads/image`);
+    const auth = authHeaders();
+    if (auth.Authorization) xhr.setRequestHeader("Authorization", auth.Authorization);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) onProgress(event.loaded, event.total);
+    };
+    xhr.onload = () => {
+      let body = {};
+      try { body = JSON.parse(xhr.responseText || "{}"); } catch { body = {}; }
+      if (xhr.status === 401) {
+        // ვადაგასული/არასწორი ტოკენი — იგივე ქცევა, რაც სხვა ადმინის გვერდებზე: ხელახალი შესვლა
+        ["ADMIN_TOKEN", "ADMIN_ROLE"].forEach((key) => {
+          try { localStorage.removeItem(key); sessionStorage.removeItem(key); } catch { /* ignore */ }
+        });
+        window.location.href = "/admin/login";
+        return reject(new Error("სესიას ვადა გაუვიდა — შედით ხელახლა"));
+      }
+      if (xhr.status < 200 || xhr.status >= 300 || !body.secure_url) {
+        return reject(new Error(body.message || "ფოტოს ატვირთვა ვერ მოხერხდა"));
+      }
+      resolve(body.secure_url);
+    };
+    xhr.onerror = () => reject(new Error("ფოტოს ატვირთვა ვერ მოხერხდა — შეამოწმეთ ინტერნეტი"));
+    xhr.send(fd);
+  });
+}
+
+/* =========================================================
    Generic JSON helper
    ========================================================= */
 export const apiJson = (path, init) => {

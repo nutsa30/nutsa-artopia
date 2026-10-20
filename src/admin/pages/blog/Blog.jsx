@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "./Blog.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
 import { useNavigate, useLocation } from "react-router-dom";
-import { authHeaders } from "../../api";
+import { authHeaders, uploadAdminImage } from "../../api";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 const modules = {
@@ -20,28 +20,8 @@ const modules = {
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
 const MAX_SECTIONS = 10;
 
-const CLOUD_NAME = "dch8gnj7d";
-const UPLOAD_PRESET = "artopia_unsigned";
-
-async function uploadToCloudinary(file) {
-  if (!file) return null;
-
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("upload_preset", UPLOAD_PRESET);
-
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-    method: "POST",
-    body: fd,
-  });
-
-  if (!res.ok) {
-    throw new Error("Cloudinary upload failed");
-  }
-
-  const data = await res.json();
-  return data?.secure_url || null;
-}
+// ფოტოს ატვირთვა: მხოლოდ backend-ის გავლით, ადმინის ტოკენით (src/admin/api.js)
+const uploadToCloudinary = (file) => uploadAdminImage(file, { kind: "blog" });
 const emptySection = () => ({
   text: "",
   image_file: null,

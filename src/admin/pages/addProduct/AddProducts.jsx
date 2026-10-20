@@ -4,6 +4,7 @@ import {
   getCategories,
   createProductForm,
   updateProductForm,
+  uploadAdminImage,
 } from "../../api";
 import styles from "./AddProducts.module.css";
 import { cld, IMG } from "../../../utils/cloudinary";
@@ -18,31 +19,9 @@ const MAX_IMAGES = 6;
 // ნაგულისხმევი მნიშვნელობები მუშაობდა. ახლა იგივე მნიშვნელობები პირდაპირაა.
 import { API_BASE } from "../../../utils/apiBase";
 
-/* -------- Cloudinary (unsigned upload) -------- */
-const CLOUD_NAME    = "dch8gnj7d";
-const UPLOAD_PRESET = "artopia_unsigned";
-
-// XMLHttpRequest (და არა fetch): ატვირთვის პროცენტი ღილაკზე ჩანს
-function uploadToCloudinary(file, onProgress) {
-  if (!file) return Promise.resolve(null);
-  return new Promise((resolve, reject) => {
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("upload_preset", UPLOAD_PRESET);
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`);
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable && onProgress) onProgress(event.loaded, event.total);
-    };
-    xhr.onload = () => {
-      if (xhr.status < 200 || xhr.status >= 300) return reject(new Error("ფოტოს ატვირთვა ვერ მოხერხდა"));
-      try { resolve(JSON.parse(xhr.responseText)?.secure_url || null); }
-      catch { reject(new Error("ფოტოს ატვირთვა ვერ მოხერხდა")); }
-    };
-    xhr.onerror = () => reject(new Error("ფოტოს ატვირთვა ვერ მოხერხდა — შეამოწმეთ ინტერნეტი"));
-    xhr.send(fd);
-  });
-}
+/* -------- ფოტოს ატვირთვა: მხოლოდ backend-ის გავლით, ადმინის ტოკენით (src/admin/api.js) -------- */
+// პროცენტი ღილაკზე ისევ ჩანს (XHR upload progress)
+const uploadToCloudinary = (file, onProgress) => uploadAdminImage(file, { kind: "product", onProgress });
 
 // ---- დასახელებების ნორმალიზაცია / შედარება ----
 export default function AddProducts() {

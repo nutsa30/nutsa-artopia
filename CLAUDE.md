@@ -228,6 +228,13 @@ is 3.7–6.1 s in the lab — the rest is the SPA itself (prerender only if Sear
   skips it. `src/utils/edgeArticle.js` keeps that copy and App.jsx's route fallback shows it while the article
   chunk loads (no blank flash). `main.jsx` must stay `createRoot` (not hydrate).
 
+### Admin image uploads (2026-10-20)
+Admin photos (products, blog, home carousel) upload with `uploadAdminImage(file, { kind, onProgress })` from
+`src/admin/api.js` → backend `POST /admin/uploads/image` with the admin JWT (XHR, so the progress bar works; 401
+→ re-login). **Never upload to Cloudinary from the browser and never use an unsigned preset** (`artopia_unsigned`
+was public in this repo, so anyone could upload to the account). Cloudinary URLs for *display* (`cld()`,
+`responsiveImage()`) are unaffected.
+
 ### Admin navbar (mobile)
 
 `src/admin/components/AdminNavbar.jsx` renders a single dropdown menu (`AdminNavbar.module.css` → `.dropdownMenu`). The dropdown has `max-height: calc(100vh - 110px)` + `overflow-y: auto` so it **scrolls** when the link list is taller than the viewport (it previously had `overflow: hidden` with no height cap, making the bottom items unreachable on mobile). On `max-width: 768px` it also narrows to `min(320px, calc(100vw - 40px))`. Keep these constraints if you add more menu items.
