@@ -584,7 +584,12 @@ async function handle(request, context) {
         return response;
       }
       const hydratable = catalogData && !listFiltered && (landing || category || mainCategory || page > 1);
-      const initial = hydratable ? (tree ? { ...catalogData, catalog: tree } : catalogData) : null;
+      // Send the already-fetched category copy with the products, so the visible
+      // heading, description and breadcrumbs cannot pop in after the grid.
+      const initial = hydratable ? { ...catalogData,
+        ...(tree ? { catalog: tree } : {}),
+        ...(categoryContext ? { category_context: categoryContext } : {}),
+      } : null;
       return htmlResponse(initial ? embedInitialData(out, "catalog", path, initial) : out, source);
     }
 

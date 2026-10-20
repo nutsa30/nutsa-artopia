@@ -136,6 +136,7 @@ const ProductsPage = () => {
   const embedded = embeddedRef.current;
   // კატეგორიების ხე edge-მა შეიძლება უკვე ჩასვა HTML-ში → მეორე მოთხოვნა აღარ სჭირდება
   const embeddedTreeRef = useRef(Array.isArray(embedded?.catalog?.main_categories) ? embedded.catalog : null);
+  const embeddedCategoryRef = useRef(embedded?.category_context || null);
   const [catalog, setCatalog] = useState(() => embeddedTreeRef.current || { main_categories: [], featured_sections: [] });
   const [catalogResolved, setCatalogResolved] = useState(() => Boolean(embeddedTreeRef.current));
   const [isLoading, setIsLoading] = useState(!embedded);
@@ -159,7 +160,9 @@ const ProductsPage = () => {
 
   const selectedSub = catalog.main_categories
     .flatMap((main) => main.subcategories || [])
-    .find((item) => item.slug === selectedCategory || item.name === selectedCategory);
+    .find((item) => item.slug === selectedCategory || item.name === selectedCategory)
+    || ([embeddedCategoryRef.current?.slug, embeddedCategoryRef.current?.name].includes(selectedCategory)
+      ? embeddedCategoryRef.current : null);
   const selectedMain = catalog.main_categories.find((item) => item.slug === selectedMainCategory);
   const meta = catalogMeta({
     category: selectedCategory === ALL ? null : selectedCategory,

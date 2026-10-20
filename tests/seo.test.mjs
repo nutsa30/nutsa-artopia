@@ -390,6 +390,15 @@ test("product page uses the first existing photo even when slot 1 is empty (prel
   assert.deepEqual(nodes(body, "Product")[0].image, [photo]);
 });
 
+test("subcategory copy hydrates with its products to prevent a late layout shift", async () => {
+  const category = { name: "აკრილი", slug: "acrylic", description: "Reviewed category copy", meta_title: "აკრილი | Artopia", main_category_slug: "art", main_category_name: "სამხატვრო" };
+  const r = await visit("/products/category/acrylic", url => url.includes("/products/list?")
+    ? json({ items: [product()], total: 1, category_exists: true })
+    : url.includes("/categories/sub/") ? json(category) : noNetwork(url));
+  const initial = JSON.parse(r.body.match(/<script id="artopia-initial-data" type="application\/json">([\s\S]*?)<\/script>/)[1]);
+  assert.deepEqual(initial.data.category_context, category);
+});
+
 test("a renamed main category answers 301 to its new slug (the API says so in JSON)", async () => {
   const api = async (url) => (url.includes("/products/list?")
     ? json({ items: [], total: 0, category_exists: true, main_category_exists: false, main_category_moved_to: "helouini-da-sachuqrebi" })
