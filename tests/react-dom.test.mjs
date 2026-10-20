@@ -102,16 +102,20 @@ test("empty also-buy renders no overlay and does not lock body scroll",async()=>
   finally{await cleanup();}
 });
 
-test("operator reconciliation renders exceptions and requires explicit confirmation before action",async()=>{
+test("financial review requires confirmation and has no stock reservation or handoff actions",async()=>{
   const {default:Reconciliation}=await server.ssrLoadModule('/src/admin/pages/Reconciliation.jsx');
   sessionStorage.setItem('ADMIN_TOKEN','fixture-token');const calls=[];
-  globalThis.fetch=async(url,init)=>{calls.push({url,method:init?.method||'GET'});return Response.json({issues:[{ref:'fixture',order_id:1,reason:'paid_stock_unavailable'}],handoffs:[],legacy_expired_count:9,latest_sync_run_id:42});};
+  globalThis.fetch=async(url,init)=>{calls.push({url,method:init?.method||'GET',body:init?.body});return Response.json({issues:[{ref:'fixture',order_id:1,reason:'paid_amount_mismatch'}]});};
   const prior=window.confirm;window.confirm=()=>false;
   const cleanup=await render(React.createElement(Reconciliation));
   try{
-    assert.match(document.body.textContent,/გადახდა მიღებულია/);
-    const button=[...document.querySelectorAll('button')].find(node=>node.textContent.includes('ხელახლა დაჯავშნა'));
+    assert.match(document.body.textContent,/ბანკისა და შეკვეთის თანხა/);
+    assert.doesNotMatch(document.body.textContent,/ხელახლა დაჯავშნა|Optimo-ში ასახვა დადასტურებულია|გადაცემის მოლოდინში/);
+    const button=[...document.querySelectorAll('button')].find(node=>node.textContent.includes('ფინანსური საკითხი'));
     await React.act(async()=>button.click());assert.equal(calls.filter(call=>call.method==='POST').length,0);
+    window.confirm=()=>true;
+    await React.act(async()=>button.click());
+    assert.deepEqual(JSON.parse(calls.find(call=>call.method==='POST').body),{action:'payment_reconciled',confirm_payment_reconciled:true});
   }finally{window.confirm=prior;await cleanup();sessionStorage.clear();}
 });
 

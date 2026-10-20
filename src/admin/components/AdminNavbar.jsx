@@ -196,7 +196,7 @@ const onSyncOptimo = async (dryRun = false) => {
                   <span>კატეგორიების მართვა</span>
                 </Link>
                 <Link to="/admin/reconciliation" className={styles.navLink}>
-                  <ClipboardList size={18} /><span>გადახდები და მარაგის გადამოწმება</span>
+                  <ClipboardList size={18} /><span>გადახდების გადამოწმება</span>
                 </Link>
 
                 <Link to="/blog" className={styles.navLink}>
