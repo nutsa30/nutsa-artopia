@@ -452,6 +452,7 @@ const ProductsPage = () => {
           </div>
         </div>
 
+        <h2 className="tw:sr-only">პროდუქციის სია</h2>
         {isLoading ? (
           <div className={`${styles.productsGrid} ${styles.catalogGrid}`} aria-label="პროდუქტები იტვირთება" aria-busy="true">
             {Array.from({ length: 8 }, (_, index) => <div className={styles.catalogSkeletonCard} key={index} />)}
