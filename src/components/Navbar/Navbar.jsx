@@ -101,7 +101,7 @@ const Navbar = () => {
 >  
   {/* Header */}
   <div className={styles.header}>
-    <Link to="/" reloadDocument className={styles.brandLink} aria-label={L.home}>
+    <Link to="/" reloadDocument className={styles.brandLink} aria-label={`${L.brand} — ${L.home}`}>
       <img className={styles.logo} src={LogoImg} alt={L.brand} width="50" height="50" />
       <span className={styles.h2}>{L.brand}</span>
     </Link>
@@ -137,6 +137,7 @@ const Navbar = () => {
               to={tab.path}
               reloadDocument
               className={`${styles.tabItem} ${isActive ? styles.active : ""}`}
+              aria-label={label}
               aria-current={isActive ? "page" : undefined}
             >
               {isActive && (
@@ -159,6 +160,13 @@ const Navbar = () => {
           className={styles.navItem}
           onClick={() => setShowCartOpen((prev) => !prev)}
           role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              setShowCartOpen((prev) => !prev);
+            }
+          }}
           aria-label={L.cartAria}
           aria-expanded={showCartOpen}
         >

@@ -33,7 +33,7 @@ export default function HomePage() {
 
         <ProductSearchForm overlapHero />
       </section>
-      {/* SEO heading — crawlable, visually hidden (design unchanged) */}
+      {/* Visible introduction and the page's primary heading. */}
       <header className={styles.homeIntro}>
         <h1>Artopia — სამხატვრო მაღაზია თბილისში</h1>
         <p>

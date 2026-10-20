@@ -138,7 +138,6 @@ const Footer = () => {
             href="https://www.kemsilab.com"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="KemsiLab"
             className={styles.kemsiLabLink}
           >
             <span className={styles.madeBy}>Made by</span>
