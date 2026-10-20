@@ -231,6 +231,63 @@ test("catalog pagination: self canonical per page, prev/next, 404 past the end o
 test("a missing blog article is a real 404; a blog API outage is not", async () => {
   assert.equal((await visit("/blog/nope", async () => json({ message: "Not found" }, 404))).status, 404);
   assert.equal((await visit("/blog/fixture", async () => json({ message: "boom" }, 500))).status, 200);
+  assert.equal((await visit("/blog/fixture", async () => { throw new DOMException("timeout", "TimeoutError"); })).status, 200);
+  // გამოუქვეყნებელი სტატია (ძველი API პასუხი) არასდროს ინდექსდება
+  assert.equal((await visit("/blog/draft", async () => json({ title: "Draft", is_active: false, sections: [] }))).status, 404);
+});
+
+test("a renamed blog article's old URL is a permanent redirect to the new one", async () => {
+  const moved = await visit("/blog/old-title", async (url, init) => {
+    assert.equal(init?.redirect, "manual");
+    return json({ message: "Moved", status: "moved", moved_to: "new-title" }, 301);
+  });
+  assert.equal(moved.status, 301);
+  assert.equal(moved.response.headers.get("location"), "https://artopia.ge/blog/new-title");
+  // მხოლოდ ცალსახა, სწორი slug — სხვა ყველაფერი ჩვეულებრივი გვერდია
+  for (const target of ["https://evil.example", "../x", "old-title", ""]) {
+    assert.equal((await visit("/blog/old-title", async () => json({ moved_to: target }, 301))).status, 200, target);
+  }
+});
+
+const article = {
+  title: "HB, 2B, 6B — რას ნიშნავს ფანქრების ნომრები?", description: "ფანქრის სიმაგრე", slug: "fixture",
+  created_at: "2026-03-28T10:00:00+04:00", cover_image: "https://res.cloudinary.com/x/image/upload/v1/cover.jpg",
+  sections: [
+    { position: 1, text: "<h2>რა არის HB</h2><p>H ნიშნავს <strong>სიმაგრეს</strong>.</p>", image_url: "https://res.cloudinary.com/x/image/upload/v1/s1.jpg" },
+    { position: 2, text: "<ul><li>2B — რბილი</li></ul><p><a href=\"/products\">პროდუქტები</a></p>", image_url: null },
+  ],
+};
+
+test("the article text is in the initial HTML for crawlers that do not run JavaScript", async () => {
+  const page = await visit("/blog/fixture", async () => json(article));
+  assert.equal(page.status, 200);
+  const root = page.body.match(/<div id="root">([\s\S]*?)<\/div>\s*<script/)?.[1] || page.body.split('<div id="root">')[1];
+  assert.match(root, /<main data-edge-article=""/);
+  assert.match(root, /<h1[^>]*>HB, 2B, 6B — რას ნიშნავს ფანქრების ნომრები\?<\/h1>/);
+  assert.ok(root.includes("<h2>რა არის HB</h2>") && root.includes("<li>2B — რბილი</li>"));
+  assert.ok(root.includes('<a href="/blogs">') && root.includes('<a href="/products">პროდუქტები</a>'));
+  assert.ok(root.includes('<time datetime="2026-03-28">28.03.2026</time>'));
+  assert.equal((page.body.match(/<h1\b/g) || []).length, 1);
+  assert.equal((root.match(/fetchpriority="high"/g) || []).length, 1);        // ყდა; სექციის ფოტოები lazy
+  assert.match(root, /loading="lazy"/);
+  assert.equal(nodes(page.body, "BlogPosting").length, 1);
+  assert.equal(nodes(page.body, "BreadcrumbList").length, 1);
+  assert.equal(canonical(page.body)[0], "https://artopia.ge/blog/fixture");
+  // სათაური და აღწერა escape-დება
+  const tricky = await visit("/blog/fixture", async () => json({ ...article, title: "<b>x</b> & \"y\"" }));
+  assert.ok(tricky.body.includes("&lt;b&gt;x&lt;/b&gt; &amp; &quot;y&quot;"));
+});
+
+test("unsafe section HTML is never injected; the page stays a normal 200", async () => {
+  for (const text of ["<p>a</p><script>steal()</script>", '<img src=x onerror="steal()">', '<a href="javascript:steal()">x</a>', '<p onclick="x()">c</p>', "<svg onload=x>"]) {
+    const page = await visit("/blog/fixture", async () => json({ ...article, sections: [{ position: 1, text }] }));
+    assert.equal(page.status, 200, text);
+    assert.ok(page.body.includes('<div id="root"></div>'), text);
+    assert.ok(!page.body.split("</head>")[1].includes("steal()"), text);
+  }
+  // ტექსტის გარეშე სტატია → ჩვეულებრივი ცარიელი #root
+  const empty = await visit("/blog/fixture", async () => json({ ...article, sections: [] }));
+  assert.ok(empty.body.includes('<div id="root"></div>'));
 });
 
 test("no admin secret ships with the storefront and promo codes are only checked by the server", async () => {

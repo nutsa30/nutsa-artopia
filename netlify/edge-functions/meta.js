@@ -173,6 +173,47 @@ const htmlResponse = (out, source) => {
 
 const breadcrumb = breadcrumbJsonLd;
 
+// The article itself as plain HTML inside #root, for crawlers and link previews
+// that never run JavaScript (ChatGPT/Perplexity/Claude search bots, part of Bing,
+// Facebook/Telegram/Viber). Everyone gets the same content — this is not cloaking.
+// main.jsx uses createRoot (not hydrate), so React simply replaces it; App.jsx's
+// route fallback keeps showing this copy while the article chunk loads.
+// Section HTML is the backend's sanitized output (app/html_sanitize.py); title,
+// description and alt texts are escaped here.
+// Defense in depth: the backend never returns these, so if a section still has
+// one (old cached answer, backend not yet deployed) nothing is injected at all.
+const UNSAFE_ARTICLE_HTML = /<\s*(?:script|style|iframe|object|embed|svg|math|form|input|img|link|meta|base)\b|\son\w+\s*=|javascript:|data:text\/html/i;
+
+function blogArticleBody(post, { title, description }) {
+  if ((Array.isArray(post.sections) ? post.sections : []).some((section) => UNSAFE_ARTICLE_HTML.test(String(section?.text || "")))) return "";
+  const date = typeof post.created_at === "string" ? post.created_at.slice(0, 10) : "";
+  const shownDate = /^\d{4}-\d{2}-\d{2}$/.test(date) ? date.split("-").reverse().join(".") : "";
+  const img = (url, alt, eager) => {
+    if (typeof url !== "string" || !url.trim()) return "";
+    const picture = responsiveImage(url, "article");
+    return `<img src="${esc(picture.src)}"${picture.srcSet ? ` srcset="${esc(picture.srcSet)}" sizes="${esc(picture.sizes)}"` : ""}`
+      + ` width="1120" height="630" alt="${esc(alt)}" decoding="async" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'}`
+      + ` style="display:block;width:100%;height:auto;border-radius:16px;margin:20px 0" />`;
+  };
+  const sections = (Array.isArray(post.sections) ? post.sections : [])
+    .map((section) => {
+      const text = typeof section?.text === "string" && section.text.trim() ? `<div>${section.text}</div>` : "";
+      return text || section?.image_url ? `<section>${text}${img(section?.image_url, clip(title, 100), false)}</section>` : "";
+    })
+    .join("");
+  if (!sections) return "";
+  return `<main data-edge-article="" style="min-height:100vh;color:#e2e8f0;line-height:1.75">`
+    + `<article style="max-width:900px;margin:0 auto;padding:0 16px 48px">`
+    + `<nav aria-label="breadcrumb" class="site-breadcrumbs"><a href="/">მთავარი</a> › <a href="/blogs">ბლოგი</a> › <span>${esc(clip(title, 80))}</span></nav>`
+    + `<h1 style="color:#f8fafc;line-height:1.3">${esc(title)}</h1>`
+    + (shownDate ? `<p><span>Artopia</span> • <time datetime="${esc(date)}">${esc(shownDate)}</time></p>` : "")
+    + (description ? `<p>${esc(description)}</p>` : "")
+    + img(post.og_image || post.cover_image, title, true)
+    + sections
+    + `<p><a href="/blogs">ყველა სტატია</a></p>`
+    + `</article></main>`;
+}
+
 // The production site also answers on Netlify's own hostnames
 // (<site>.netlify.app, main--<site>.netlify.app). They are copies of artopia.ge
 // and must never be indexed themselves.
@@ -257,12 +298,23 @@ async function handle(request, context) {
     const blogMatch = path.match(/^\/blog\/([^/]+)$/);
     if (blogMatch) {
       const slug = blogMatch[1];
-      const r = await apiFetch(`/blogs/slug/${encodeURIComponent(slug)}`);
+      // redirect: "manual" — the API's 301 is a JSON {"moved_to"} without Location
+      // (the article's title, and with it the slug, changed); it becomes a real 301.
+      const r = await apiFetch(`/blogs/slug/${encodeURIComponent(slug)}`, { redirect: "manual" });
       if (isApiVerdict(r, 404)) return notFoundResponse(shell, source, 404);
+      if (isApiVerdict(r, 301)) {
+        const target = (await r.json())?.moved_to;
+        if (typeof target === "string" && /^[a-z0-9-]+$/.test(target) && target !== slug) {
+          return new Response(null, { status: 301, headers: { location: `${SITE}/blog/${target}` } });
+        }
+        return page();
+      }
       if (!r.ok) return page();
       const b = await r.json();
       const post = b && (b.product ? b.product : b);
       if (!post || !(post.title || post.meta_title)) return page();
+      // გამოუქვეყნებელი სტატია (მაგ. ძველი API პასუხი) არასდროს ინდექსდება
+      if (post.is_active === false) return notFoundResponse(shell, source, 404);
 
       // Always use the real SPA route (/blog/<slug>). The backend's
       // canonical_url field uses /blogs/<slug> which is NOT a real route.
@@ -308,7 +360,9 @@ async function handle(request, context) {
           ],
         },
       });
-      return htmlResponse(embedInitialData(out, "blog", path, post), source);
+      const body = blogArticleBody(post, { title: post.title || post.meta_title, description });
+      const withBody = body ? out.replace('<div id="root"></div>', `<div id="root">${body}</div>`) : out;
+      return htmlResponse(embedInitialData(withBody, "blog", path, post), source);
     }
 
     /* ===================== BLOG INDEX: /blogs ===================== */

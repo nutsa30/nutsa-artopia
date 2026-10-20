@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import { LoadingProvider } from "./loaders/LoadingProvider.jsx";
 import { HelmetProvider } from "react-helmet-async";
 import { loadGoogleTranslate, translationRequested } from "./utils/googleTranslate.js";
+import { captureEdgeArticle } from "./utils/edgeArticle.js";
 
 // ლოკალური ტესტი: `.env.development.local`-ში VITE_API_OVERRIDE=http://localhost:5055
 // ჰეროკუს მისამართზე წასულ fetch-ებს ლოკალურ ბექზე გადაამისამართებს (ჰეროკუს
@@ -30,7 +31,11 @@ if (translationRequested()) {
   else window.addEventListener("load", start, { once: true });
 }
 
-createRoot(document.getElementById("root")).render(
+const rootElement = document.getElementById("root");
+// edge-ის ჩაწერილი სტატია ინახება, სანამ React მას ჩაანაცვლებს (იხ. src/utils/edgeArticle.js)
+captureEdgeArticle(rootElement);
+
+createRoot(rootElement).render(
   <HelmetProvider>
     <LoadingProvider>
       <App />

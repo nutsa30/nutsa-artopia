@@ -7,7 +7,8 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 const modules = {
   toolbar: [
-    [{ header: [1, 2, 3, false] }],   // სათაურები
+    // H1 მხოლოდ სტატიის სათაურია — ტექსტში სათაურები 2 და 3 (ბაზაში შემთხვევით მოხვედრილ h1-ს გამწმენდი h2-ად აქცევს)
+    [{ header: [2, 3, false] }],   // სათაურები
     ["bold", "italic", "underline"],
     [{ color: [] }, { background: [] }], // ფერები
     [{ size: ["small", false, "large", "huge"] }], // ზომა
@@ -138,7 +139,9 @@ const resolvedCoverImage =
   /* ---------------- FETCH LIST ---------------- */
   const fetchBlogs = async () => {
     try {
-      const res = await fetch(BASE);
+      // ადმინის სია: გამოუქვეყნებელი სტატიებიც (საჯარო /blogs მათ აღარ აბრუნებს)
+      const res = await fetch(`${BASE}/admin`, { headers: authHeaders() });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setBlogs(Array.isArray(data) ? data : []);
     } catch {
@@ -167,7 +170,7 @@ useEffect(() => {
   /* ---------------- FETCH DETAIL ---------------- */
   const fetchDetail = async (id) => {
     try {
-      const res = await fetch(`${BASE}/${id}`);
+      const res = await fetch(`${BASE}/admin/${id}`, { headers: authHeaders() });
       if (!res.ok) return;
       const data = await res.json();
 
@@ -380,7 +383,14 @@ try {
     return;
   }
 
-  alert(editingId ? "განახლდა" : "დაემატა");
+  // სათაური შეიცვალა → შეიცვალა მისამართიც; ძველს backend 301-ით გადაამისამართებს
+  const moved = editingId && data?.previous_slug && data.previous_slug !== data.slug;
+  alert(editingId
+    ? (moved
+      ? `განახლდა. ახალი მისამართი: artopia.ge/blog/${data.slug}
+ძველი მისამართი ავტომატურად გადამისამართდება ახალზე.`
+      : "განახლდა")
+    : "დაემატა");
 
   resetForm();
   fetchBlogs();
