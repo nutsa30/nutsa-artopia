@@ -268,8 +268,9 @@ test("the article text is in the initial HTML for crawlers that do not run JavaS
   assert.ok(root.includes('<a href="/blogs">') && root.includes('<a href="/products">პროდუქტები</a>'));
   assert.ok(root.includes('<time datetime="2026-03-28">28.03.2026</time>'));
   assert.equal((page.body.match(/<h1\b/g) || []).length, 1);
-  assert.equal((root.match(/fetchpriority="high"/g) || []).length, 1);        // ყდა; სექციის ფოტოები lazy
-  assert.match(root, /loading="lazy"/);
+  assert.equal((root.match(/fetchpriority="high"/g) || []).length, 1);        // მხოლოდ ყდა
+  assert.ok(root.includes("cover.jpg") && !root.includes("s1.jpg"));          // სექციის ფოტოებს React-ის გვერდი ტვირთავს (lazy)
+  assert.match(root, /<style>\[data-edge-article\] \*\{max-width:100%/);   // გრძელი სიტყვა/ცხრილი გვერდს არ აფართოებს (CLS)
   assert.equal(nodes(page.body, "BlogPosting").length, 1);
   assert.equal(nodes(page.body, "BreadcrumbList").length, 1);
   assert.equal(canonical(page.body)[0], "https://artopia.ge/blog/fixture");

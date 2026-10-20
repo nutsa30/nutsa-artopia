@@ -188,27 +188,29 @@ function blogArticleBody(post, { title, description }) {
   if ((Array.isArray(post.sections) ? post.sections : []).some((section) => UNSAFE_ARTICLE_HTML.test(String(section?.text || "")))) return "";
   const date = typeof post.created_at === "string" ? post.created_at.slice(0, 10) : "";
   const shownDate = /^\d{4}-\d{2}-\d{2}$/.test(date) ? date.split("-").reverse().join(".") : "";
-  const img = (url, alt, eager) => {
+  const cover = (url, alt) => {
     if (typeof url !== "string" || !url.trim()) return "";
     const picture = responsiveImage(url, "article");
     return `<img src="${esc(picture.src)}"${picture.srcSet ? ` srcset="${esc(picture.srcSet)}" sizes="${esc(picture.sizes)}"` : ""}`
-      + ` width="1120" height="630" alt="${esc(alt)}" decoding="async" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'}`
+      + ` width="1120" height="630" alt="${esc(alt)}" decoding="async" fetchpriority="high"`
       + ` style="display:block;width:100%;height:auto;border-radius:16px;margin:20px 0" />`;
   };
+  // Text only: the section photos come with the React page (lazy). Writing them here made the
+  // browser fetch every one of them during the first load (~350 KB extra on the tarot article).
   const sections = (Array.isArray(post.sections) ? post.sections : [])
-    .map((section) => {
-      const text = typeof section?.text === "string" && section.text.trim() ? `<div>${section.text}</div>` : "";
-      return text || section?.image_url ? `<section>${text}${img(section?.image_url, clip(title, 100), false)}</section>` : "";
-    })
+    .map((section) => (typeof section?.text === "string" && section.text.trim() ? `<section>${section.text}</section>` : ""))
     .join("");
   if (!sections) return "";
-  return `<main data-edge-article="" style="min-height:100vh;color:#e2e8f0;line-height:1.75">`
+  // No page CSS applies to this copy: without these rules a long word or a table widened the
+  // layout viewport and the fixed navbar shifted when React replaced it (CLS).
+  return `<main data-edge-article="" style="min-height:100vh;color:#e2e8f0;line-height:1.75;overflow-x:hidden">`
+    + `<style>[data-edge-article] *{max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}[data-edge-article] table{display:block;overflow-x:auto}[data-edge-article] a{color:#b8dcff}</style>`
     + `<article style="max-width:900px;margin:0 auto;padding:0 16px 48px">`
     + `<nav aria-label="breadcrumb" class="site-breadcrumbs"><a href="/">მთავარი</a> › <a href="/blogs">ბლოგი</a> › <span>${esc(clip(title, 80))}</span></nav>`
     + `<h1 style="color:#f8fafc;line-height:1.3">${esc(title)}</h1>`
     + (shownDate ? `<p><span>Artopia</span> • <time datetime="${esc(date)}">${esc(shownDate)}</time></p>` : "")
     + (description ? `<p>${esc(description)}</p>` : "")
-    + img(post.og_image || post.cover_image, title, true)
+    + cover(post.og_image || post.cover_image, title)
     + sections
     + `<p><a href="/blogs">ყველა სტატია</a></p>`
     + `</article></main>`;
