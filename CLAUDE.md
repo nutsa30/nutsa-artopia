@@ -233,7 +233,9 @@ Admin photos (products, blog, home carousel) upload with `uploadAdminImage(file,
 `src/admin/api.js` → backend `POST /admin/uploads/image` with the admin JWT (XHR, so the progress bar works; 401
 → re-login). **Never upload to Cloudinary from the browser and never use an unsigned preset** (`artopia_unsigned`
 was public in this repo, so anyone could upload to the account). Cloudinary URLs for *display* (`cld()`,
-`responsiveImage()`) are unaffected.
+`responsiveImage()`) are unaffected. The backend allows only 3 parallel multipart uploads (`staff_upload` in
+`app/abuse_protection.py`, 429 `service_busy` above that), so `uploadAdminImage` queues to **2 at a time** and
+retries a 429 after `Retry-After` (`tests/admin-upload.test.mjs`) — keep that if you add parallel uploads.
 
 ### Admin navbar (mobile)
 
