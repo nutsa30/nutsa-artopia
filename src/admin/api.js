@@ -201,6 +201,7 @@ export const syncOptimo = (options = {}) => {
     body: JSON.stringify({ dry_run: options.dryRun === true }),
   });
 };
+export const getOptimoStatus = () => jfetch(`${BASE}/api/optimo/status`);
 
 /* =========================================================
    Bearer auth helper (support + admin endpoints that need Bearer)

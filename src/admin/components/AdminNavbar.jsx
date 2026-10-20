@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import styles from "./AdminNavbar.module.css";
 import artopiaLogo from "../assets/IMG_4970.JPG";
-import { apiJson, syncOptimo, uploadStockExcel } from "../api";
+import { apiJson, syncOptimo, getOptimoStatus, uploadStockExcel } from "../api";
+import { syncSummary } from "../../utils/syncSummary";
 
 const AdminNavbar = () => {
   const [open, setOpen] = useState(false);
@@ -53,9 +54,7 @@ const onSyncOptimo = async (dryRun = false) => {
   setLoading(true);
   try {
     const response = await syncOptimo({ dryRun });
-    alert(`${response.message}\nდამატება: ${response.added ?? 0}; განახლება: ${response.updated ?? 0}; ` +
-      `გამოტოვება: ${response.omitted ?? 0}; დეაქტივაცია: ${response.deactivated ?? 0}; ` +
-      `გადასამოწმებელი: ${response.unverified ?? 0}; შეჩერებული ახალი ID: ${response.deferred ?? 0}`);
+    alert(`${response.message}\n${syncSummary(response)}`);
     if (dryRun) {
       const blob = new Blob([JSON.stringify(response, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -69,6 +68,17 @@ const onSyncOptimo = async (dryRun = false) => {
     setLoading(false); setOpen(false);
   }
 };
+
+  const onSyncStatus = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const { runs } = await getOptimoStatus();
+      alert(runs?.length ? runs.slice(0, 5).map(run => `${run.created_at} (UTC)\n${syncSummary(run)}`).join("\n\n")
+        : "სინქრონიზაციის ანგარიში ჯერ არ არის.");
+    } catch (error) { alert(error.message || "ანგარიში ვერ ჩაიტვირთა"); }
+    finally { setLoading(false); }
+  };
 
   const onUploadClick = () => {
     if (uploadLoading) return;
@@ -136,6 +146,9 @@ const onSyncOptimo = async (dryRun = false) => {
               </div>
               
               <ul className={styles.menuLinks}>
+                <li><button type="button" onClick={onSyncStatus} disabled={loading} className={styles.syncItem}>
+                  <FileText size={18} /> სინქრონიზაციის ბოლო ანგარიშები
+                </button></li>
                 <li>
                   <button type="button" onClick={() => onSyncOptimo(true)} disabled={loading}
                     className={`${styles.syncItem} ${styles.previewButton}`}>

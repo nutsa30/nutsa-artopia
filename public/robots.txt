@@ -1,10 +1,7 @@
 User-agent: *
 
-Disallow: /admin/
-Disallow: /login
-Disallow: /checkout
-Disallow: /payment/
-Disallow: /*?*
+# Crawlers must reach HTML/HTTP noindex on utility and filtered pages.
+# Authentication, not robots.txt, protects administration.
 
 Allow: /
 Allow: /engraving

@@ -23,7 +23,7 @@ globalThis.fetch = async () => { throw Error("Unmocked network is forbidden"); }
 const React = await import("react");
 const { createRoot } = await import("react-dom/client");
 const { Simulate } = await import("react-dom/test-utils");
-const { MemoryRouter, Routes, Route, useLocation } = await import("react-router-dom");
+const { MemoryRouter, Routes, Route, useLocation, useNavigate } = await import("react-router-dom");
 const server = await createServer({ configFile: false, plugins: [react()], ssr: { noExternal: ["react-helmet-async"] }, server: { middlewareMode: true, hmr: false }, appType: "custom" });
 const { HelmetProvider } = await server.ssrLoadModule("react-helmet-async");
 const { default: SEO } = await server.ssrLoadModule("/src/components/SEO.jsx");
@@ -37,6 +37,9 @@ const { default: ProductsPage } = await server.ssrLoadModule("/src/pages/Product
 const { default: HomePage } = await server.ssrLoadModule("/src/pages/HomePage.jsx");
 const { StorefrontDataProvider } = await server.ssrLoadModule("/src/context/StorefrontDataContext.jsx");
 const { CartUiProvider } = await server.ssrLoadModule("/src/components/Navbar/Navbar.jsx");
+const { default: RouteMetadata } = await server.ssrLoadModule("/src/components/RouteMetadata.jsx");
+let navigateFixture;
+function NavigationProbe() { navigateFixture = useNavigate(); return null; }
 after(async () => { await server.close(); dom.window.close(); });
 
 async function render(component) {
@@ -297,6 +300,7 @@ const future = { v7_startTransition: true, v7_relativeSplatPath: true };
 const fixtureProduct = (extra = {}) => ({ id: 101, slug: "focus-2", name: "Focus 2", price: 41, sale: 0, quantity: 10, category_name: "Fixture",
   image_url1: "https://res.cloudinary.com/x/image/upload/a.png", description: "Fixture description", brand: "Deli", gtin: "4006381333931", also_buy: [], ...extra });
 const storefront = (entry) => React.createElement(HelmetProvider, null, React.createElement(MemoryRouter, { initialEntries: [entry], future },
+  React.createElement(RouteMetadata), React.createElement(NavigationProbe),
   React.createElement(CartProvider, null, React.createElement(CartUiProvider, null, React.createElement(Routes, null,
     React.createElement(Route, { path: "/products", element: React.createElement(ProductsPage) }),
     React.createElement(Route, { path: "/products/page/:page", element: React.createElement(ProductsPage) }),
@@ -555,6 +559,62 @@ test("one robots meta after React takes over; blog index keeps the server title"
   } finally { await cleanup(); }
 });
 
+
+test("catalog schema survives edge hydration, SPA group/subcategory, history, filters and pagination without duplicates", async () => {
+  const { default: edge } = await import("../netlify/edge-functions/meta.js");
+  const { readFile } = await import("node:fs/promises");
+  const shell = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const tree = { main_categories: [{ id: 1, slug: "art", name: "Art", subcategories: [
+    { id: 10, slug: "paint", name: "Paint", main_category_slug: "art", main_category_name: "Art" },
+  ] }], featured_sections: [] };
+  globalThis.fetch = async url => {
+    if (url.includes("/categories/catalog")) return Response.json(tree);
+    if (url.includes("/products/list")) return Response.json({ total: 45, items: [fixtureProduct()], category_exists: true, main_category_exists: true,
+      category_context: { name: "Art", slug: "art" } });
+    throw Error(`Unexpected request ${url}`);
+  };
+  const response = await edge(new Request("https://artopia.ge/products/group/art"), {
+    next: async () => new Response(shell, { headers: { "content-type": "text/html" } }),
+  });
+  document.head.innerHTML = (await response.text()).match(/<head>([\s\S]*?)<\/head>/)[1];
+  assert.equal(document.querySelectorAll("#artopia-catalog-schema").length, 1, "initial edge graph");
+  const cleanup = await render(storefront("/products/group/art"));
+  const assertGraph = path => {
+    const graphs = Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
+      .flatMap(el => { const json = JSON.parse(el.textContent); return json["@graph"] || [json]; });
+    assert.equal(graphs.filter(s => s["@type"] === "CollectionPage").length, 1, path);
+    assert.equal(graphs.filter(s => s["@type"] === "BreadcrumbList").length, 1, path);
+    const collection = graphs.find(s => s["@type"] === "CollectionPage");
+    assert.equal(collection.url, "https://artopia.ge" + path);
+    assert.equal(collection.breadcrumb["@id"], graphs.find(s => s["@type"] === "BreadcrumbList")["@id"]);
+    const filtered = path.includes("?");
+    assert.equal(robotsMeta(), filtered ? "noindex,follow" : "index,follow");
+    assert.equal(canonicalHref(), filtered ? undefined : "https://artopia.ge" + path);
+  };
+  try {
+    assertGraph("/products/group/art");
+    for (const path of ["/products/category/paint", "/products/category/paint/page/2", "/products/group/art?categories=paint", "/products/group/art?search=Focus"]) {
+      await React.act(async () => navigateFixture(path)); await settle(380); await settle(); assertGraph(path);
+    }
+    await React.act(async () => navigateFixture(-1)); await settle(380); await settle(); assertGraph("/products/group/art?categories=paint");
+    await React.act(async () => navigateFixture(1)); await settle(380); await settle(); assertGraph("/products/group/art?search=Focus");
+  } finally { await cleanup(); document.head.innerHTML = ""; }
+});
+
+for (const entry of ["/checkout", "/admin/categories", "/login", "/payment/result?state=fixture"]) {
+  test(`React utility route adopts initial noindex and removes canonical: ${entry}`, async () => {
+    document.head.innerHTML = canonicalHtml('<head><meta name="robots" content="index,follow" data-rh="true"></head>', entry).replace(/<\/?head>/g, "");
+    const cleanup = await render(React.createElement(HelmetProvider, null, React.createElement(MemoryRouter, { initialEntries: [entry], future }, React.createElement(RouteMetadata))));
+    try { assert.equal(robotsMeta(), "noindex,nofollow"); assert.equal(canonicalHref(), undefined); }
+    finally { await cleanup(); }
+  });
+}
+test("legacy out-of-stock flag remains noindex after React rendering", async () => {
+  document.head.innerHTML = ""; catalogApi();
+  const cleanup = await render(storefront("/products/category/Fixture?include_out_of_stock=1"));
+  try { assert.equal(robotsMeta(), "noindex,follow"); assert.equal(canonicalHref(), undefined); }
+  finally { await cleanup(); }
+});
 
 test("main-category subcategories are persistent multi-select toggles", async () => {
   document.head.innerHTML = ""; localStorage.clear(); sessionStorage.clear();

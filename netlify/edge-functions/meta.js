@@ -4,6 +4,8 @@ import {
   BLOG_INDEX_META, blogArticleMeta,
 } from "../../src/utils/catalogMeta.js";
 import { responsiveImage } from "../../src/utils/cloudinary.js";
+import { indexPolicy, utilityTitle } from "../../src/utils/indexPolicy.js";
+import { catalogJsonLd } from "../../src/utils/catalogSchema.js";
 
 // Netlify Edge Function — bakes correct per-page SEO into the SPA's index.html
 // for all visitors and crawlers so
@@ -95,7 +97,7 @@ function notFoundResponse(html, source, status = 404) {
   let out = html;
   out = setTag(out, /<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
   out = setTag(out, /<meta\s+name="description"[^>]*>/, `<meta name="description" content="${esc(description)}" />`);
-  out = setTag(out, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex, follow" data-rh="true" />`);
+  out = setTag(out, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex,nofollow" data-rh="true" />`);
   out = out.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*>\s*/gi, "");
   out = out.replace(/<meta\s+property="og:(?:url|title|description)"[^>]*>\s*/g, "");
   const headers = new Headers(source.headers);
@@ -149,9 +151,11 @@ function applyMeta(html, { title, description, url, image, type, jsonLd, keyword
     // data-ld-edge: the SPA sees that this page already carries its JSON-LD and
     // does not emit a second, competing copy (see src/utils/edgeJsonLd.js).
     const path = new URL(url).pathname;
+    const catalogOwner = jsonLd["@graph"]?.some((item) => item["@type"] === "CollectionPage")
+      ? ' id="artopia-catalog-schema" data-rh="true"' : "";
     out = out.replace(
       "</head>",
-      `<script type="application/ld+json" data-ld-edge="${esc(path)}">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>\n</head>`
+      `<script type="application/ld+json"${catalogOwner} data-ld-edge="${esc(path)}">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>\n</head>`
     );
   }
   return out;
@@ -175,12 +179,21 @@ const breadcrumb = breadcrumbJsonLd;
 export default async (request, context) => {
   let response = await handle(request, context);
   const filterUrl = new URL(request.url);
-  if (parseCatalogPath(filterUrl.pathname) && (filterUrl.searchParams.has("search") || filterUrl.searchParams.has("categories") || ["1", "true"].includes(filterUrl.searchParams.get("include_out_of_stock")))
+  const policy = indexPolicy(filterUrl.href);
+  if (policy.noIndex
       && response.status === 200 && (response.headers.get("content-type") || "").includes("text/html")) {
     let body = await response.text();
-    body = setTag(body, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex,follow" data-rh="true" />`);
+    body = setTag(body, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="${policy.robots}" data-rh="true" />`);
     body = body.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*>\s*/gi, "");
+    body = body.replace(/<meta\s+property="og:url"[^>]*>\s*/gi, "");
+    body = body.replace(/<link\b[^>]*\bhreflang=["'][^"']*["'][^>]*>\s*/gi, "");
     const headers = new Headers(response.headers);
+    if (policy.utility) {
+      body = setTag(body, /<title>[\s\S]*?<\/title>/, `<title>${esc(utilityTitle(filterUrl.pathname))}</title>`);
+      body = setTag(body, /<meta\s+name="description"[^>]*>/, '<meta name="description" content="Artopia-ს მომსახურების გვერდი." data-rh="true" />');
+      headers.set("cache-control", "private, no-store");
+      headers.set("netlify-cdn-cache-control", "no-store");
+    }
     headers.set("x-robots-tag", "noindex");
     response = new Response(body, { status: 200, headers });
   }
@@ -538,14 +551,6 @@ async function handle(request, context) {
       const meta = catalogMeta({ category, mainCategory, displayName: categoryContext?.name, title: categoryContext?.meta_title,
         description: categoryContext?.meta_description || categoryContext?.description, page });
       meta.url += filterSuffix;
-      const crumbs = [
-        { name: "მთავარი", item: `${SITE}/` },
-        { name: "პროდუქტები", item: `${SITE}/products` },
-      ];
-      if (categoryContext?.main_category_slug) crumbs.push({ name: categoryContext.main_category_name,
-        item: `${SITE}${catalogPath({ mainCategory: categoryContext.main_category_slug })}` });
-      if (category || mainCategory) crumbs.push({ name: categoryContext?.name || category || mainCategory,
-        item: `${SITE}${catalogPath({ category, mainCategory })}` });
 
       // rel prev/next: plain crawlable hints to the neighbouring listing pages
       const links = [];
@@ -561,19 +566,7 @@ async function handle(request, context) {
         image: DEFAULT_IMAGE,
         type: "website",
         headExtra: [...links, lcpPreload].filter(Boolean).join("\n"),
-        jsonLd: {
-          "@context": "https://schema.org",
-          "@graph": [
-            {
-              "@type": "CollectionPage",
-              name: meta.title,
-              url: meta.url,
-              inLanguage: "ka-GE",
-              isPartOf: { "@id": `${SITE}/#website` },
-            },
-            breadcrumb(crumbs),
-          ],
-        },
+        jsonLd: catalogJsonLd({ meta, category, mainCategory, context: categoryContext, page, search: url.search }),
       });
       if (confirmedEmpty && !inclusive) {
         let empty = setTag(out, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex,nofollow" data-rh="true" />`);

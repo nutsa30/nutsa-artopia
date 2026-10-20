@@ -8,8 +8,7 @@ export function pageNumber(value) {
 }
 
 // კატალოგის სუფთა მისამართი: /products[/category/<სახელი>][/page/<N>].
-// pagination path-შია და არა ?page=-ში, ამიტომ robots.txt-ის `Disallow: /*?*`
-// (ძიება, ფილტრები, ტექნიკური პარამეტრები) ხელუხლებელი რჩება.
+// Pagination uses crawlable paths; filtered queries use shared HTML/HTTP noindex.
 export function catalogPath({ category, mainCategory, page } = {}) {
   let path = "/products";
   if (mainCategory) path += `/group/${encodeURIComponent(mainCategory)}`;

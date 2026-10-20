@@ -112,7 +112,7 @@ test("unknown paths are real 404s with noindex and no canonical; every app route
   for (const path of ["/some/random/page", "/produkty", "/products/a/b/c", "/blog/a/b", "/wp-login.php", "/foo.png"]) {
     const r = await visit(path, noNetwork);
     assert.equal(r.status, 404, path);
-    assert.equal(robots(r.body), "noindex, follow");
+    assert.equal(robots(r.body), "noindex,nofollow");
     assert.deepEqual(canonical(r.body), []);
     assert.equal(r.response.headers.get("x-robots-tag"), "noindex");
     assert.match(r.body, /<div id="root"><\/div>/);          // the SPA still boots and shows its own message
@@ -133,9 +133,9 @@ test("unknown paths are real 404s with noindex and no canonical; every app route
 test("a product is 404/410/301 only when the API says so; outages never remove a live page", async () => {
   const api = (answer) => async (url) => (url.includes("/products/full/") ? answer() : noNetwork(url));
   const missing = await visit("/products/never-existed", api(() => json({ message: "Not found" }, 404)));
-  assert.equal(missing.status, 404); assert.equal(robots(missing.body), "noindex, follow");
+  assert.equal(missing.status, 404); assert.equal(robots(missing.body), "noindex,nofollow");
   const gone = await visit("/products/removed", api(() => json({ message: "Gone", status: "gone" }, 410)));
-  assert.equal(gone.status, 410); assert.equal(robots(gone.body), "noindex, follow"); assert.deepEqual(canonical(gone.body), []);
+  assert.equal(gone.status, 410); assert.equal(robots(gone.body), "noindex,nofollow"); assert.deepEqual(canonical(gone.body), []);
   const moved = await visit("/products/old-slug", api(() => json({ status: "moved", moved_to: "new-slug" }, 301)));
   assert.equal(moved.status, 301); assert.equal(moved.response.headers.get("location"), "https://artopia.ge/products/new-slug");
   // a redirect target that is not a plain slug is ignored (no open redirect)
@@ -224,7 +224,7 @@ test("catalog pagination: self canonical per page, prev/next, 404 past the end o
   assert.equal(canonicalUrl("/products/page/2?search=x&sort=price&utm_source=y"), "https://artopia.ge/products/page/2");
   assert.equal(canonicalUrl("/products?search=x&sort=price"), "https://artopia.ge/products");
   const rules = await readFile(new URL("../public/robots.txt", import.meta.url), "utf8");
-  assert.match(rules, /^Disallow: \/\*\?\*$/m);                     // query URLs stay blocked
+  assert.doesNotMatch(rules, /^Disallow: \/\*\?\*$/m);              // query noindex must be crawlable
   assert.doesNotMatch(rules, /Disallow: \/products/);               // path pagination is crawlable
 });
 

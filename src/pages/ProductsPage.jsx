@@ -7,6 +7,9 @@ import { useNavigate, useLocation, useSearchParams, useParams, Navigate, Link } 
 import { ArrowLeft, Check } from "lucide-react";
 import EdgePager from "../components/pagination/EdgePager";
 import SEO from "../components/SEO";
+import { Helmet } from "react-helmet-async";
+import { indexPolicy } from "../utils/indexPolicy";
+import { catalogJsonLd, catalogSchemaUrl } from "../utils/catalogSchema";
 import NotFound from "../components/NotFound";
 import { catalogPath, pageNumber } from "../utils/canonical";
 import { catalogMeta, PRODUCTS_PER_PAGE } from "../utils/catalogMeta";
@@ -356,13 +359,21 @@ const ProductsPage = () => {
       : selectedMain?.id != null ? { kind: "main", id: Number(selectedMain.id) } : null)
     : null;
 
-  // CollectionPage + BreadcrumbList-ს edge function წერს საწყის HTML-ში; აქ მხოლოდ
-  // ამ გვერდის პროდუქტების სიაა (ItemList), რომ ორი კონკურენტი CollectionPage არ გამოვიდეს.
+  // Edge owns the initial HTML; Helmet adopts/replaces its marked catalog script.
+  // React then owns direct hydration, SPA navigation, filters and pagination.
+  const policy = indexPolicy(location.pathname + location.search, {
+    filtered: Boolean(searchTerm.trim()) || selectedSubcategories.length > 0,
+    empty: !landingMode && loaded && products.length === 0,
+  });
+  const collectionSchema = catalogJsonLd({ meta,
+    category: selectedCategory === ALL ? null : selectedCategory,
+    mainCategory: selectedMainCategory || null, context: selectedSub || selectedMain,
+    page: currentPage, search: location.search });
   const itemListSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: meta.title,
-    url: meta.url,
+    url: catalogSchemaUrl(meta.url, location.search),
     numberOfItems: products.length,
     itemListElement: products
       .filter((product) => product?.slug)
@@ -381,9 +392,14 @@ const ProductsPage = () => {
         description={meta.description}
         url={meta.url}
         // ცარიელი კატეგორია (პროდუქტი დროებით არ აქვს) ინდექსში არ უნდა მოხვდეს
-        noIndex={Boolean(searchTerm.trim()) || selectedSubcategories.length > 0 || (!landingMode && loaded && products.length === 0)}
-        noIndexFollow={Boolean(searchTerm.trim()) || selectedSubcategories.length > 0}
+        noIndex={policy.noIndex}
+        noIndexFollow={policy.noIndexFollow}
       />
+      <Helmet>
+        <script id="artopia-catalog-schema" type="application/ld+json">
+          {JSON.stringify(collectionSchema).replace(/</g, "\\u003c")}
+        </script>
+      </Helmet>
       {products.length > 0 && (
         <script
           type="application/ld+json"

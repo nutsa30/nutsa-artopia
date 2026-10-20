@@ -21,8 +21,8 @@ import CartToast from "./components/CartToast/CartToast";
 import { useCart } from "./components/CartContext/CartContext";
 import ScrollToTop from "./components/ScrollToTop";
 import NotFound from "./components/NotFound";
-import { dropStaleEdgeJsonLd } from "./utils/edgeJsonLd";
 import { StorefrontDataProvider } from "./context/StorefrontDataContext";
+import RouteMetadata from "./components/RouteMetadata";
 
 const ProductsPage = React.lazy(() => import("./pages/ProductsPage"));
 const BlogsPage = React.lazy(() => import("./pages/BlogsPage"));
@@ -45,14 +45,7 @@ const CartToastWrapper = () => {
   return <CartToast show={showToast} message="დამატებულია კალათაში" />;
 };
 
-const RouteLoader = () => {
-  const location = useLocation();
-  // SPA-ში გადასვლისას წინა გვერდის edge JSON-LD (მაგ. სხვა პროდუქტის schema) იშლება
-  useEffect(() => {
-    dropStaleEdgeJsonLd(location.pathname);
-  }, [location.pathname]);
-  return null;
-};
+const RouteLoader = RouteMetadata;
 
 const ChatWidgetMount = () => {
   const [ready, setReady] = useState(false);
