@@ -217,9 +217,14 @@ document.addEventListener("mouseout", handleMouseOut);
     return Array.isArray(blog?.sections) ? blog.sections : [];
   }, [blog]);
 
-  const title = normalizeText(blog?.meta_title) || normalizeText(blog?.title);
+  // ხილული სათაური ყოველთვის სტატიის სათაურია; SEO სათაური (meta_title) მხოლოდ metadata-შია
+  const title = normalizeText(blog?.title) || normalizeText(blog?.meta_title);
+  const seoTitle = normalizeText(blog?.meta_title) || title;
   // იგივე წესი, რაც საწყის HTML-შია (edge function): JS-მდე და JS-ის შემდეგ metadata ემთხვევა
-  const description = blogArticleMeta(blog, slug).description || getBlogDescription(blog);
+  const articleMeta = blogArticleMeta(blog, slug);
+  const description = articleMeta.description || getBlogDescription(blog);
+  // ხილული შესავალი სტატიის description-ია; SEO აღწერის რედაქტირება მას არ ცვლის
+  const intro = articleMeta.intro || getBlogDescription(blog);
   // BlogPosting + BreadcrumbList-ს edge function წერს; აქ ვამატებთ მხოლოდ მაშინ, როცა ის არ არის,
   // რომ გვერდზე ორი Article და ორი BreadcrumbList არ აღმოჩნდეს
   const edgeProvidesSchema = hasEdgeJsonLd(`/blog/${slug}`);
@@ -233,7 +238,7 @@ document.addEventListener("mouseout", handleMouseOut);
   const articleSchema = blog && {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    headline: title,
+    headline: seoTitle,
     description: description,
     image: coverImage,
     author: {
@@ -302,7 +307,7 @@ if (loading) {
     <>
       {/* META SEO */}
       <SEO
-        title={title}
+        title={seoTitle}
         description={description}
         url={canonicalUrl}
         image={coverImage}
@@ -344,8 +349,8 @@ if (loading) {
                   )}
                 </div>
 
-                {description && (
-                  <p className={styles.description}>{description}</p>
+                {intro && (
+                  <p className={styles.description}>{intro}</p>
                 )}
               </div>
 

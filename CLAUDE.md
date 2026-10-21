@@ -214,6 +214,7 @@ URL inspection) to confirm what Google really indexes; 228 in-stock products wit
 is 3.7–6.1 s in the lab — the rest is the SPA itself (prerender only if Search Console shows a problem).
 
 ### Blog: drafts, renamed slugs, sanitizer, article in the initial HTML (2026-10-20)
+- **SEO title/description are separate fields** (`meta_title`/`meta_description`, admin form "SEO სათაური/აღწერა"). `blogArticleMeta` (`src/utils/catalogMeta.js`, shared by edge and React) uses them for title/description/OG/Twitter/JSON-LD; empty → title / description, cut by `clipAtBoundary` (sentence or word, ≤155, never mid-word). The visible h1 and intro always come from `title` / `description`, never from the SEO fields.
 - Public blog API hides `is_active=false` articles (JSON 404); the admin page (`src/admin/pages/blog/Blog.jsx`)
   reads `/blogs/admin` and `/blogs/admin/<id>` with `authHeaders()`. `BlogsDetailPage` also renders `NotFound`
   for `is_active === false` (old CDN answer).

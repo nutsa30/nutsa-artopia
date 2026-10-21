@@ -339,7 +339,7 @@ async function handle(request, context) {
           "@graph": [
             {
               "@type": "BlogPosting",
-              headline: clip(post.meta_title || post.title, 110),
+              headline: articleMeta.headline,
               description,
               image: [image],
               datePublished: post.created_at || undefined,
@@ -363,7 +363,7 @@ async function handle(request, context) {
           ],
         },
       });
-      const body = blogArticleBody(post, { title: post.title || post.meta_title, description });
+      const body = blogArticleBody(post, { title: post.title || post.meta_title, description: articleMeta.intro });
       const withBody = body ? out.replace('<div id="root"></div>', `<div id="root">${body}</div>`) : out;
       return htmlResponse(embedInitialData(withBody, "blog", path, post), source);
     }
