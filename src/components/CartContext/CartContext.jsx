@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext,useEffect } from 'react';
-import { trackAddToCart } from '../../utils/analytics';
+import { trackAddToCart, trackRemoveFromCart } from '../../utils/analytics';
 import { isEngravingItem, engravingUnits, MAX_ENGRAVED_UNITS } from '../../utils/engraving';
 
 // 1. კონტექსტის შექმნა
@@ -132,6 +132,7 @@ const addToCart = (product, qty = 1) => {
 
   // პროდუქტის წაშლა კალათიდან
   const removeFromCart = (productId) => {
+    trackRemoveFromCart(cartItems.find((item) => item.id === productId));
     setCartItems(prev => prev.filter(item => item.id !== productId));
   };
 

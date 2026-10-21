@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import DeliverySection from "./DeliverySection";
 import { checkoutIntent, clearCheckoutIntent } from "../../utils/checkoutIntent";
 import { TruckIcon, StoreIcon, ClockIcon, PinIcon, CardIcon, WarningIcon } from "./icons";
-import { trackBeginCheckout, getGaContext } from "../../utils/analytics";
+import { trackBeginCheckout, trackAddShippingInfo, trackAddPaymentInfo, resetCheckoutSteps, getGaContext } from "../../utils/analytics";
 import {
   buildCartBreakdown,
   couponDiscountFor,
@@ -341,6 +341,19 @@ const Checkout = () => {
     }
   }, [cartItems, preview.subtotal]);
 
+  // GA4 add_shipping_info — მიტანის ეტაპი სრულია (მეთოდი + კურიერზე ქალაქი და მისამართი); ერთხელ
+  const shippingStepDone =
+    formData.deliveryOption === "storePickup" ||
+    (formData.deliveryOption === "courierDelivery" && Boolean(delivery.city) && Boolean(delivery.address?.trim()));
+  useEffect(() => {
+    resetCheckoutSteps();
+  }, []);
+  useEffect(() => {
+    if (shippingStepDone && cartItems.length > 0) {
+      trackAddShippingInfo(cartItems, preview.subtotal, formData.deliveryOption);
+    }
+  }, [shippingStepDone, cartItems, preview.subtotal, formData.deliveryOption]);
+
   const canSubmit = useMemo(() => {
     if (cartItems.length === 0) return false;
     if (!formData.first_name?.trim() || !formData.last_name?.trim()) return false;
@@ -381,6 +394,8 @@ const Checkout = () => {
     if (submissionInFlightRef.current) return;
     submissionInFlightRef.current = true;
     setError("");
+    // GA4 add_payment_info — არჩეული გადახდის მეთოდი გაგზავნისას; ერთხელ
+    trackAddPaymentInfo(cartItems, preview.subtotal, formData.paymentMethod);
 
     // ── ადგილზე აღება + ადგილზე გადახდა — ბანკის გვერდის გვერდის ავლით ──
     // (გრავირებიან კალათაზე ეს გზა დაკეტილია — მხოლოდ ბარათით, წინასწარ)
