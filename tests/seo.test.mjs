@@ -306,7 +306,7 @@ test("no admin secret ships with the storefront and promo codes are only checked
 
 /* ===================== performance hints, renamed categories, alias hosts ===================== */
 import { responsiveImage } from "../src/utils/cloudinary.js";
-import { BLOG_INDEX_META, blogArticleMeta } from "../src/utils/catalogMeta.js";
+import { BLOG_INDEX_META, blogArticleMeta, clipAtBoundary } from "../src/utils/catalogMeta.js";
 
 test("LCP image preload matches the real <img> exactly and exists only for a real photo", async () => {
   const photo = "https://res.cloudinary.com/x/image/upload/v1/photo.png";
@@ -379,6 +379,35 @@ test("blog metadata is identical before and after JavaScript", async () => {
   assert.match(page, /BLOG_INDEX_META\.title/);
 });
 
+
+test("blog SEO title and description are separate; fallback is cut at a sentence or word, never mid-word", async () => {
+  const intro = "ეს არის სტატიის გრძელი შესავალი აბზაცი, რომელიც ხილულია გვერდზე. მეორე წინადადება უკვე გაცილებით გრძელია და ვერ ეტევა ერთ სნიპეტში, ამიტომ ის უნდა მოიჭრას სიტყვის საზღვარზე.";
+  const post = { title: "ნამდვილი სათაური", description: intro, meta_title: "SEO სათაური", meta_description: "SEO აღწერა", created_at: "2026-01-01", sections: [{ text: "<p>ტექსტი</p>" }] };
+  const article = await visit("/blog/fixture", async () => json(post));
+  const body = article.body;
+  assert.ok(body.includes("<title>SEO სათაური | Artopia</title>"));
+  assert.ok(body.includes('<meta name="description" content="SEO აღწერა" data-rh="true" />'));
+  assert.ok(body.includes('<meta property="og:description" content="SEO აღწერა" data-rh="true" />'));
+  assert.ok(body.includes('<meta name="twitter:description" content="SEO აღწერა" data-rh="true" />'));
+  const post_ld = nodes(body, "BlogPosting")[0];
+  assert.equal(post_ld.headline, "SEO სათაური");
+  assert.equal(post_ld.description, "SEO აღწერა");
+  assert.match(body, /<h1[^>]*>ნამდვილი სათაური<\/h1>/);                      // the visible heading is the real title
+  assert.ok(body.includes(`<p>${blogArticleMeta(post, "fixture").intro}</p>`));  // the visible intro is the description
+
+  // fallback: no meta fields → sentence/word boundary, no mid-word cut
+  const fallback = blogArticleMeta({ ...post, meta_title: "", meta_description: "" }, "fixture");
+  assert.equal(fallback.title, "ნამდვილი სათაური | Artopia");
+  assert.ok(fallback.description.length <= 155);
+  assert.equal(fallback.description, "ეს არის სტატიის გრძელი შესავალი აბზაცი, რომელიც ხილულია გვერდზე.");
+  const words = new Set(intro.split(/[\s,.]+/));
+  const noPunct = clipAtBoundary("სიტყვა ".repeat(40), 155);
+  assert.ok(noPunct.length <= 156 && noPunct.endsWith("…"));
+  for (const w of noPunct.slice(0, -1).split(" ").filter(Boolean)) assert.equal(w, "სიტყვა");
+  assert.equal(clipAtBoundary("მოკლე ტექსტი.", 155), "მოკლე ტექსტი.");
+  assert.equal(clipAtBoundary("ა".repeat(200), 155).length, 155);            // one endless word: hard cut as last resort
+  assert.ok(words.size > 0);
+});
 
 test("filtered pagination is validated against the inclusive catalogue, noindex and no canonical", async () => {
   const r = await visit("/products/category/Fixture/page/3?include_out_of_stock=1", url => {

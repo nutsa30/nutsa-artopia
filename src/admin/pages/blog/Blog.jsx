@@ -34,10 +34,17 @@ const emptySection = () => ({
 const DEFAULT_FORM = {
   title: "",
   description: "",
+  meta_title: "",
+  meta_description: "",
   keywords: "",
   cover_image: "",
   is_active: true,
 };
+
+// SEO ველების რეკომენდებული სიგრძე Google-ის შედეგებში
+const SEO_TITLE_MAX = 60;
+const SEO_DESCRIPTION_MIN = 120;
+const SEO_DESCRIPTION_MAX = 155;
 
 const DEFAULT_MANUAL = {
   title: false,
@@ -56,8 +63,8 @@ const FIELD_HELP = {
   is_active: "თუ ჩართულია, ბლოგი გამოჩნდება საიტზე. თუ გამორთულია, დარჩება მხოლოდ ადმინისთვის.",
   title: "ბლოგის მთავარი სათაური. თუ არ შეავსებ, შეიძლება პირველი სექციის ტექსტიდან შეივსოს ავტომატურად.",
   slug: "URL-ის ბოლო ნაწილი. შეგიძლია არ ჩაწერო — სათაურიდან დაგენერირდება preview.",
-  meta_title: "SEO სათაური Google-ისთვის. თუ ცარიელია, სათაურის მიხედვით შეივსება preview.",
-  meta_description: "მოკლე SEO აღწერა. თუ ცარიელია, პირველი ტექსტიდან შეიქმნება preview.",
+  meta_title: "SEO სათაური Google-ისთვის (რეკომენდაცია ≤ 60). თუ ცარიელია, სტატიის სათაური გამოიყენება.",
+  meta_description: "SEO აღწერა Google-ისთვის (რეკომენდაცია 120-155). თუ ცარიელია, ზემოთ მოცემული აღწერა გამოიყენება.",
   keywords: "საკვანძო სიტყვები მძიმეებით გამოყოფილი. მაგალითად: ხელნაკეთი, დეკორი, საჩუქარი.",
   cover_image: "ბლოგის მთავარი cover სურათი. თუ ცარიელია, პირველი section-ის ფოტოს გამოვიყენებთ preview-ად.",
   og_title: "სათაური Facebook/LinkedIn share-ისთვის. თუ არ ჩაწერ, meta title/title-დან შეივსება preview.",
@@ -161,6 +168,8 @@ useEffect(() => {
 setForm({
   title: data.title || "",
   description: data.description || "",
+  meta_title: data.meta_title || "",
+  meta_description: data.meta_description || "",
   keywords: data.keywords || "",
   cover_image: data.cover_image || "",
   is_active: data.is_active ?? true,
@@ -326,6 +335,8 @@ const resetForm = () => {
 const fd = new FormData();
 fd.append("title", resolvedTitle);
 fd.append("description", form.description);
+fd.append("meta_title", form.meta_title.trim());
+fd.append("meta_description", form.meta_description.trim());
 fd.append("keywords", form.keywords.trim());
 fd.append("is_active", String(form.is_active));
 if (coverFile instanceof File) {
@@ -572,6 +583,45 @@ const renderLabel = (text, key, helpText) => (
     className={styles.textarea}
     placeholder="მოკლე აღწერა..."
   />
+</div>
+
+<div className={styles.fieldGroup}>
+  {renderLabel("SEO სათაური", "meta_title", FIELD_HELP.meta_title)}
+  <input
+    type="text"
+    name="meta_title"
+    value={form.meta_title}
+    onChange={handleChange}
+    className={styles.input}
+    maxLength={255}
+    placeholder={resolvedTitle || ""}
+  />
+  <p className={styles.autoHint} style={form.meta_title.trim().length > SEO_TITLE_MAX ? { color: "#e11d48" } : undefined}>
+    {form.meta_title.trim().length} სიმბოლო (რეკომენდაცია: ≤ {SEO_TITLE_MAX}). ეს ტექსტი Google-ის სათაურია, სტატიის სათაურს და მისამართს არ ცვლის.
+  </p>
+</div>
+
+<div className={styles.fieldGroup}>
+  {renderLabel("SEO აღწერა", "meta_description", FIELD_HELP.meta_description)}
+  <textarea
+    name="meta_description"
+    value={form.meta_description}
+    onChange={handleChange}
+    className={styles.textarea}
+    maxLength={500}
+    placeholder="Google-ის აღწერა..."
+  />
+  <p
+    className={styles.autoHint}
+    style={
+      form.meta_description.trim().length > SEO_DESCRIPTION_MAX ||
+      (form.meta_description.trim().length > 0 && form.meta_description.trim().length < SEO_DESCRIPTION_MIN)
+        ? { color: "#e11d48" }
+        : undefined
+    }
+  >
+    {form.meta_description.trim().length} სიმბოლო (რეკომენდაცია: {SEO_DESCRIPTION_MIN}-{SEO_DESCRIPTION_MAX}). ეს ტექსტი Google-ის აღწერაა, გვერდზე ხილულ შესავალს არ ცვლის.
+  </p>
 </div>
 
 <div className={styles.fieldGroup}>

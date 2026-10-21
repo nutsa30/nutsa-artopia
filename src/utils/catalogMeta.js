@@ -124,12 +124,35 @@ export const BLOG_INDEX_META = {
     "Artopia-ს არტ ბლოგი — სამხატვრო რჩევები, მასალების გიდები და ხელოვნების სიახლეები. ისწავლე როგორ აირჩიო საღებავი, ფუნჯი, ფანქარი, ტილო და სხვა სამხატვრო მასალა.",
 };
 
-// სტატიის title სრულად იწერება (ხელოვნურად აღარ იჭრება „…"-ით); აღწერა — 160 სიმბოლომდე.
-export function blogArticleMeta(post, slug) {
-  return {
-    url: `${SITE_URL}/blog/${slug}`,
-    title: `${squeeze(post?.meta_title) || squeeze(post?.title)} | Artopia`,
-    description: clip(post?.meta_description || post?.og_description || post?.description, 160),
-  };
+// ტექსტის შემოკლება წინადადების ან სიტყვის საზღვარზე, არასოდეს სიტყვის შუაში.
+// ჯერ ვეძებთ ბოლო წინადადების დასასრულს (. ! ?), რომელიც საკმარისად გვიანაა (≥ 40%), ამ შემთხვევაში
+// „…" არ ემატება; თუ არ არის, ვჭრით ბოლო ინტერვალზე, ბოლოდან ნიშნებს ვაცილებთ და ვამატებთ „…".
+export function clipAtBoundary(value, max = 155) {
+  const t = squeeze(value);
+  if (t.length <= max) return t;
+  const head = t.slice(0, max);
+  const floor = Math.floor(max * 0.4);
+  let end = -1;
+  for (let i = head.length - 1; i >= floor; i -= 1) {
+    if (/[.!?]/.test(head[i]) && (i === head.length - 1 || t[i + 1] === " ")) { end = i + 1; break; }
+  }
+  if (end > 0) return head.slice(0, end).trim();
+  // t[max] არ არის ინტერვალი → head-ის ბოლო სიტყვა დაუსრულებელია და ისიც ვჭრით
+  const cut = t[max] === " " ? head : head.slice(0, head.lastIndexOf(" "));
+  const trimmed = cut.replace(/[\s,;:\-–(«„"']+$/u, "");
+  return (trimmed || head.slice(0, max - 1)) + "…";
 }
 
+// სტატიის title სრულად იწერება (ხელოვნურად აღარ იჭრება „…"-ით).
+// SEO ტექსტი ცალკეა: meta_title/meta_description, თუ არსებობს; ცარიელზე სტატიის სათაური/შესავალი.
+// `intro` ხილული შესავალია (description) და SEO ტექსტის შეცვლა მას არ ეხება.
+export function blogArticleMeta(post, slug) {
+  const seoTitle = squeeze(post?.meta_title) || squeeze(post?.title);
+  return {
+    url: `${SITE_URL}/blog/${slug}`,
+    title: `${seoTitle} | Artopia`,
+    headline: clipAtBoundary(seoTitle, 110),
+    description: clipAtBoundary(post?.meta_description || post?.og_description || post?.description, 155),
+    intro: clip(post?.description || post?.meta_description || post?.og_description, 160),
+  };
+}
