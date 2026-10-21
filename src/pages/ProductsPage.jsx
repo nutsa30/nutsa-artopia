@@ -8,6 +8,7 @@ import { ArrowLeft, Check } from "lucide-react";
 import EdgePager from "../components/pagination/EdgePager";
 import SEO from "../components/SEO";
 import { Helmet } from "react-helmet-async";
+import { trackSearch } from "../utils/analytics";
 import { indexPolicy } from "../utils/indexPolicy";
 import { catalogJsonLd, catalogSchemaUrl } from "../utils/catalogSchema";
 import NotFound from "../components/NotFound";
@@ -123,6 +124,12 @@ const ProductsPage = () => {
     const timer = setTimeout(() => setQuerySearch(next), 300);
     return () => clearTimeout(timer);
   }, [searchTerm, querySearch]);
+  // GA4 search — რეალური ძებნა: აკრეფის შეჩერებიდან 1 წმ-ში, ერთი და იგივე სიტყვა ზედიზედ ერთხელ
+  useEffect(() => {
+    if (!querySearch) return undefined;
+    const timer = setTimeout(() => trackSearch(querySearch), 1000);
+    return () => clearTimeout(timer);
+  }, [querySearch]);
   const selectedSubcategories = selectedMainCategory
     ? [...new Set((searchParams.get("categories") || "").split(",").map((item) => item.trim()).filter(Boolean))]
     : [];

@@ -17,18 +17,31 @@ const ga4Item = (it, index) => {
     quantity: Number(it?.quantity || 1),
   };
   if (index != null) item.index = index;
+  // კატეგორია: ქვეკატეგორია → item_category, მთავარი → item_category2. ცარიელი ველი არ იგზავნება.
+  const sub = categoryName(it?.category_name);
+  const main = categoryName(it?.main_category_name);
+  if (sub) item.item_category = sub;
+  if (main) item.item_category2 = main;
   return item;
 };
 
+const categoryName = (v) => (typeof v === "string" ? v.trim().slice(0, 100) : "");
+
 // Safe low-level dispatch — no-op if gtag is not on the page yet.
+// Analytics never breaks the page: any failure here is swallowed.
 const gaEvent = (name, params) => {
-  if (typeof window !== "undefined" && typeof window.gtag === "function") {
-    window.gtag("event", name, params);
+  try {
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", name, params);
+    }
+  } catch {
+    /* analytics must never affect the shop */
   }
 };
 
 // view_item — product page opened
 export function trackViewItem(product) {
+  try {
   if (!product) return;
   const item = ga4Item({ ...product, quantity: 1 });
   gaEvent("view_item", {
@@ -36,10 +49,12 @@ export function trackViewItem(product) {
     value: item.price,
     items: [item],
   });
+  } catch { /* analytics only */ }
 }
 
 // add_to_cart — product added to cart (qty = cart quantity, not stock)
 export function trackAddToCart(product, qty = 1) {
+  try {
   if (!product) return;
   const item = ga4Item({ ...product, quantity: qty });
   gaEvent("add_to_cart", {
@@ -47,10 +62,25 @@ export function trackAddToCart(product, qty = 1) {
     value: +(item.price * item.quantity).toFixed(2),
     items: [item],
   });
+  } catch { /* analytics only */ }
+}
+
+// remove_from_cart — line removed from the cart
+export function trackRemoveFromCart(line) {
+  try {
+    if (!line) return;
+    const item = ga4Item(line);
+    gaEvent("remove_from_cart", {
+      currency: CURRENCY,
+      value: +(item.price * item.quantity).toFixed(2),
+      items: [item],
+    });
+  } catch { /* analytics only */ }
 }
 
 // begin_checkout — checkout page opened
 export function trackBeginCheckout(cartItems, value) {
+  try {
   if (!Array.isArray(cartItems) || cartItems.length === 0) return;
   const items = cartItems.map((it, i) => ga4Item(it, i));
   const total =
@@ -62,6 +92,55 @@ export function trackBeginCheckout(cartItems, value) {
     value: +total.toFixed(2),
     items,
   });
+  } catch { /* analytics only */ }
+}
+
+// Each checkout step is sent once per checkout page visit (re-renders, SPA navigation
+// back and forth and failed submit retries must not repeat it).
+const firedSteps = new Set();
+export const resetCheckoutSteps = () => firedSteps.clear();
+
+const checkoutStep = (event, extra, cartItems, value) => {
+  try {
+    if (firedSteps.has(event)) return false;
+    if (!Array.isArray(cartItems) || cartItems.length === 0) return false;
+    const items = cartItems.map((it, i) => ga4Item(it, i));
+    const total = value != null ? Number(value) : items.reduce((s, it) => s + it.price * it.quantity, 0);
+    if (!Number.isFinite(total)) return false;
+    firedSteps.add(event);
+    gaEvent(event, { currency: CURRENCY, value: +total.toFixed(2), ...extra, items });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// add_shipping_info — delivery step completed. tier: "storePickup" | "courierDelivery"
+export function trackAddShippingInfo(cartItems, value, shippingTier) {
+  return checkoutStep("add_shipping_info", { shipping_tier: String(shippingTier || "").slice(0, 100) }, cartItems, value);
+}
+
+// add_payment_info — payment method confirmed at submit. type: "card" | "on_site"
+export function trackAddPaymentInfo(cartItems, value, paymentType) {
+  return checkoutStep("add_payment_info", { payment_type: String(paymentType || "").slice(0, 100) }, cartItems, value);
+}
+
+// Internal catalogue search: normalised term, max 100 chars.
+export const normalizeSearchTerm = (term) =>
+  typeof term === "string" ? term.replace(/\s+/g, " ").trim().toLowerCase().slice(0, 100) : "";
+
+let lastSearchTerm = "";
+// search — fired for an executed search (not every keystroke); same term twice in a row is ignored.
+export function trackSearch(term) {
+  try {
+    const search_term = normalizeSearchTerm(term);
+    if (!search_term || search_term === lastSearchTerm) return false;
+    lastSearchTerm = search_term;
+    gaEvent("search", { search_term });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // Read the GA4 client_id from the `_ga` cookie (format: GA1.1.<id1>.<id2>).
