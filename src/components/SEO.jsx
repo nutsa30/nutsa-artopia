@@ -1,9 +1,9 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { cld, IMG } from "../utils/cloudinary";
+import { shareImage, SHARE_DEFAULT_IMAGE, SHARE_WIDTH, SHARE_HEIGHT } from "../utils/cloudinary";
 import { canonicalUrl } from "../utils/canonical";
 
-const DEFAULT_IMAGE = "https://artopia.ge/social-preview.png";
+const DEFAULT_IMAGE = SHARE_DEFAULT_IMAGE;
 const SITE_NAME = "Artopia";
 const SITE_URL = "https://artopia.ge";
 const DEFAULT_LOCALE = "ka_GE";
@@ -17,6 +17,7 @@ const SEO = ({
   description,
   url,
   image = DEFAULT_IMAGE,
+  imageFit = "fill",
   type = "website",
   noIndex = false,
   noIndexFollow = false,
@@ -25,11 +26,8 @@ const SEO = ({
   const cleanDescription = clean(description);
   // არარსებული/noindex გვერდი canonical-ს და og:url-ს არ აცხადებს
   const cleanUrl = noIndex ? "" : canonicalUrl(clean(url) || "/");
-  // og:image-ს სოციალური ქსელების და საძიებოების crawler-ები იწევენ, ხშირად
-  // განმეორებით. ორიგინალის ნაცვლად 1200px-იან ვერსიას ვაწვდით — crawler-ები,
-  // რომლებიც AVIF/WebP-ს არ უჭერენ მხარს, `f_auto`-ს წყალობით ისევ თავიანთ
-  // ფორმატს იღებენ, უბრალოდ გაცილებით მსუბუქს.
-  const cleanImage = cld(clean(image), { w: IMG.DETAIL });
+  // og:image: ზუსტად 1200×630 JPEG (Facebook-ის crawler-ს დიდი ორიგინალი PNG არ უნდა მივცეთ)
+  const cleanImage = shareImage(clean(image) || DEFAULT_IMAGE, imageFit);
 
   const fullTitle = cleanTitle
     ? cleanTitle.includes(SITE_NAME)
@@ -61,6 +59,10 @@ const SEO = ({
         <meta property="og:description" content={cleanDescription} />
       )}
       {cleanImage && <meta property="og:image" content={cleanImage} />}
+      {cleanImage && <meta property="og:image:width" content={String(SHARE_WIDTH)} />}
+      {cleanImage && <meta property="og:image:height" content={String(SHARE_HEIGHT)} />}
+      {cleanImage && <meta property="og:image:type" content="image/jpeg" />}
+      {cleanImage && <meta property="og:image:alt" content={fullTitle} />}
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />

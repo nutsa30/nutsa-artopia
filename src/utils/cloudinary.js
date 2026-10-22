@@ -124,4 +124,38 @@ export function responsiveImage(url, kind) {
   return { src: cld(url, { w: spec.w }), srcSet, sizes: srcSet ? spec.sizes : undefined };
 }
 
+/**
+ * ერთი საერთო სურათი ყველა გვერდისთვის, რომელსაც საკუთარი ფოტო არ აქვს
+ * (მთავარი, ბლოგების სია, კონტაქტები, პოლისები...). 1200×630 JPEG, ფაილი ჩვენსავე
+ * საიტზეა — არც Cloudinary-ს bandwidth იხარჯება, არც 404 შეიძლება.
+ */
+export const SHARE_DEFAULT_IMAGE = "https://artopia.ge/images/share/artopia.jpg";
+export const SHARE_WIDTH = 1200;
+export const SHARE_HEIGHT = 630;
+
+/**
+ * სურათი სოციალური ქსელის გაზიარებისთვის (og:image / twitter:image).
+ *
+ * Facebook-ის crawler-ს ორიგინალი 2–5 MB PNG უჭირს: ის სურათს ნაწილობრივ იწევს და
+ * დიდ ფაილზე სურათის გარეშე დარჩება. ამიტომ ზუსტად 1200×630 JPEG-ს ვთხოვთ.
+ * `f_auto` აქ არ გვინდა — crawler-ს WebP/AVIF შეიძლება არ ესმოდეს.
+ *
+ *   "fill" — ფოტო მთელ კადრს ავსებს, საჭიროებისას ჭრის (`g_auto` ინტერესის ადგილს ირჩევს)
+ *   "pad"  — მთელი ფოტო ჩანს თეთრ ფონზე (პროდუქტებისთვის, რომ არაფერი მოიჭრას)
+ *
+ * არა-Cloudinary URL უცვლელად ბრუნდება.
+ */
+export function shareImage(url, mode = "fill") {
+  if (typeof url !== "string") return url;
+  const trimmed = url.trim();
+  const match = trimmed.match(CLOUDINARY_UPLOAD_RE);
+  if (!match) return trimmed || url;
+  const [, base, rest] = match;
+  if (looksLikeTransform(rest.split("/")[0])) return trimmed;
+  const fit = mode === "pad" ? "c_pad,b_white" : "c_fill,g_auto";
+  // გაფართოება .jpg-ზე: URL-იც და Content-Type-იც ერთსა და იმავეს ამბობს
+  const file = rest.replace(/\.(png|jpe?g|webp|avif|gif|heic|heif|bmp|tiff?)(\?.*)?$/i, "") + ".jpg";
+  return `${base}${fit},w_${SHARE_WIDTH},h_${SHARE_HEIGHT},q_auto,f_jpg/${file}`;
+}
+
 export default cld;

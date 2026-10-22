@@ -3,7 +3,7 @@ import {
   PRODUCTS_PER_PAGE, catalogMeta, productJsonLd, breadcrumbJsonLd, productBreadcrumbs, productPageMeta,
   BLOG_INDEX_META, blogArticleMeta,
 } from "../../src/utils/catalogMeta.js";
-import { responsiveImage } from "../../src/utils/cloudinary.js";
+import { responsiveImage, shareImage, SHARE_DEFAULT_IMAGE, SHARE_WIDTH, SHARE_HEIGHT } from "../../src/utils/cloudinary.js";
 import { indexPolicy, utilityTitle } from "../../src/utils/indexPolicy.js";
 import { catalogJsonLd } from "../../src/utils/catalogSchema.js";
 import { secureResponse } from "../lib/security.js";
@@ -35,7 +35,7 @@ import { COLOR_LAB_SEO } from "../../src/features/colorLab/seo.js";
 // function against a non-production backend. Unset in production → the live API.
 const API = (globalThis.Netlify?.env?.get?.("ARTOPIA_API_BASE") || "https://artopia-backend-2024-54872c79acdd.herokuapp.com").replace(/\/+$/, "");
 const SITE = "https://artopia.ge";
-const DEFAULT_IMAGE = "https://artopia.ge/social-preview.png";
+const DEFAULT_IMAGE = SHARE_DEFAULT_IMAGE;
 const LOGO = "https://artopia.ge/favicon-144x144.png";
 const ORG_ID = `${SITE}/#organization`;
 
@@ -120,8 +120,12 @@ function imagePreload(url, kind) {
   return `<link rel="preload" as="image" href="${esc(picture.src)}" imagesrcset="${esc(picture.srcSet)}" imagesizes="${esc(picture.sizes)}" fetchpriority="high" />`;
 }
 
-function applyMeta(html, { title, description, url, image, type, jsonLd, keywords, headExtra }) {
+// Facebook's crawler reads only the first part of a file, so every share picture is a
+// 1200x630 JPEG: Cloudinary photos are cropped/padded to that, local ones already are.
+// "fit": fill = photo covers the frame, pad = whole photo on white (products).
+function applyMeta(html, { title, description, url, image: rawImage, imageFit = "fill", imageAlt, type, jsonLd, keywords, headExtra }) {
   let out = html;
+  const image = shareImage(rawImage || DEFAULT_IMAGE, imageFit);
   out = setTag(out, /<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
   out = setTag(
     out,
@@ -148,6 +152,8 @@ function applyMeta(html, { title, description, url, image, type, jsonLd, keyword
   out = setTag(out, /<meta\s+name="twitter:title"[^>]*>/, `<meta name="twitter:title" content="${esc(title)}" />`);
   out = setTag(out, /<meta\s+name="twitter:description"[^>]*>/, `<meta name="twitter:description" content="${esc(description)}" />`);
   out = setTag(out, /<meta\s+name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${esc(image)}" />`);
+  out = out.replace(/<meta\s+property="og:image:(?:width|height|type|alt)"[^>]*>\s*/g, "");
+  out = out.replace("</head>", `<meta property="og:image:width" content="${SHARE_WIDTH}" />\n<meta property="og:image:height" content="${SHARE_HEIGHT}" />\n<meta property="og:image:type" content="image/jpeg" />\n<meta property="og:image:alt" content="${esc(imageAlt || title)}" />\n</head>`);
   if (headExtra) out = out.replace("</head>", `${headExtra}\n</head>`);
   if (jsonLd) {
     // data-ld-edge: the SPA sees that this page already carries its JSON-LD and
@@ -426,8 +432,8 @@ async function handle(request, context) {
     }
 
     if (path === "/color-lab") {
-      const { title, description, url, image, keywords, jsonLd, imageMeta } = COLOR_LAB_SEO;
-      return htmlResponse(applyMeta(shell, { title, description, url, image, keywords, jsonLd, type: "website", headExtra: imageMeta }), source);
+      const { title, description, url, image, imageAlt, keywords, jsonLd } = COLOR_LAB_SEO;
+      return htmlResponse(applyMeta(shell, { title, description, url, image, imageAlt, keywords, jsonLd, type: "website" }), source);
     }
     /* ===================== ENGRAVING: /engraving ===================== */
     if (path === "/engraving") {
@@ -454,7 +460,7 @@ async function handle(request, context) {
         description:
           "ლაზერული გრავირება Artopia-ში — კალმები, ხის და ტყავის ბრელოკები წარწერით ან ფოტოთი. შექმენი დიზაინი 3D პრევიუში და შეუკვეთე ონლაინ.",
         url: `${SITE}/engraving`,
-        image: `${SITE}/images/engraving/pen.webp`,
+        image: `${SITE}/images/engraving/share.jpg`,
         type: "website",
         keywords:
           "გრავირება, ლაზერული გრავირება, გრავირება თბილისში, გრავირებული კალამი, კალამი წარწერით, ბრელოკი წარწერით, ხის ბრელოკი, ტყავის ბრელოკი, ფოტოს ამოწვა, პერსონალური საჩუქარი, engraving, laser engraving, engraved pen, engraved keychain, Tbilisi",
@@ -636,7 +642,9 @@ async function handle(request, context) {
         title: meta.title,
         description: meta.description,
         url: meta.url,
-        image: DEFAULT_IMAGE,
+        // main category: its own photo (fill); small category / list: first product on white
+        image: (mainCategory && !category && categoryContext?.image_url) || (landing ? null : firstImage) || DEFAULT_IMAGE,
+        imageFit: mainCategory && !category && categoryContext?.image_url ? "fill" : "pad",
         type: "website",
         headExtra: [...links, lcpPreload].filter(Boolean).join("\n"),
         jsonLd: catalogJsonLd({ meta, category, mainCategory, context: categoryContext, page, search: url.search }),
@@ -693,6 +701,7 @@ async function handle(request, context) {
       description,
       url: pageUrl,
       image,
+      imageFit: "pad",
       type: "product",
       headExtra: imagePreload(photo, "detail"),
       jsonLd: {

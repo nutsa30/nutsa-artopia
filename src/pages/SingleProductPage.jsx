@@ -10,7 +10,7 @@ import { Helmet } from "react-helmet-async";
 import AlsoBuyModal from "../components/AlsoBuy/AlsoBuyModal";
 import { trackViewItem } from "../utils/analytics";
 import CategoryIcon from "../utils/categoryIcons";
-import { cld, IMG, responsiveImage } from "../utils/cloudinary";
+import { cld, IMG, responsiveImage, SHARE_DEFAULT_IMAGE } from "../utils/cloudinary";
 import NotFound from "../components/NotFound";
 import { productJsonLd, breadcrumbJsonLd, productBreadcrumbs, productPageMeta } from "../utils/catalogMeta";
 import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
@@ -296,7 +296,7 @@ if (status === "loading") {
       ? `${description.slice(0, 157)}...`
       : description || "ნახე ეს პროდუქტი Artopia-ზე.";
 
-  const seoImage = images[0] || "https://artopia.ge/social-preview.png";
+  const seoImage = images[0] || SHARE_DEFAULT_IMAGE;
   const mainPicture = responsiveImage(images[currentImageIndex], "detail");
   // Product + BreadcrumbList schema-ს edge function წერს საწყის HTML-ში (იგივე
   // აგებით — src/utils/catalogMeta.js). აქ ვამატებთ მხოლოდ მაშინ, როცა edge-ის
@@ -319,6 +319,7 @@ if (status === "loading") {
         description={productPageMeta(product).description || seoDescription}
         url={`https://artopia.ge/products/${slug}`}
         image={seoImage}
+        imageFit="pad"
         type="product"
       />
 {ownJsonLd && (
