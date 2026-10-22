@@ -11,6 +11,10 @@ OUT = argv[0]
 SAMPLES = int(argv[1]) if len(argv) > 1 else 384
 os.makedirs(OUT, exist_ok=True)
 TILT = math.radians(14)
+STUDIO = os.environ.get('BEAKER_STUDIO', 'all')  # 'all' = reflections and refraction see the studio; 'glossy' = reflections only
+ONLY = os.environ.get('BEAKER_ONLY')
+FLOOR = float(os.environ.get('BEAKER_FLOOR', '0.03'))          # what the thick base refracts
+STUDIO_STRENGTH = float(os.environ.get('BEAKER_STRENGTH', '0.5'))  # render just one beaker while trying a look
 
 BEAKERS = {
     # name: outer diameter, height, wall, base, nominal ml, major mark step, minor step, px width
@@ -38,7 +42,31 @@ def reset():
     sc.view_settings.view_transform = 'Standard'
     sc.view_settings.look = 'None'
     world = bpy.data.worlds.new('w'); sc.world = world; world.use_nodes = True
-    bg = world.node_tree.nodes['Background']; bg.inputs[0].default_value = (0, 0, 0, 1); bg.inputs[1].default_value = 0
+    # Product-photo studio: the camera sees black (the page composites light only), but the glass reflects and
+    # refracts a soft studio around it: a bright horizon band, a light floor and a dim ceiling. Grazing reflections of
+    # that band draw the whole silhouette as one continuous edge, and the thick base shows by refracting the floor,
+    # so the vessel reads as a beaker at a glance (owner, 2026-10-22: the old one looked like loose streaks, no base).
+    nt = world.node_tree; nodes, links = nt.nodes, nt.links
+    bg = nodes['Background']; bg.inputs[0].default_value = (0, 0, 0, 1); bg.inputs[1].default_value = 0
+    studio = nodes.new('ShaderNodeBackground')
+    coord = nodes.new('ShaderNodeTexCoord'); sep = nodes.new('ShaderNodeSeparateXYZ')
+    ramp = nodes.new('ShaderNodeValToRGB'); r = ramp.color_ramp
+    links.new(coord.outputs['Generated'], sep.inputs[0])
+    # Generated on the world = view direction mapped to 0..1; z: .5 = horizon
+    links.new(sep.outputs['Z'], ramp.inputs[0])
+    r.elements[0].position, r.elements[0].color = 0.0, (FLOOR, FLOOR, FLOOR * 1.05, 1)   # floor
+    r.elements[1].position, r.elements[1].color = 1.0, (0, 0, 0, 1)                      # ceiling
+    for pos, c in ((0.46, (FLOOR, FLOOR, FLOOR * 1.05, 1)), (0.495, (1.0, 1.0, 1.0, 1)), (0.53, (0.85, 0.87, 0.9, 1)), (0.58, (0.0, 0.0, 0.0, 1))):
+        e = r.elements.new(pos); e.color = c
+    links.new(ramp.outputs['Color'], studio.inputs['Color']); studio.inputs['Strength'].default_value = STUDIO_STRENGTH
+    path = nodes.new('ShaderNodeLightPath'); mix = nodes.new('ShaderNodeMixShader')
+    if STUDIO == 'glossy':  # reflections only: refraction through the walls stays dark
+        links.new(path.outputs['Is Glossy Ray'], mix.inputs['Fac'])
+        links.new(bg.outputs[0], mix.inputs[1]); links.new(studio.outputs[0], mix.inputs[2])
+    else:
+        links.new(path.outputs['Is Camera Ray'], mix.inputs['Fac'])
+        links.new(studio.outputs[0], mix.inputs[1]); links.new(bg.outputs[0], mix.inputs[2])
+    links.new(mix.outputs[0], nodes['World Output'].inputs['Surface'])
     return sc
 
 def mat(name, **p):
@@ -90,7 +118,7 @@ def build(spec):
     lip = 0.09
     profile = [(0, 0), (ro - .25, 0), (ro - .06, .05), (ro, .25), (ro, H - .15), (ro + lip, H - .08), (ro + lip * .8, H + .02),
                (ri + .02, H), (ri, H - .1), (ri, base + .2), (ri - .2, base), (0, base)]
-    glass = lathe('glass', profile)
+    glass = lathe('glass', profile, 384)  # fine enough that refracted glints stay smooth, not zig-zag
     # Pouring spout on the left: pull the top of the rim outwards.
     for v in glass.data.vertices:
         ang = math.atan2(v.co.y, v.co.x) - math.pi
@@ -141,13 +169,13 @@ def build(spec):
     cam_d.ortho_scale = span_h if span_h > span_w else span_w
     cam_d.shift_y = -.02
     # Studio: softbox key on the left, strip lights right and back, top panel.
-    light('key', (-14, -10, mid + 6), (math.radians(70), 0, math.radians(-55)), 9, 2600, 14)
+    light('key', (-14, -10, mid + 6), (math.radians(70), 0, math.radians(-55)), 9, float(os.environ.get('BEAKER_KEY', '2600')), 14)
     light('strip_r', (12, -6, mid + 1), (math.radians(90), 0, math.radians(62)), 1.0, 450, 16)
     light('rim', (4, 14, mid + 3), (math.radians(-80), 0, math.radians(165)), 6, 900, 12)
     light('top', (0, -9, H + 12), (math.radians(-30), 0, 0), 8, 260, 8)
     # Edge lights just behind and beside the glass: they outline the silhouette.
     for side in (-1, 1):
-        o = light(f'edge{side}', (side * (ro + 5), 7, mid), (0, 0, 0), .5, 45, H * 1.4)
+        o = light(f'edge{side}', (side * (ro + 5), 7, mid), (0, 0, 0), .5, float(os.environ.get('BEAKER_EDGE', '20')), H * 1.4)
         o.rotation_euler = (Vector((0, -1.5, mid)) - o.location).to_track_quat('-Z', 'Y').to_euler()
     for m in marks: m.visible_glossy = False; m.visible_transmission = False
     return dict(sc=sc, glass=glass, marks=marks, liquid=liquid, top=top, level=level, ri=ri, ro=ro, H=H, base=base, cam=cam)
@@ -165,6 +193,8 @@ def render(sc, path):
 
 meta = {}
 for name, spec in BEAKERS.items():
+    if ONLY and name != ONLY:
+        continue
     b = build(spec); sc, cam = b['sc'], b['cam']
     front = split(b['glass'], lambda c: c.y < 0 and c.z > b['base'] + .05)
     back = split(b['glass'], lambda c: not (c.y < 0 and c.z > b['base'] + .05))

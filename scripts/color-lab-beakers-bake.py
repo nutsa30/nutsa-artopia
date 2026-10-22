@@ -15,9 +15,10 @@ for name in ('beaker-200', 'beaker-600'):
     for part in ('back', 'front'):
         layer = light_only(L(part)[..., :3])
         if part == 'back':
-            # The thick base catches hard glints that read as clutter in an empty beaker.
+            # The thick base catches hard glints; soften them a little, but keep the base visible: it is what makes the
+            # vessel read as a beaker (owner, 2026-10-22).
             rows = np.arange(layer.shape[0])[:, None, None]
-            layer[..., 3:4] *= np.where(rows > m['y0'] - m['ry'] * .6, .3, 1)
+            layer[..., 3:4] *= np.where(rows > m['y0'] - m['ry'] * .6, .75, 1)
         save(layer, f'{out}/{name}-{part}.webp', 86)
     for part in ('liquid', 'top'):
         shade, gloss = L(f'{part}-shade'), L(f'{part}-gloss')

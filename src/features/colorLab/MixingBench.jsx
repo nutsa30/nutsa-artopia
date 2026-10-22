@@ -43,17 +43,16 @@ export default function MixingBench({ state, dispatch, nameOf, onMix, onPalette,
       {state.cups.length < MAX_CUPS && <button type="button" disabled={mixing} aria-label="ჭიქის დამატება" title="ჭიქის დამატება" onClick={() => dispatch({ type: 'add' })}
         className={`${round} tw:mt-14 tw:size-10 tw:cursor-pointer tw:border tw:border-dashed tw:border-white/25 tw:bg-transparent tw:text-[#c9d1dc] tw:hover:border-white/50 tw:hover:text-white`}><Plus size={16} /></button>}
     </div>
-    <MixingBowl blend={state.blend} />
-    <div className="tw:flex tw:items-center tw:justify-between tw:gap-3 tw:px-1">
-      {ready && state.blend.result ? <span className="tw:flex tw:min-w-0 tw:items-center tw:gap-2.5 tw:text-[#e9edf2]">
-        <i className="tw:size-5 tw:shrink-0 tw:rounded-full tw:ring-1 tw:ring-white/20" style={{ background: state.blend.result.hex }} />
-        <b className="tw:truncate tw:text-[13px] tw:font-medium">{resultName}</b>
-        <code className="tw:font-mono tw:text-[11px] tw:text-[#9aa6b6]">{state.blend.result.hex}</code>
-      </span> : <span />}
+    <MixingBowl blend={state.blend}>
       <button type="button" disabled={mixing || !filled.length} onClick={onMix}
-        className="tw:h-12 tw:min-w-[132px] tw:shrink-0 tw:cursor-pointer tw:rounded-full tw:border-0 tw:bg-linear-to-b tw:from-[#f6eedd] tw:to-[#e4d6ba] tw:px-7! tw:py-0! tw:text-sm! tw:font-semibold tw:text-[#132339] tw:shadow-[inset_0_1px_0_#fff8,0_10px_24px_-10px_#e8d9b880] tw:transition tw:hover:-translate-y-px tw:disabled:cursor-not-allowed tw:disabled:opacity-40 tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-[#efe5d1]">
+        className="tw:h-11 tw:min-w-[128px] tw:cursor-pointer tw:whitespace-nowrap tw:rounded-full tw:border-0 tw:bg-linear-to-b tw:from-[#f6eedd] tw:to-[#e4d6ba] tw:px-7! tw:py-0! tw:text-sm! tw:font-semibold tw:text-[#132339] tw:shadow-[inset_0_1px_0_#fff8,0_8px_22px_-6px_#000c,0_0_0_4px_#0b162680] tw:transition tw:hover:-translate-y-px tw:disabled:cursor-not-allowed tw:disabled:from-[#c9c2b4] tw:disabled:to-[#b3ab9c] tw:disabled:text-[#132339b3] tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-[#efe5d1]">
         {mixing ? 'ირევა…' : filled.length === 1 ? 'ჩასხმა' : 'შერევა'}
       </button>
-    </div>
+    </MixingBowl>
+    {ready && state.blend.result && <div className="tw:flex tw:items-center tw:justify-center tw:gap-2.5 tw:px-1 tw:text-[#e9edf2]">
+      <i className="tw:size-5 tw:shrink-0 tw:rounded-full tw:ring-1 tw:ring-white/20" style={{ background: state.blend.result.hex }} />
+      <b className="tw:truncate tw:text-[13px] tw:font-medium">{resultName}</b>
+      <code className="tw:font-mono tw:text-[11px] tw:text-[#9aa6b6]">{state.blend.result.hex}</code>
+    </div>}
   </section>;
 }
