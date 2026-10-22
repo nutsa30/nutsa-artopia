@@ -26,6 +26,13 @@ function Liquid({ kind, part, color, children }) {
   </>;
 }
 
+/** A falling stream of paint: it lands, flows while the level rises and its tail drops into the beaker
+ * (not a bar that fades). Shading across makes it read as a round, glossy rope of paint. */
+export function PourStream({ color, left, height, width = '3.2%', delay = 0, duration = 1050 }) {
+  return <span className={s.stream} style={{ left, height, width, animationDelay: `${delay}ms`, animationDuration: `${duration}ms`,
+    background: `linear-gradient(90deg,#0000003d,#0000 30%,#ffffff47 42%,#0000 58%,#00000052),${color}` }} />;
+}
+
 /** A beaker holding `ml` of paint. `surface` is drawn on the liquid top
  * (inside the meniscus), `pourKey` replays the pour when the paint changes. */
 export default function Beaker({ kind = 'beaker-200', color, ml, pourKey, surface, animate = true, className = '' }) {
@@ -52,9 +59,13 @@ export default function Beaker({ kind = 'beaker-200', color, ml, pourKey, surfac
         <Liquid kind={kind} part="liquid" color={color} />
       </div>
       <div className={`tw:absolute tw:inset-0 ${animate ? s.level : ""}`} style={{ transform: `translateY(${pct(y - m.y1, m.height)})`, visibility: filled ? 'visible' : 'hidden' }}>
-        <Liquid kind={kind} part="top" color={color}>{surface}</Liquid>
+        <Liquid kind={kind} part="top" color={color}>
+          {surface}
+          {/* where the stream lands, rings spread on the surface (it moves up with the level) */}
+          {pouring && <span key={`r${pourKey}`} className={s.ripple} style={{ left: pct(m.cx - m.rx * .25, m.width), top: pct(m.y1, m.height), width: pct(m.rx * .5, m.width), height: pct(m.ry * .5, m.height) }} />}
+        </Liquid>
       </div>
-      {pouring && <span key={pourKey} className={s.stream} style={{ background: color, left: pct(m.cx - m.rx * .25, m.width), height: pct(surfaceY(kind, ml), m.height) }} />}
+      {pouring && <PourStream key={pourKey} color={color} left={pct(m.cx - m.rx * .25, m.width)} height={pct(surfaceY(kind, ml), m.height)} />}
     </>}
     <img src={layer(kind, 'front')} alt="" draggable="false" className="tw:absolute tw:inset-0 tw:size-full tw:pointer-events-none" />
   </div>;
