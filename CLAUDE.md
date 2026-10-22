@@ -295,3 +295,6 @@ with 1600 × 900 px documented as the recommended 16:9 size. Match backend and f
   the same `ArticleV2` (preview mode), Google snippet, history, category, and three buttons: დადასტურება (publishes),
   რედაქტირება (note required → the pipeline's agents fix it → it comes back as a new version), უარყოფა (reason required).
   The old Quill editor (`Blog.jsx`) sets a category for any article and sends v2 articles to the review page (backend 409 otherwise).
+- **Topic orders** (same page, `BlogOrders.jsx`): the admin orders a topic; queued orders show their place (1, 2, ...), can be
+  edited (place kept) or deleted until the editorial pipeline takes one ("მუშავდება"); "შესრულებული" lists orders whose article
+  reached the admin, with a link to it. Backend `/blogs/admin/orders` (app/blog_editorial.py `BlogOrder`).
