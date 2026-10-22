@@ -22,6 +22,14 @@ const modules = {
 // Formula/video HTML-export paths are not part of this editor. Output is also sanitized.
 const formats = ['header','bold','italic','underline','strike','color','background','size','list','link','align','indent','blockquote','script','table','image'];
 const BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com/blogs";
+// backend app/blog_editorial.py CATEGORIES (გასაღები = მისამართი /blogs/category/<key>)
+const BLOG_CATEGORIES = [
+  ["siakhleebi", "სიახლეები"],
+  ["khelovnebis-istoria", "ხელოვნების ისტორია"],
+  ["rchevebi-da-gidebi", "რჩევები და გიდები"],
+  ["masalebi-da-teqnikebi", "მასალები და ტექნიკები"],
+  ["kreativi-da-ideebi", "კრეატივი და იდეები"],
+];
 const MAX_SECTIONS = 10;
 
 // ფოტოს ატვირთვა: მხოლოდ backend-ის გავლით, ადმინის ტოკენით (src/admin/api.js)
@@ -143,6 +151,22 @@ const resolvedCoverImage =
   useEffect(() => {
     fetchBlogs();
   }, []);
+
+  // კატეგორია (ბლოგის კატეგორიის გვერდებისთვის): ინახება ცალკე, სტატიის ტექსტს და მისამართს არ ეხება
+  const changeCategory = async (blogId, category) => {
+    try {
+      const res = await fetch(`${BASE}/admin/${blogId}/category`, {
+        method: "PUT",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ category: category || null }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      setBlogs((list) => list.map((x) => (x.id === blogId ? { ...x, category: data.category, category_name: data.category_name } : x)));
+    } catch (e) {
+      alert(`კატეგორია ვერ შეინახა: ${e.message}`);
+    }
+  };
 useEffect(() => {
   const handleOutsideClick = (e) => {
     if (!pinnedTooltip) return;
@@ -823,6 +847,16 @@ const renderLabel = (text, key, helpText) => (
 
                       <div className={styles.blogMeta}>
                         <span>ID: {b.id}</span>
+                        {b.content_format === "v2" && <span>რედაქციის სტატია</span>}
+                        <select
+                          value={b.category || ""}
+                          onChange={(e) => changeCategory(b.id, e.target.value)}
+                          aria-label="ბლოგის კატეგორია"
+                          className={styles.categorySelect}
+                        >
+                          <option value="">კატეგორიის გარეშე</option>
+                          {BLOG_CATEGORIES.map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+                        </select>
                         {b.created_at && (
                           <span>
                             დამატებულია: {new Date(b.created_at).toLocaleDateString()}
@@ -842,12 +876,22 @@ const renderLabel = (text, key, helpText) => (
                     </div>
 
                     <div className={styles.actions}>
+                      {b.content_format === "v2" ? (
+                        // რედაქციის სტატია ბლოკებითაა: ძველი რედაქტორი მას დააზიანებდა (backend 409-ს აბრუნებს)
+                        <button
+                          className={styles.editBtn}
+                          onClick={() => navigate("/admin/blog-review")}
+                        >
+                          ბლოგის რედაქციაში
+                        </button>
+                      ) : (
                       <button
                         className={styles.editBtn}
                         onClick={() => handleEdit(b)}
                       >
                         რედაქტირება
                       </button>
+                      )}
 
                       <button
                         className={styles.deleteBtn}

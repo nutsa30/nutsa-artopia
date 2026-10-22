@@ -4,6 +4,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import AdminNavbar from "./components/AdminNavbar";
 import Menu from "./pages/menu/Menu";
 import Blog from "./pages/blog/Blog";
+import BlogReview from "./pages/blogReview/BlogReview";
 import AddProducts from "./pages/addProduct/AddProducts";
 import Contacts from "./pages/contacts/Contacts";
 import LoginPage from "./pages/logIn/LoginPage";
@@ -103,6 +104,16 @@ function AdminShell() {
           element={
             <ProtectedRoute>
               <OrderHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ბლოგის რედაქცია: AI სტატიების განხილვა */}
+        <Route
+          path="blog-review"
+          element={
+            <ProtectedRoute>
+              <BlogReview />
             </ProtectedRoute>
           }
         />

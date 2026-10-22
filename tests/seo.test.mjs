@@ -376,7 +376,9 @@ test("blog metadata is identical before and after JavaScript", async () => {
   const index = await visit("/blogs", noNetwork);
   assert.ok(index.body.includes(`<title>${BLOG_INDEX_META.title}</title>`));
   const page = await readFile(new URL("../src/pages/BlogsPage.jsx", import.meta.url), "utf8");
-  assert.match(page, /BLOG_INDEX_META\.title/);
+  // the index page reads BLOG_INDEX_META (a category page reads blogCategoryMeta, the edge function uses the same)
+  assert.match(page, /: BLOG_INDEX_META;/);
+  assert.match(page, /title=\{meta\.title\}/);
 });
 
 
@@ -497,4 +499,24 @@ test("a renamed main category answers 301 to its new slug (the API says so in JS
   const unknown = await visit("/products/group/nope", async (url) => (url.includes("/products/list?")
     ? json({ items: [], total: 0, main_category_exists: false, main_category_moved_to: null }) : noNetwork(url)));
   assert.equal(unknown.status, 404);
+});
+
+test("blog category pages: listed with posts, noindex while empty, 404 when unknown, 200 on an outage", async () => {
+  const cats = [
+    { key: "khelovnebis-istoria", name: "ხელოვნების ისტორია", title: "ხელოვნების ისტორია", intro: "მხატვრების ცხოვრება და ფერების ამბები.", count: 2 },
+    { key: "siakhleebi", name: "სიახლეები", title: "ხელოვნების სიახლეები", intro: "რა ხდება ხელოვნების სამყაროში.", count: 0 },
+  ];
+  const api = async (url) => (url.includes("/blogs/categories") ? json(cats) : noNetwork(url));
+  const full = await visit("/blogs/category/khelovnebis-istoria", api);
+  assert.equal(full.status, 200);
+  assert.equal(robots(full.body), "index,follow");
+  assert.equal(canonical(full.body)[0], "https://artopia.ge/blogs/category/khelovnebis-istoria");
+  assert.match(full.body, /<title>ხელოვნების ისტორია \| Artopia-ს ბლოგი<\/title>/);
+  const empty = await visit("/blogs/category/siakhleebi", api);
+  assert.equal(empty.status, 200);
+  assert.equal(robots(empty.body), "noindex,follow");
+  assert.deepEqual(canonical(empty.body), []);
+  assert.equal(empty.response.headers.get("x-robots-tag"), "noindex");
+  assert.equal((await visit("/blogs/category/politika", api)).status, 404);
+  assert.equal((await visit("/blogs/category/siakhleebi", async () => json({ message: "boom" }, 500))).status, 200);
 });

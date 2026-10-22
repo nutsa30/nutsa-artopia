@@ -1,7 +1,7 @@
 import { canonicalHtml, canonicalUrl, catalogPath, parseCatalogPath } from "../../src/utils/canonical.js";
 import {
   PRODUCTS_PER_PAGE, catalogMeta, productJsonLd, breadcrumbJsonLd, productBreadcrumbs, productPageMeta,
-  BLOG_INDEX_META, blogArticleMeta,
+  BLOG_INDEX_META, blogArticleMeta, blogCategoryMeta,
 } from "../../src/utils/catalogMeta.js";
 import { responsiveImage, shareImage, SHARE_DEFAULT_IMAGE, SHARE_WIDTH, SHARE_HEIGHT } from "../../src/utils/cloudinary.js";
 import { indexPolicy, utilityTitle } from "../../src/utils/indexPolicy.js";
@@ -76,6 +76,7 @@ const ROUTE_PATTERNS = [
   /^\/products\/category\/[^/]+(?:\/page\/[^/]+)?$/,
   /^\/products\/group\/[^/]+(?:\/page\/[^/]+)?$/,
   /^\/blog\/[^/]+$/,
+  /^\/blogs\/category\/[^/]+$/,
 ];
 export const isKnownRoute = (path) =>
   STATIC_ROUTES.has(path) || ROUTE_PATTERNS.some((rx) => rx.test(path));
@@ -372,10 +373,13 @@ async function handle(request, context) {
               },
               mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
               ...(post.keywords ? { keywords: post.keywords } : {}),
+              ...(post.category_name ? { articleSection: post.category_name } : {}),
+              ...(post.word_count ? { wordCount: post.word_count } : {}),
             },
             breadcrumb([
               { name: "მთავარი", item: `${SITE}/` },
               { name: "არტ ბლოგი", item: `${SITE}/blogs` },
+              ...(post.category && post.category_name ? [{ name: post.category_name, item: `${SITE}/blogs/category/${post.category}` }] : []),
               { name: clip(post.title, 80), item: pageUrl },
             ]),
           ],
@@ -405,6 +409,46 @@ async function handle(request, context) {
         },
       });
       return htmlResponse(out, source);
+    }
+
+    /* ===================== BLOG CATEGORY: /blogs/category/<key> ===================== */
+    const blogCategoryMatch = path.match(/^\/blogs\/category\/([^/]+)$/);
+    if (blogCategoryMatch) {
+      const key = decodeURIComponent(blogCategoryMatch[1]);
+      const r = await apiFetch("/blogs/categories");
+      if (!r.ok || !(r.headers.get("content-type") || "").includes("application/json")) return page();
+      const list = await r.json().catch(() => null);
+      if (!Array.isArray(list)) return page();
+      const cat = list.find((c) => c && c.key === key);
+      if (!cat) return notFoundResponse(shell, source, 404);
+      const m = blogCategoryMeta(cat);
+      let out = applyMeta(shell, {
+        title: m.title,
+        description: m.description,
+        url: m.url,
+        image: DEFAULT_IMAGE,
+        type: "website",
+        jsonLd: {
+          "@context": "https://schema.org",
+          "@graph": [
+            { "@type": "CollectionPage", name: cat.title || cat.name, description: m.description, url: m.url,
+              inLanguage: "ka-GE", isPartOf: { "@type": "Blog", url: `${SITE}/blogs` }, publisher: { "@id": ORG_ID } },
+            breadcrumb([
+              { name: "მთავარი", item: `${SITE}/` },
+              { name: "არტ ბლოგი", item: `${SITE}/blogs` },
+              { name: cat.name, item: m.url },
+            ]),
+          ],
+        },
+      });
+      // ცარიელი კატეგორია: გვერდი არსებობს (200), მაგრამ Google-ში არ ჩანს, სანამ პირველი სტატია არ ჩაჯდება
+      if (!cat.count) {
+        out = setTag(out, /<meta\s+name="robots"[^>]*>/, `<meta name="robots" content="noindex,follow" data-rh="true" />`);
+        out = out.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*>\s*/gi, "");
+      }
+      const response = htmlResponse(out, source);
+      if (!cat.count) response.headers.set("x-robots-tag", "noindex");
+      return response;
     }
 
     // The retired reviews page has no replacement. Preserve an explicit 410.

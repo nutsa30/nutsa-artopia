@@ -224,12 +224,110 @@
   transform: translateX(4px);
 }
 
+/* ===================== კატეგორიები ===================== */
+
+.categoryNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: #dbe7f5;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.chip:hover {
+  border-color: rgba(147, 197, 253, 0.5);
+  color: #ffffff;
+}
+
+.chipActive,
+.chipActive:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.cardCategory {
+  color: #f5c35b;
+  font-weight: 700;
+}
+
+.cardDate {
+  color: #94a3b8;
+}
+
+.emptyLink {
+  color: #93c5fd;
+  font-weight: 700;
+}
+
+/* უახლესი სტატია სიის თავში: ფართო ბარათი (ფოტო მარცხნივ, ტექსტი მარჯვნივ) */
+.featuredWrap {
+  margin-bottom: 24px;
+}
+
+.featured {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+}
+
+.featured .imageWrap {
+  aspect-ratio: auto;
+  min-height: 340px;
+}
+
+.featured .cardBody {
+  padding: 32px 30px;
+  justify-content: center;
+}
+
+.featured .cardTitle {
+  font-size: 28px;
+  line-height: 1.3;
+}
+
+.featured .cardDescription {
+  -webkit-line-clamp: 5;
+  font-size: 16px;
+}
+
+.featured .cardFooter {
+  margin-top: 0;
+  padding-top: 22px;
+}
+
 /* ===================== RESPONSIVE ===================== */
 
 /* tablet */
 @media (max-width: 1080px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .featured .cardTitle {
+    font-size: 23px;
   }
 }
 
@@ -266,6 +364,29 @@
 
   .cardBody {
     padding: 16px;
+  }
+
+  .featured {
+    display: flex;
+  }
+
+  .featured .imageWrap {
+    min-height: 0;
+    aspect-ratio: 16 / 11;
+  }
+
+  .featured .cardBody {
+    padding: 16px;
+  }
+
+  .featured .cardTitle {
+    font-size: 19px;
+  }
+
+  .chip {
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
   }
 
   .cardTitle {
