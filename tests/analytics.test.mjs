@@ -7,6 +7,7 @@ const server = await createServer({ configFile: false, server: { middlewareMode:
 const {
   trackViewItem, trackAddToCart, trackRemoveFromCart, trackBeginCheckout,
   trackAddShippingInfo, trackAddPaymentInfo, resetCheckoutSteps, trackSearch, normalizeSearchTerm,
+  trackViewItemList, trackSelectItem, trackEvent,
 } = await server.ssrLoadModule("/src/utils/analytics.js");
 after(() => server.close());
 
@@ -101,4 +102,23 @@ test("analytics failures never throw into the shop", () => {
   assert.doesNotThrow(() => { trackViewItem(brush); trackSearch("another"); });
   globalThis.window = { gtag: () => sent.push(1) };
   assert.doesNotThrow(() => { trackAddToCart(null); trackRemoveFromCart(undefined); trackViewItem({ price: {} }); });
+});
+
+test("list views and selections carry the list and each item's position", () => {
+  trackViewItemList([brush, plain], "color_lab", "ფერების ლაბორატორია");
+  trackSelectItem(plain, "color_lab", "ფერების ლაბორატორია", 1);
+  assert.deepEqual(sent.map((e) => e.name), ["view_item_list", "select_item"]);
+  assert.equal(sent[0].params.item_list_id, "color_lab");
+  assert.deepEqual(sent[0].params.items.map((i) => [i.item_id, i.index]), [["7", 0], ["8", 1]]);
+  assert.equal(sent[1].params.items[0].index, 1);
+  trackViewItemList([], "x", "y");
+  assert.equal(sent.length, 2, "an empty list sends nothing");
+});
+
+test("custom events drop empty values and cut text to 100 characters", () => {
+  trackEvent("color_lab_mix", { colors: 2, color_names: "x".repeat(150), search_term: "", hex: null });
+  assert.deepEqual(Object.keys(sent[0].params), ["colors", "color_names"]);
+  assert.equal(sent[0].params.color_names.length, 100);
+  globalThis.window = {};
+  assert.doesNotThrow(() => trackEvent("color_lab_mix", {}), "no gtag on the page is fine");
 });

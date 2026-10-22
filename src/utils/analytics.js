@@ -125,6 +125,42 @@ export function trackAddPaymentInfo(cartItems, value, paymentType) {
   return checkoutStep("add_payment_info", { payment_type: String(paymentType || "").slice(0, 100) }, cartItems, value);
 }
 
+// view_item_list — a list of products shown (e.g. the colour lab's matching paints).
+export function trackViewItemList(products, listId, listName) {
+  try {
+    if (!Array.isArray(products) || products.length === 0) return;
+    gaEvent("view_item_list", {
+      item_list_id: String(listId || "").slice(0, 100),
+      item_list_name: String(listName || "").slice(0, 100),
+      items: products.slice(0, 200).map((p, i) => ga4Item({ ...p, quantity: 1 }, i)),
+    });
+  } catch { /* analytics only */ }
+}
+
+// select_item — a product opened from such a list.
+export function trackSelectItem(product, listId, listName, index) {
+  try {
+    if (!product) return;
+    gaEvent("select_item", {
+      item_list_id: String(listId || "").slice(0, 100),
+      item_list_name: String(listName || "").slice(0, 100),
+      items: [ga4Item({ ...product, quantity: 1 }, index)],
+    });
+  } catch { /* analytics only */ }
+}
+
+// Any other (custom) event. Text values are cut to GA4's 100 characters.
+export function trackEvent(name, params = {}) {
+  try {
+    const clean = {};
+    for (const [key, value] of Object.entries(params)) {
+      if (value === undefined || value === null || value === "") continue;
+      clean[key] = typeof value === "string" ? value.slice(0, 100) : value;
+    }
+    gaEvent(name, clean);
+  } catch { /* analytics only */ }
+}
+
 // Internal catalogue search: normalised term, max 100 chars.
 export const normalizeSearchTerm = (term) =>
   typeof term === "string" ? term.replace(/\s+/g, " ").trim().toLowerCase().slice(0, 100) : "";

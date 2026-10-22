@@ -21,22 +21,23 @@ async function withCanvas(brush, run) {
   let pendingResize;
   set('ResizeObserver',class { constructor(callback) { pendingResize=callback; } observe() {} disconnect() {} });
   set('ImageData',class { constructor(data) { this.data = data; } });
+  const gaSent=[]; dom.window.gtag=(_k,name,params)=>gaSent.push({name,params});
   set('requestAnimationFrame',()=>1); set('cancelAnimationFrame',()=>{});
   dom.window.HTMLCanvasElement.prototype.getContext = type => type === 'webgl2' ? null : ({clearRect(){},drawImage(){},putImageData(){},createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)})});
   dom.window.HTMLCanvasElement.prototype.getBoundingClientRect = () => ({left:0,top:0,width:400,height:300});
   dom.window.HTMLCanvasElement.prototype.setPointerCapture = () => {};
   dom.window.HTMLCanvasElement.prototype.hasPointerCapture = () => false;
   const root = createRoot(document.getElementById('test-root'));
-  let needed = 0;
+  let needed = 0, samples = 0;
   try {
-    await act(()=>root.render(React.createElement(PaintingCanvas,{brush,onSample(){},onNeedPaint(){needed++;}})));
+    await act(()=>root.render(React.createElement(PaintingCanvas,{brush,onSample(){samples++;},onNeedPaint(){needed++;}})));
     const canvas = document.querySelector('canvas');
-    const pointer = type => {
-      const event = new dom.window.MouseEvent(type,{bubbles:true,button:0,clientX:100,clientY:120});
-      Object.defineProperties(event,{pointerId:{value:1},pointerType:{value:'mouse'}});
-      return act(()=>canvas.dispatchEvent(event));
+    const pointer = (type, { id = 1, primary = true, x = 100, target = canvas } = {}) => {
+      const event = new dom.window.MouseEvent(type,{bubbles:true,button:0,clientX:x,clientY:120});
+      Object.defineProperties(event,{pointerId:{value:id},pointerType:{value:'touch'},isPrimary:{value:primary}});
+      return act(()=>target.dispatchEvent(event));
     };
-    await run({pointer,needCount:()=>needed,text:()=>document.body.textContent});
+    await run({pointer,needCount:()=>needed,sampleCount:()=>samples,text:()=>document.body.textContent,window:dom.window,gaSent});
   } finally {
     await act(()=>root.unmount());
     assert.doesNotThrow(()=>pendingResize(), 'a queued resize after navigation/unmount must be ignored');
@@ -57,5 +58,37 @@ test('an empty brush requests prepared paint and keeps instructions until actual
   await withCanvas(null,async({pointer,text,needCount})=>{
     await pointer('pointerdown');
     assert.equal(needCount(),1); assert.ok(text().includes('ჯერ ფერი შეურიე'));
+  });
+});
+test('a stroke whose pointerup never reaches the canvas does not block the next one',async()=>{
+  const pigment={id:'blue',hex:'#002185'};
+  await withCanvas({hex:pigment.hex,components:[{pigment,weight:1}]},async({pointer,sampleCount,window})=>{
+    const settled=sampleCount();
+    await pointer('pointerdown',{id:5});
+    // the phone loses this finger's pointerup; the next touch is a new primary pointer
+    await pointer('pointerdown',{id:6});
+    assert.equal(sampleCount(),settled+1,'the lost stroke was closed');
+    await pointer('pointerup',{id:6});
+    assert.equal(sampleCount(),settled+2,'and the new one painted and ended');
+    // a pointerup that lands outside the canvas still ends the stroke
+    await pointer('pointerdown',{id:7});
+    await pointer('pointerup',{id:7,target:window.document.body});
+    assert.equal(sampleCount(),settled+3);
+    // so does a touchend with no fingers left
+    await pointer('pointerdown',{id:8});
+    const touchEnd=new window.Event('touchend',{bubbles:true}); Object.defineProperty(touchEnd,'touches',{value:[]});
+    window.document.body.dispatchEvent(touchEnd);
+    assert.equal(sampleCount(),settled+4);
+  });
+});
+test('painting reports the first stroke per tool once, and tool changes',async()=>{
+  const pigment={id:'blue',hex:'#002185'};
+  await withCanvas({hex:pigment.hex,components:[{pigment,weight:1}]},async({pointer,gaSent})=>{
+    for (const id of [11,12,13]) { await pointer('pointerdown',{id}); await pointer('pointerup',{id}); }
+    const paints=gaSent.filter(e=>e.name==='color_lab_paint');
+    assert.ok(paints.length<=1,'one event for several flat strokes');
+    const knife=document.querySelector('[aria-label^="პალიტრის დანა"]');
+    await act(()=>knife.dispatchEvent(new window.MouseEvent('click',{bubbles:true})));
+    assert.deepEqual(gaSent.filter(e=>e.name==='color_lab_tool').map(e=>e.params.tool),['knife']);
   });
 });

@@ -5,6 +5,8 @@ import { Helmet } from 'react-helmet-async';
 import SEO from '../components/SEO';
 import { hasEdgeJsonLd } from '../utils/edgeJsonLd';
 import { COLOR_LAB_SEO } from '../features/colorLab/seo.js';
+import { trackLab, LAB_LIST, resetFirstUse } from '../features/colorLab/analytics.js';
+import { trackSelectItem, trackViewItemList } from '../utils/analytics.js';
 import ProductsCard from '../components/productCard/productsCard';
 import { useCart } from '../components/CartContext/CartContext';
 import { PUBLIC_API } from '../utils/apiBase';
@@ -16,7 +18,7 @@ import PaintingCanvas from '../features/colorLab/PaintingCanvas';
 import Swatch from '../features/colorLab/Swatch';
 import MixingBench from '../features/colorLab/MixingBench';
 import { MIX_MS } from '../features/colorLab/marble.js';
-import { cupsReducer, initialCups } from '../features/colorLab/cups.js';
+import { cupsReducer, initialCups, shownShares } from '../features/colorLab/cups.js';
 import s from './ColorLabPage.module.css';
 
 const visualName = n => ({ olivedrab: 'Olive Drab', darkolivegreen: 'Dark Olive Green', darkslategray: 'Dark Slate Grey', forestgreen: 'Forest Green', seagreen: 'Sea Green', darkseagreen: 'Dark Sea Green', mediumseagreen: 'Medium Sea Green', darkkhaki: 'Dark Khaki', yellowgreen: 'Yellow Green', darkgoldenrod: 'Dark Goldenrod', darkslateblue: 'Dark Slate Blue' }[n] || titleCase(n));
@@ -43,6 +45,8 @@ export default function ColorLabPage() {
   const [saved, setSaved] = useState(readSaved), [notice, setNotice] = useState(''), [copyText, setCopyText] = useState('');
   const surfaceRef = useRef(null), paletteRef = useRef(null), searchRef = useRef(null), paletteButton = useRef(null), mixTimers = useRef(new Map()), mixToken = useRef(0);
   useEffect(() => () => { for (const timer of mixTimers.current.values()) clearTimeout(timer); }, []);
+  // Each visit reports its first stroke per tool again.
+  useEffect(() => { resetFirstUse(); }, []);
   useEffect(() => {
     let alive = true; setShopError('');
     loadShopCatalog(PUBLIC_API).then(data => { if (alive) setShop(data); }).catch(() => { if (alive) setShopError('მასალები ვერ ჩაიტვირთა.'); });
@@ -68,6 +72,11 @@ export default function ColorLabPage() {
   // A finished mix goes straight onto the brush.
   useEffect(() => {
     if (cups.blend.status !== 'mixed' || !cups.blend.result) return;
+    // A poured or mixed bench (a recipe loads with no token and is reported as recipe_try).
+    if (cups.blend.token != null) {
+      const filled = cups.cups.filter(c => c.ingredients.length), shares = shownShares(cups.cups);
+      trackLab('mix', { colors: filled.length, color_names: filled.map(c => englishName(c.ingredients[0].pigment)).join(' + '), shares: filled.map(c => shares.get(c.id)).join('/'), result_hex: cups.blend.result.hex });
+    }
     setBrush({ ...cups.blend.result, name: 'Your Mix' });
     surfaceRef.current?.activateBrush();
   }, [cups.blend.status, cups.blend.result]);
@@ -92,7 +101,7 @@ export default function ColorLabPage() {
       worker.onmessage = ({ data }) => {
         if (!alive) return;
         if (data.progress !== undefined) setProgress(data.progress);
-        if (data.recipes) { setSolutions(data.recipes); setBusy(false); worker.terminate(); }
+        if (data.recipes) { setSolutions(data.recipes); setBusy(false); worker.terminate(); trackLab('recipe_search', { target_hex: targetHex, results: data.recipes.length, best_match: data.recipes[0] ? +data.recipes[0].delta.toFixed(1) : undefined }); }
         if (data.error) { setSolverError(data.error); setBusy(false); worker.terminate(); }
       };
       worker.onerror = () => { if (alive) { setSolverError('ძიება ვერ დასრულდა.'); setBusy(false); } worker.terminate(); };
@@ -102,6 +111,7 @@ export default function ColorLabPage() {
   }, [mode, targetHex, reversePool, solverRetry]);
   function choose(p) {
     if (cups.blend.status === 'mixing') return;
+    trackLab('color_choose', { color_name: englishName(p), pigment_code: p.pigments.filter(Boolean).join(' '), cup: cups.cups.findIndex(c => c.id === cups.activeId) + 1, search_term: query.trim() });
     dispatchCups({ type: 'ingredient', pigment: p }); setPaletteOpen(false); setQuery('');
     paletteButton.current?.focus({ preventScroll: true });
   }
@@ -113,12 +123,13 @@ export default function ColorLabPage() {
     const timer = setTimeout(() => { dispatchCups({ type: 'finish', token }); mixTimers.current.delete(token); }, reduced ? 120 : MIX_MS);
     mixTimers.current.set(token, timer);
   }
-  function useRecipe(recipe) {
+  function useRecipe(recipe, source) {
     const valid = recipe.filter(r => r && byId.has(r.id) && Number.isFinite(r.weight) && r.weight > 0);
     if (valid.length !== recipe.length || !valid.length) { setNotice('ამ რეცეპტის ზოგი ფერი აღარ არის ხელმისაწვდომი'); return; }
     const grouped = new Map();
     for (const r of valid) { const pigment = byId.get(r.id), previous = grouped.get(pigment.id); grouped.set(pigment.id, { pigment, weight: r.weight + (previous?.weight || 0) }); }
     dispatchCups({ type: 'recipe', components: [...grouped.values()] });
+    trackLab('recipe_try', { source, colors: grouped.size, target_hex: source === 'search' ? targetHex : undefined });
     setMode('mix');
     requestAnimationFrame(() => document.getElementById('lab-studio')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
@@ -128,14 +139,24 @@ export default function ColorLabPage() {
   async function copy() {
     if (!sample) return;
     const text = `Artopia — ${sample.hex}\n${sample.recipe.map((r, i) => `${englishName(byId.get(r.id))} / ${byId.get(r.id)?.ka}: ${shares[i]}%`).join('\n')}\nhttps://artopia.ge/color-lab`;
+    trackLab('recipe_copy', { hex: sample.hex, colors: sample.recipe.length });
     try { await navigator.clipboard.writeText(text); setNotice('დაკოპირდა'); } catch { setCopyText(text); }
   }
   function save() {
     if (!sample) return;
+    trackLab('recipe_save', { hex: sample.hex, colors: sample.recipe.length });
     try { const next = [{ hex: sample.hex, recipe: sample.recipe, title: visualName(sampleName.name) }, ...saved.filter(r => r.hex !== sample.hex)].slice(0, 12); localStorage.setItem('artopia.color-lab.recipes.v1', JSON.stringify(next)); setSaved(next); setNotice('შენახულია'); } catch { setNotice('შენახვა ვერ მოხერხდა'); }
   }
   const selectedForShop = useMemo(() => mode === 'reverse' && solutions[0] ? solutions[0].recipe.map(r => byId.get(r.id)).filter(Boolean) : cups.cups.some(c => c.ingredients.length) ? cups.cups.flatMap(c => c.ingredients.map(i => i.pigment)) : sample ? sample.recipe.map(r => byId.get(r.id)).filter(Boolean) : brush?.components.map(c => c.pigment) || [], [mode, solutions, cups.cups, sample, brush, byId]);
   const shopItems = useMemo(() => exactColorProducts(shop, selectedForShop.map(p => byId.get(p.id) || p)), [shop, selectedForShop, byId]);
+  // view_item_list once per distinct set of products, after the bench settles.
+  const listed = useRef('');
+  useEffect(() => {
+    const key = shopItems.slice(0, shown).map(p => p.id).join(',');
+    if (!key || key === listed.current) return;
+    const t = setTimeout(() => { listed.current = key; trackViewItemList(shopItems.slice(0, shown), LAB_LIST.id, LAB_LIST.name); }, 1500);
+    return () => clearTimeout(t);
+  }, [shopItems, shown]);
   return <div className={s.page}>
     <SEO title={COLOR_LAB_SEO.title} description={COLOR_LAB_SEO.description} url={COLOR_LAB_SEO.url} image={COLOR_LAB_SEO.image} />
     <Helmet>
@@ -145,8 +166,8 @@ export default function ColorLabPage() {
     <header className={s.top}>
       <h1>ფერების ლაბორატორია</h1>
       <div className={s.modes} role="tablist" aria-label="რეჟიმი">
-        <button type="button" role="tab" id="paint-tab" aria-controls="painting-panel" aria-selected={mode === 'mix'} onClick={() => setMode('mix')}>შერევა</button>
-        <button type="button" role="tab" id="reverse-tab" aria-controls="recipe-panel" aria-selected={mode === 'reverse'} onClick={() => { setPaletteOpen(false); setMode('reverse'); }}>ფერის რეცეპტი</button>
+        <button type="button" role="tab" id="paint-tab" aria-controls="painting-panel" aria-selected={mode === 'mix'} onClick={() => { if (mode !== 'mix') trackLab('mode', { mode: 'mix' }); setMode('mix'); }}>შერევა</button>
+        <button type="button" role="tab" id="reverse-tab" aria-controls="recipe-panel" aria-selected={mode === 'reverse'} onClick={() => { if (mode !== 'reverse') trackLab('mode', { mode: 'recipe' }); setPaletteOpen(false); setMode('reverse'); }}>ფერის რეცეპტი</button>
       </div>
     </header>
     <section hidden={mode !== 'mix'} id="painting-panel" role="tabpanel" aria-labelledby="paint-tab">
@@ -172,7 +193,7 @@ export default function ColorLabPage() {
           </>}
         </div>
         <div className={s.canvasColumn}>
-          <PaintingCanvas ref={surfaceRef} brush={brush} onSample={setSample} onNeedPaint={() => setNotice('ჯერ ფერი შეურიე')} onPick={picked => { setBrush({ hex: picked.hex, components: picked.components, name: 'Picked' }); setNotice(`ფუნჯზე აიღე ${picked.hex}`); }} />
+          <PaintingCanvas ref={surfaceRef} brush={brush} onSample={setSample} onNeedPaint={() => setNotice('ჯერ ფერი შეურიე')} onPick={picked => { trackLab('pipette', { hex: picked.hex, colors: picked.recipe.length }); setBrush({ hex: picked.hex, components: picked.components, name: 'Picked' }); setNotice(`ფუნჯზე აიღე ${picked.hex}`); }} />
           {sample && <div className={s.sample}>
             <i style={{ background: sample.hex }} />
             <div className={s.sampleName}><b>{sampleName.ka}</b><code>{sample.hex}</code></div>
@@ -197,17 +218,17 @@ export default function ColorLabPage() {
           <div className={s.pair}><i style={{ background: targetHex }} /><i style={{ background: r.hex }} /></div>
           <div className={s.solutionRecipe}>{r.recipe.map((c, j) => { const p = byId.get(c.id); return <span key={c.id} title={p?.ka}><i style={{ background: p?.hex }} />{englishName(p)}<b>{parts[j]}%</b></span>; })}</div>
           <span className={s.match} title={`ΔE₀₀ ${r.delta.toFixed(2)}`}>{r.delta < 2 ? 'თითქმის ზუსტი' : r.delta < 5 ? 'ახლოა' : 'მიახლოებითი'}</span>
-          <button type="button" className={s.try} onClick={() => useRecipe(r.recipe)}>ცდა <ArrowRight size={15} /></button>
+          <button type="button" className={s.try} onClick={() => useRecipe(r.recipe, 'search')}>ცდა <ArrowRight size={15} /></button>
         </article>;
       })}</div>}
     </section>}
-    {!!saved.length && <div className={s.saved}>{saved.map((r, i) => <button type="button" key={i} title={`${r.title} · ${r.hex}`} onClick={() => useRecipe(r.recipe)}><i style={{ background: r.hex }} />{r.title}</button>)}</div>}
+    {!!saved.length && <div className={s.saved}>{saved.map((r, i) => <button type="button" key={i} title={`${r.title} · ${r.hex}`} onClick={() => useRecipe(r.recipe, 'saved')}><i style={{ background: r.hex }} />{r.title}</button>)}</div>}
     {(shopError || shopItems.length > 0) && <section className={s.shop} id="lab-shop">
       <div className={s.shopHeading}><h2>შერჩეული ან მსგავსი ფერები Artopia-ში</h2><Link to="/products">კატალოგი <ArrowUpRight size={16} /></Link></div>
       {shopError ? <div role="alert" className={s.empty}>{shopError} <button type="button" onClick={() => setRetry(n => n + 1)}>ხელახლა</button></div> : <div className={s.productGrid}>{shopItems.slice(0, shown).map(p => {
         const href = `/products/${p.slug || p.id}`;
         // Same card and click behaviour as the catalogue page.
-        return <div key={p.id} className={s.cardWrap} onClick={() => navigate(href)}><ProductsCard product={p} href={href} onAddToCart={(e, qty, product = p) => { e.stopPropagation(); addToCart(product, qty); }} onBuyNow={(e, qty, product = p) => { e.stopPropagation(); addToCart(product, qty); navigate('/checkout'); }} /></div>;
+        return <div key={p.id} className={s.cardWrap} onClick={() => { trackSelectItem(p, LAB_LIST.id, LAB_LIST.name, shopItems.indexOf(p)); navigate(href); }}><ProductsCard product={p} href={href} onAddToCart={(e, qty, product = p) => { e.stopPropagation(); addToCart(product, qty); }} onBuyNow={(e, qty, product = p) => { e.stopPropagation(); addToCart(product, qty); navigate('/checkout'); }} /></div>;
       })}</div>}
       {shown < shopItems.length && <button type="button" className={s.more} onClick={() => setShown(n => n + 8)}>მეტი ({shopItems.length - shown})</button>}
     </section>}
