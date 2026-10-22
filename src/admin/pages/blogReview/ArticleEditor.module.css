@@ -1,0 +1,62 @@
+/* მფლობელის რედაქტორი: იგივე მუქი ფერები, რაც განხილვის გვერდს (BlogReview.module.css) */
+.editor { order: 1; min-width: 0; display: grid; gap: 14px; }
+.bar { position: sticky; top: 96px; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: #131a24; border: 1px solid #e7bd65; border-radius: 16px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+.bar strong { display: inline-flex; align-items: center; gap: 8px; color: #ffd18a; font-size: 15px; }
+.barHint { color: #9ca9ba; font-size: 13px; line-height: 1.45; flex: 1 1 220px; }
+.barButtons { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.barButtons button { display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; padding: 10px 14px; font-weight: 800; font-size: 14px; cursor: pointer; border: 1px solid transparent; }
+.barButtons button:disabled { opacity: 0.6; cursor: wait; }
+.save { background: #22a06b; color: #fff; }
+.save:hover { background: #1c8a5b; }
+.ghost { background: transparent; color: #c4cedb; border-color: #344155 !important; }
+.error { flex-basis: 100%; color: #ffb4bf; font-size: 13.5px; }
+
+.form { display: grid; gap: 12px; }
+.field { display: grid; gap: 6px; font-size: 13px; color: #9ca9ba; font-weight: 700; }
+.field span { display: flex; justify-content: space-between; gap: 8px; }
+.field small { font-weight: 600; color: #8f9bae; }
+.field small.over { color: #ffb4bf; }
+.field input, .field textarea, .field select, .heading, .textarea, .faq input, .tableRow input {
+  width: 100%; box-sizing: border-box; background: #0d131d; border: 1px solid #344155; border-radius: 10px; color: #eef3fa;
+  padding: 10px 12px; font: inherit; font-size: 15px; line-height: 1.55; font-weight: 400;
+}
+.field textarea, .textarea { resize: vertical; }
+.field input:focus, .field textarea:focus, .heading:focus, .textarea:focus { outline: none; border-color: #6b7f9c; }
+.heading { font-size: 18px; font-weight: 800; }
+
+.card { display: grid; gap: 10px; background: #131a24; border: 1px solid #263243; border-radius: 14px; padding: 12px; }
+.cardHeading { border-left: 3px solid #e7bd65; }
+.cardTop { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.cardTop b { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #8f9bae; }
+.tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.tools button { display: inline-flex; align-items: center; gap: 4px; background: #0d131d; border: 1px solid #344155; color: #c4cedb; border-radius: 8px; padding: 6px 9px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.tools button:disabled { opacity: 0.35; cursor: default; }
+.tools button:hover:not(:disabled) { border-color: #6b7f9c; }
+.tools .danger { color: #ffb4bf; border-color: #5a2a33; }
+
+/* Quill მუქ ფონზე: ტექსტი ისე იკითხება, როგორც სტატიაში */
+.quill :global(.ql-toolbar.ql-snow) { border-color: #344155; border-radius: 10px 10px 0 0; background: #e9eef7; }
+.quill :global(.ql-container.ql-snow) { border-color: #344155; border-radius: 0 0 10px 10px; background: #0d131d; color: #eef3fa; font-family: inherit; font-size: 16.5px; }
+.quill :global(.ql-editor) { line-height: 1.75; min-height: 64px; }
+.quill :global(.ql-editor a), .quillSmall :global(.ql-editor a) { color: #9fd0ff; }
+.quillSmall :global(.ql-toolbar.ql-snow) { border-color: #344155; border-radius: 10px 10px 0 0; background: #e9eef7; padding: 4px 6px; }
+.quillSmall :global(.ql-container.ql-snow) { border-color: #344155; border-radius: 0 0 10px 10px; background: #0d131d; color: #eef3fa; font-family: inherit; font-size: 15px; }
+.quillSmall :global(.ql-editor) { min-height: 38px; }
+
+.photo { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 12px; align-items: start; }
+.photo img { width: 100%; border-radius: 10px; display: block; background: #0d131d; }
+.photoSide { display: grid; gap: 10px; }
+.upload { display: inline-flex; align-items: center; gap: 8px; justify-self: start; background: #1d2f4a; color: #cfe1ff; border: 1px solid #2f4a70; border-radius: 10px; padding: 9px 12px; font-weight: 800; font-size: 13.5px; cursor: pointer; }
+.upload input { display: none; }
+.figure, .listItems { display: grid; gap: 10px; }
+.faq { display: grid; gap: 6px; }
+.table { display: grid; gap: 6px; overflow-x: auto; }
+.tableRow { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(120px, 1fr); gap: 6px; }
+
+.preview { border-radius: 18px; overflow: hidden; border: 1px solid #263243; background: linear-gradient(335deg, #134074, #13315c, #0b2545); }
+
+@media (max-width: 700px) {
+  .bar { top: 84px; }
+  .photo { grid-template-columns: 1fr; }
+  .barButtons { margin-left: 0; }
+}
