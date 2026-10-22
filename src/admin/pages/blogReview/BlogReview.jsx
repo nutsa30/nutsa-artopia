@@ -5,6 +5,7 @@ import styles from "./BlogReview.module.css";
 import { authHeaders } from "../../api";
 import ArticleV2 from "../../../features/blogV2/ArticleV2";
 import { kaDate } from "../../../features/blogV2/format";
+import BlogOrders from "./BlogOrders";
 
 // ბლოგის რედაქცია: რედაქციის (AI) სტატიები აქ ჩნდება მონახაზად. ადმინი ადასტურებს (ქვეყნდება შესაბამის კატეგორიაში),
 // უარყოფს (არქივი) ან წერს შენიშვნას: რედაქციის აგენტები ასწორებენ და ახალი ვერსია ისევ აქ ჩნდება.
@@ -180,13 +181,20 @@ export default function BlogReview() {
         <div>
           <span className={styles.eyebrow}>Artopia-ს რედაქცია</span>
           <h1>ბლოგის რედაქცია</h1>
-          <p>რედაქციის სტატიები გამოქვეყნებამდე. დაადასტურე, უარყავი ან დაწერე, რა უნდა გასწორდეს.</p>
+          <p>შეუკვეთე თემა, ან გადახედე რედაქციის სტატიებს გამოქვეყნებამდე: დაადასტურე, უარყავი ან დაწერე, რა უნდა გასწორდეს.</p>
         </div>
         <button type="button" className={styles.refresh} onClick={load} disabled={loading}><RefreshCw size={16} /> განახლება</button>
       </header>
 
       {!data.available && <div className={styles.notice}>ბლოგის რედაქცია ბაზაში ჯერ ჩართული არ არის (მიგრაცია).</div>}
       {error && <div className={styles.error}>{error}</div>}
+
+      <BlogOrders
+        call={call}
+        onAuthError={onAuthError}
+        formatDate={shortDate}
+        onOpenArticle={(id, status) => { if (status) setTab(status); setSelectedId(id); }}
+      />
 
       <nav className={styles.tabs}>
         {TABS.map((t) => (
