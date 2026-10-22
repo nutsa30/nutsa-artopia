@@ -40,6 +40,7 @@ const ChatWidget = React.lazy(() => import("./components/ChatWidget"));
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 // 3D (three.js) მხოლოდ ამ გვერდს სჭირდება — ცალკე ჩანქად იტვირთება
 const EngravingPage = React.lazy(() => import("./pages/EngravingPage"));
+const ColorLabPage = React.lazy(() => import("./pages/ColorLabPage"));
 
 const CartToastWrapper = () => {
   const { showToast } = useCart();
@@ -179,6 +180,7 @@ const ChatMountIfNotAdmin = () => {
 />
 
 <Route path="/blogs" element={<DeferredPage><BlogsPage /></DeferredPage>} />
+<Route path="/color-lab" element={<DeferredPage><ColorLabPage /></DeferredPage>} />
 
 <Route path="/blog/:slug" element={<DeferredPage><BlogDetailPage /></DeferredPage>} />
 

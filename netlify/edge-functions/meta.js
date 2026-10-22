@@ -7,6 +7,7 @@ import { responsiveImage } from "../../src/utils/cloudinary.js";
 import { indexPolicy, utilityTitle } from "../../src/utils/indexPolicy.js";
 import { catalogJsonLd } from "../../src/utils/catalogSchema.js";
 import { secureResponse } from "../lib/security.js";
+import { COLOR_LAB_SEO } from "../../src/features/colorLab/seo.js";
 
 // Netlify Edge Function — bakes correct per-page SEO into the SPA's index.html
 // for all visitors and crawlers so
@@ -62,7 +63,7 @@ function embedInitialData(html, kind, path, data) {
 
 // Client-side routes (src/App.jsx). Anything else is a real 404.
 const STATIC_ROUTES = new Set([
-  "/", "/index.html", "/products", "/engraving", "/blogs", "/login", "/checkout",
+  "/", "/index.html", "/products", "/engraving", "/color-lab", "/blogs", "/login", "/checkout",
   "/payment/result", "/contacts", "/terms", "/returns", "/privacy", "/reviews",
   // legacy admin shortcuts that App.jsx redirects into /admin/*
   "/admin", "/menu", "/addProducts", "/order_history", "/blog", "/promo-codes", "/home-images",
@@ -413,6 +414,10 @@ async function handle(request, context) {
       return htmlResponse(out, source);
     }
 
+    if (path === "/color-lab") {
+      const { title, description, url, image, keywords, jsonLd } = COLOR_LAB_SEO;
+      return htmlResponse(applyMeta(shell, { title, description, url, image, keywords, jsonLd, type: "website" }), source);
+    }
     /* ===================== ENGRAVING: /engraving ===================== */
     if (path === "/engraving") {
       const html = shell;
