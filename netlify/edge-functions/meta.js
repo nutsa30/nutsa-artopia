@@ -415,8 +415,8 @@ async function handle(request, context) {
     }
 
     if (path === "/color-lab") {
-      const { title, description, url, image, keywords, jsonLd } = COLOR_LAB_SEO;
-      return htmlResponse(applyMeta(shell, { title, description, url, image, keywords, jsonLd, type: "website" }), source);
+      const { title, description, url, image, keywords, jsonLd, imageMeta } = COLOR_LAB_SEO;
+      return htmlResponse(applyMeta(shell, { title, description, url, image, keywords, jsonLd, type: "website", headExtra: imageMeta }), source);
     }
     /* ===================== ENGRAVING: /engraving ===================== */
     if (path === "/engraving") {

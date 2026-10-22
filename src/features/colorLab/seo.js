@@ -9,6 +9,13 @@ export const COLOR_LAB_SEO = {
   title: 'ფერების შერევა ონლაინ — ფერების ლაბორატორია | Artopia',
   description: 'შეურიე საღებავები და პიგმენტები ონლაინ, ნახე რა ფერი მიიღება და მოსინჯე ტილოზე. სასურველი ფერისთვის მიიღე შერევის რეცეპტი პროცენტებით.',
   image: `${SITE}/images/color-lab/color-lab.jpg`,
+  // Size and type let Facebook/Messenger show the picture on the very first share.
+  imageMeta: [
+    '<meta property="og:image:width" content="1200" />',
+    '<meta property="og:image:height" content="630" />',
+    '<meta property="og:image:type" content="image/jpeg" />',
+    '<meta property="og:image:alt" content="ფერების ლაბორატორია — ჭიქები, შერევა და ტილო პალიტრის დანით" />',
+  ].join(''),
   keywords: 'ფერების შერევა, საღებავების შერევა, ფერის მიღება, როგორ მივიღოთ ფერი, ფერების შერევის ცხრილი, ფერების კალკულატორი, ფერის რეცეპტი, პიგმენტების შერევა, ზეთის საღებავი, აკრილის საღებავი, მწვანე ფერის მიღება, ყავისფერის მიღება, იისფერის მიღება, ნარინჯისფერის მიღება, color mixing, paint mixing, color mixer, pigment mixing',
   jsonLd: {
     '@context': 'https://schema.org',
