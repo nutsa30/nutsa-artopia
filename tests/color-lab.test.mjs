@@ -88,3 +88,16 @@ test('color lab is a known edge route and receives initial SEO and canonical',as
   const old=globalThis.fetch;globalThis.fetch=async()=>{throw new Error('No API needed');};
   try{const r=await edge(new Request('https://artopia.ge/color-lab'),{next:async()=>new Response(html,{headers:{'content-type':'text/html'}})});assert.equal(r.status,200);const body=await r.text();assert.match(body,/<title>ფერების შერევა ონლაინ — ფერების ლაბორატორია/);assert.ok(body.includes('data-ld-edge="/color-lab"'));assert.ok(body.includes('"@type":"WebApplication"'));assert.ok(body.includes('og:image" content="https://artopia.ge/images/color-lab/color-lab.jpg'));assert.ok(body.includes('og:image:width" content="1200'));assert.ok(body.includes('og:image:height" content="630'));assert.match(body,/rel="canonical" href="https:\/\/artopia.ge\/color-lab"/);assert.ok(!body.includes('og:type" content="undefined'));}finally{globalThis.fetch=old;}
 });
+test('a crawler asking for a byte range (Facebook) still gets the page with its own meta',async()=>{
+  const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
+  const old=globalThis.fetch;globalThis.fetch=async()=>{throw new Error('No API needed');};
+  // The origin answers a Range request with 206 and the bare shell, like Netlify does.
+  const next=async req=>req?.headers?.has('range')?new Response(html.slice(0,4000),{status:206,headers:{'content-type':'text/html'}}):new Response(html,{headers:{'content-type':'text/html'}});
+  try{
+    const r=await edge(new Request('https://artopia.ge/color-lab',{headers:{range:'bytes=0-524287','user-agent':'facebookexternalhit/1.1'}}),{next});
+    assert.equal(r.status,200);const body=await r.text();
+    assert.ok(body.includes('og:url" content="https://artopia.ge/color-lab"'));assert.ok(body.includes('og:image" content="https://artopia.ge/images/color-lab/color-lab.jpg'));
+    const asset=await edge(new Request('https://artopia.ge/images/color-lab/color-lab.jpg',{headers:{range:'bytes=0-99'}}),{next:async req=>new Response('x',{status:req?.headers?.has('range')?206:200,headers:{'content-type':'image/jpeg'}})});
+    assert.equal(asset.status,206,'files keep their byte ranges');
+  }finally{globalThis.fetch=old;}
+});

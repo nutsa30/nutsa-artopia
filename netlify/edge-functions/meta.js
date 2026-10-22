@@ -253,7 +253,18 @@ async function renderPage(request, context) {
 };
 
 async function handle(request, context) {
-  const source = await context.next();
+  // Facebook's crawler asks for pages with `Range: bytes=0-…`; the origin then
+  // answers 206 with the bare shell and every shared link showed the home page's
+  // title and picture. Pages are always fetched whole; files keep their ranges.
+  const lastSegment = new URL(request.url).pathname.split("/").pop() || "";
+  let upstream = request;
+  if (!lastSegment.includes(".") && (request.headers.has("range") || request.headers.has("if-range"))) {
+    const headers = new Headers(request.headers);
+    headers.delete("range");
+    headers.delete("if-range");
+    upstream = new Request(request, { headers });
+  }
+  const source = await context.next(upstream);
   // The untouched page with the right canonical: what every visitor gets when
   // nothing below applies, the API is slow/down, or anything throws.
   let page = () => source;
