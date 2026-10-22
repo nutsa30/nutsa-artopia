@@ -33,7 +33,9 @@ function quillParagraphs(value) {
   box.innerHTML = value || "";
   const parts = [];
   box.childNodes.forEach((node) => {
-    const inner = (node.nodeType === 1 ? node.innerHTML : node.textContent || "").replace(/<br\s*\/?>/gi, " ").trim();
+    // Quill ჰარებს &nbsp;-ად წერს: ასეთ ჰარზე სტრიქონი არ იყოფა (ტელეფონზე ტექსტი გადავიდოდა) და რედაქციას ყველა სიტყვა შეცვლილი ეგონებოდა
+    const inner = (node.nodeType === 1 ? node.innerHTML : node.textContent || "")
+      .replace(/<br\s*\/?>/gi, " ").replace(/&nbsp;|\u00a0/g, " ").replace(/ {2,}/g, " ").trim();
     if (inner) parts.push(inner);
   });
   return parts;
