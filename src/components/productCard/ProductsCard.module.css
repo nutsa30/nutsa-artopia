@@ -418,8 +418,12 @@ transform-origin: center;
   .outOfStock { font-size: 13px; padding: 9px; }
 }
 /* ≥562px / ≥900px — ღილაკების ზომის მცირე ზრდა */
-@media (min-width: 562px){ button { padding: 9px 12px; font-size: 13px; } }
-@media (min-width: 900px){ button { padding: 10px 14px; font-size: 14px; } }
+/* ელემენტის სელექტორი CSS Module-ში არ იზღუდება: padding მხოლოდ ბარათის
+   ღილაკებს (სხვაგან იკონებს ცენტრიდან სწევდა); :where() სპეციფიკურობას
+   იგივეს ტოვებს. font-size საიტზე ისევ ყველგან მოქმედებს — ზოგი ტექსტიანი
+   ღილაკი მასზეა აწყობილი. */
+@media (min-width: 562px){ button { font-size: 13px; } :where(.productCard) button { padding: 9px 12px; } }
+@media (min-width: 900px){ button { font-size: 14px; } :where(.productCard) button { padding: 10px 14px; } }
 
 /* ≥780px — ბარათი ოდნავ „გრძელი“, ტექსტისთვის მეტი ადგილი */
 @media (min-width: 780px) {

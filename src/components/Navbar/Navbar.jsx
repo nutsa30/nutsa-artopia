@@ -1,185 +1,102 @@
-import React, { useState, createContext, useContext, useRef, forwardRef } from "react";
-import styles from "./Navbar.module.css";
+import React, { useState, useEffect, createContext, useContext, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Home, ShoppingBag, LetterText, MessagesSquare, PenTool, Palette, Menu, X, ShoppingCart } from "lucide-react";
 import { useCart } from "../CartContext/CartContext";
 import CartDropdown from "../CartContext/CartDropdown";
-import { Home, ShoppingBag, LetterText, MessagesSquare, PenTool } from "lucide-react";
+import { changeLanguage, loadGoogleTranslate } from "../../utils/googleTranslate";
 import geFlag from "../../assets/georgiaflag.webp";
 import enFlag from "../../assets/britishflag.webp";
-import { changeLanguage, loadGoogleTranslate } from "../../utils/googleTranslate";
-/* ---------- Tabs ---------- */
+import styles from "./Navbar.module.css";
+
 const tabs = [
-  { id: "home", path: "/", icon: <Home size={18} /> },
-  { id: "shopping", path: "/products", icon: <ShoppingBag size={18} /> },
-  { id: "engraving", path: "/engraving", icon: <PenTool size={18} /> },
-  { id: "blogs", path: "/blogs", icon: <LetterText size={18} /> },
-  { id: "contacts", path: "/contacts", icon: <MessagesSquare size={18} /> },
+  { path: "/", label: "მთავარი", Icon: Home },
+  { path: "/products", label: "პროდუქტები", Icon: ShoppingBag },
+  { path: "/engraving", label: "გრავირება", Icon: PenTool },
+  { path: "/color-lab", label: "ფერების ლაბორატორია", Icon: Palette },
+  { path: "/blogs", label: "არტ ბლოგი", Icon: LetterText },
+  { path: "/contacts", label: "კონტაქტები", Icon: MessagesSquare },
 ];
-
-/* ---------- ერთენოვანი ლეიბლები ---------- */
-const L = {
-  home: "მთავარი",
-  shopping: "პროდუქტები",
-  engraving: "გრავირება",
-  blogs: "არტ ბლოგი",
-  contacts: "კონტაქტები",
-  brand: "არტოპია",
-  cartAria: "კალათა",
-  navAria: "ნავიგაცია",
-};
-const LogoImg = "/Logo.webp";
-/* ---------- Cart UI Context ---------- */
 const CartUiContext = createContext(null);
-
 export function CartUiProvider({ children }) {
   const cartRef = useRef(null);
-  return (
-    <CartUiContext.Provider value={{ cartRef }}>
-      {children}
-    </CartUiContext.Provider>
-  );
+  return <CartUiContext.Provider value={{ cartRef }}>{children}</CartUiContext.Provider>;
 }
-
 export function useCartUiRefs() {
   const ctx = useContext(CartUiContext);
   if (!ctx) throw new Error("useCartUiRefs must be used within <CartUiProvider>");
   return ctx;
 }
-
-/* ---------- Cart Icon ---------- */
-const CartIcon = forwardRef((props, ref) => (
-  <button
-    ref={ref}
-    aria-label={props["aria-label"] || "Cart"}
-    className={styles.icon}
-    type="button"
-    tabIndex={-1}
-  >
-    <svg viewBox="0 0 24 24" className={styles.cartSvg} aria-hidden="true">
-      <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 
-      0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 
-      2 2-.9 2-2-.9-2-2-2zM7.16 
-      14h9.45c.75 0 1.41-.41 
-      1.75-1.03l3.24-5.88A1 
-      1 0 0 0 20.61 5H5.21l-.94-2H1v2h2l3.6 
-      7.59-1.35 2.44C5.09 15.37 5 
-      15.68 5 16c0 1.1.9 2 2 2h12v-2H7.42c-.14 
-      0-.25-.11-.25-.25l.03-.12.96-1.73z"/>
-    </svg>
-  </button>
-));
-CartIcon.displayName = "CartIcon";
-
-/* ---------- Navbar ---------- */
-const Navbar = () => {
-  // Google Translate მხოლოდ საჭიროებისას იტვირთება (იხ. utils/googleTranslate.js):
-  // დროშაზე მიახლოებისას/შეხებისას წინასწარ, დაჭერისას კი ენა იცვლება.
+export default function Navbar() {
   const [langBusy, setLangBusy] = useState(false);
-  const warmUpTranslate = () => {
-    loadGoogleTranslate().catch(() => {});
-  };
-  const changeLang = (lang) => {
-    setLangBusy(true);
-    changeLanguage(lang)
-      .catch((err) => console.error(err))
-      .finally(() => setLangBusy(false));
-  };
-  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [showCartOpen, setShowCartOpen] = useState(false);
+  const { pathname } = useLocation();
   const { cartItems } = useCart();
-  const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  const activeTab = tabs.find((tab) => tab.path === location.pathname)?.id || null;
   const { cartRef } = useCartUiRefs();
-
-  return (
-<div
-  id="site-navbar"
-  className={styles.tabbar}
-  role="navigation"
-  aria-label={L.navAria}
->  
-  {/* Header */}
-  <div className={styles.header}>
-    <Link to="/" reloadDocument className={styles.brandLink} aria-label={`${L.brand} — ${L.home}`}>
-      <img className={styles.logo} src={LogoImg} alt={L.brand} width="50" height="50" />
-      <span className={styles.h2}>{L.brand}</span>
+  const barRef = useRef(null);
+  const menuRef = useRef(null);
+  const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  useEffect(() => { setMenuOpen(false); setShowCartOpen(false); }, [pathname]);
+  useEffect(() => {
+    // The shared storefront offset follows the actual header, including zoom/font changes.
+    const root = document.documentElement;
+    const previousH = root.style.getPropertyValue('--navbar-h');
+    const previousGap = root.style.getPropertyValue('--navbar-gap');
+    const measure = () => {
+      if (!barRef.current) return;
+      const r = barRef.current.getBoundingClientRect();
+      root.style.setProperty('--navbar-h', `${Math.ceil(r.height + r.top)}px`);
+      root.style.setProperty('--navbar-gap', '24px');
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(barRef.current);
+    window.addEventListener('resize', measure);
+    measure();
+    return () => {
+      observer.disconnect(); window.removeEventListener('resize', measure);
+      if (previousH) root.style.setProperty('--navbar-h', previousH); else root.style.removeProperty('--navbar-h');
+      if (previousGap) root.style.setProperty('--navbar-gap', previousGap); else root.style.removeProperty('--navbar-gap');
+    };
+  }, []);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = e => {
+      if (e.type === 'keydown' && e.key === 'Escape') { setMenuOpen(false); menuRef.current?.focus(); }
+      if (e.type === 'pointerdown' && !barRef.current?.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('keydown', close);
+    document.addEventListener('pointerdown', close);
+    return () => { document.removeEventListener('keydown', close); document.removeEventListener('pointerdown', close); };
+  }, [menuOpen]);
+  const changeLang = lang => {
+    setLangBusy(true);
+    changeLanguage(lang).catch(console.error).finally(() => setLangBusy(false));
+  };
+  return <nav id="site-navbar" ref={barRef} className={styles.tabbar} aria-label="ნავიგაცია">
+    <Link to="/" reloadDocument className={styles.brandLink} aria-label="არტოპია — მთავარი">
+      <img src="/Logo.webp" alt="არტოპია" width="42" height="42" />
+      <span>არტოპია</span>
     </Link>
-  </div>
-
-  {/* Language */}
-  <div
-    className={styles.langSwitcher}
-    aria-busy={langBusy}
-    style={langBusy ? { opacity: 0.6, cursor: "progress" } : undefined}
-    onPointerEnter={warmUpTranslate}
-    onTouchStart={warmUpTranslate}
-  >
-    <button onClick={() => changeLang("ka")} aria-label="ქართული">
-      <img src={geFlag} alt="ქართული" width="45" height="30" />
-    </button>
-
-    <button onClick={() => changeLang("en")} aria-label="English">
-      <img src={enFlag} alt="English" width="45" height="30" />
-    </button>
-  </div>
-
-
-      {/* Tabs */}
-      <div className={styles.tabsWrapper}>
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          const label = L[tab.id];
-
-          return (
-            <Link
-              key={tab.id}
-              to={tab.path}
-              reloadDocument
-              className={`${styles.tabItem} ${isActive ? styles.active : ""}`}
-              aria-label={label}
-              aria-current={isActive ? "page" : undefined}
-            >
-              {isActive && (
-                <div className={styles.blobWrapper}>
-                  <div className={styles.blob}></div>
-                  <div className={styles.blobAlt}></div>
-                </div>
-              )}
-
-              <div className={`${styles.iconWrap} ${isActive ? styles.iconWrapActive : ""}`}>
-                <span className={styles.iconAnim}>{tab.icon}</span>
-                <span className={styles.iconLabel}>{label}</span>
-              </div>
-            </Link>
-          );
-        })}
-
-        {/* Cart */}
-        <div
-          className={styles.navItem}
-          onClick={() => setShowCartOpen((prev) => !prev)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              setShowCartOpen((prev) => !prev);
-            }
-          }}
-          aria-label={L.cartAria}
-          aria-expanded={showCartOpen}
-        >
-          <CartIcon ref={cartRef} aria-label={L.cartAria} />
-          {itemCount > 0 && <span className={styles.cartCount}>{itemCount}</span>}
-        </div>
-
-        {showCartOpen && (
-          <CartDropdown showCartOpen={showCartOpen} setShowCartOpen={setShowCartOpen} />
-        )}
-      </div>
+    <div id="storefront-nav-links" className={`${styles.tabsWrapper} ${menuOpen ? styles.menuOpen : ''}`}>
+      {tabs.map(({ path, label, Icon }) => {
+        const active = path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(path + '/');
+        return <Link key={path} to={path} reloadDocument className={`${styles.tabItem} ${active ? styles.active : ''}`} aria-current={active ? 'page' : undefined} onClick={() => setMenuOpen(false)}>
+          <Icon size={17} aria-hidden="true" /><span>{label}</span>
+        </Link>;
+      })}
     </div>
-  );
-};
-
-export default Navbar;
+    <div className={styles.actions}>
+      <div className={styles.langSwitcher} aria-busy={langBusy} onPointerEnter={() => loadGoogleTranslate().catch(() => {})}>
+        <button type="button" onClick={() => changeLang('ka')} aria-label="ქართული" disabled={langBusy}><img src={geFlag} alt="" width="25" height="17" /></button>
+        <button type="button" onClick={() => changeLang('en')} aria-label="English" disabled={langBusy}><img src={enFlag} alt="" width="25" height="17" /></button>
+      </div>
+      <button type="button" ref={cartRef} className={styles.navItem} onClick={() => { setMenuOpen(false); setShowCartOpen(v => !v); }} aria-label="კალათა" aria-expanded={showCartOpen}>
+        <ShoppingCart size={21} aria-hidden="true" />{itemCount > 0 && <span className={styles.cartCount}>{itemCount}</span>}
+      </button>
+      <button type="button" ref={menuRef} className={styles.menuToggle} onClick={() => { setShowCartOpen(false); setMenuOpen(v => !v); }} aria-label={menuOpen ? 'მენიუს დახურვა' : 'მენიუს გახსნა'} aria-expanded={menuOpen} aria-controls="storefront-nav-links">
+        {menuOpen ? <X size={20} /> : <Menu size={20} />}<span>მენიუ</span>
+      </button>
+    </div>
+    {showCartOpen && <CartDropdown showCartOpen={showCartOpen} setShowCartOpen={setShowCartOpen} />}
+  </nav>;
+}

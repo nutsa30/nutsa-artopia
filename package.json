@@ -6,6 +6,7 @@
   "scripts": {
     "test": "node --test --test-concurrency=1 tests/*.test.mjs",
     "dev": "vite",
+    "dev:color-lab": "node scripts/dev-color-lab.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -13,6 +14,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.8",
     "@xmldom/xmldom": "0.9.12",
+    "color-name": "2.1.1",
     "dompurify": "^3.4.17",
     "lucide-react": "^0.515.0",
     "react": "^18.3.1",
@@ -22,6 +24,7 @@
     "react-paginate": "^8.3.0",
     "react-quill-new": "^3.8.3",
     "react-router-dom": "^7.18.4",
+    "spectral.js": "3.0.0",
     "tailwindcss": "^4.1.8",
     "three": "^0.177.0"
   },

@@ -162,6 +162,17 @@ the customer.
 and `src/main.jsx` rewrites Heroku URLs to that backend — dev server only, it is
 compiled out of production builds.
 
+### Colour lab `/color-lab` (live since 2026-10-22)
+
+Interactive paint mixing: 200 ml beakers with % shares, a 600 ml mixing beaker, and a wet-paint canvas
+(flat/round/dry brush, tube, palette knife, pipette). Everything is in `src/features/colorLab/` — read its
+`README.md` first. Mixing is spectral (spectral.js Kubelka–Munk) everywhere; `km.js` is the per-pixel form.
+Beaker and swatch images are generated: `scripts/color-lab-beakers.py` (Blender 5.2) +
+`scripts/color-lab-beakers-bake.py`, `scripts/color-lab-swatches.mjs` + `scripts/color-lab-swatches-bake.py`.
+SEO title/description/JSON-LD come from `src/features/colorLab/seo.js` (page and edge function);
+the share image is `public/images/color-lab/color-lab.jpg`; the backend sitemap lists the page.
+`ProductsCard.module.css` keeps an unscoped `button { font-size }`; its padding is scoped to the card.
+
 ### SEO, catalogue URLs and performance (live since 2026-10-13)
 
 - `src/components/SEO.jsx` (react-helmet-async) on every page; `noIndex` drops the canonical.

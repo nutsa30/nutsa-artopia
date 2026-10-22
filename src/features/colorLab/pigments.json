@@ -1,0 +1,1985 @@
+[
+  {
+    "id": "14101",
+    "name": "Titanium opaque white",
+    "ka": "ტიტანის დამფარავი თეთრი",
+    "aliases": [
+      "Titanium White"
+    ],
+    "pigments": [
+      "PW6"
+    ],
+    "hex": "#DAD7D6",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14101",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14101.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14102",
+    "name": "Permanent Chinese white",
+    "ka": "მდგრადი თუთიის თეთრი",
+    "aliases": [
+      "Zinc White"
+    ],
+    "pigments": [
+      "PW4"
+    ],
+    "hex": "#DAD8D6",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14102",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14102.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14205",
+    "name": "Rutile yellow",
+    "ka": "რუტილის ყვითელი",
+    "aliases": [],
+    "pigments": [
+      "PY53"
+    ],
+    "hex": "#F2D46A",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14205",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14205.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14207",
+    "name": "Vanadium yellow",
+    "ka": "ვანადიუმის ყვითელი",
+    "aliases": [],
+    "pigments": [
+      "PY184"
+    ],
+    "hex": "#ECE200",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14207",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14207.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14208",
+    "name": "Aureolin hue",
+    "ka": "აურეოლინი იმიტაცია",
+    "aliases": [],
+    "pigments": [
+      "PY151"
+    ],
+    "hex": "#FEE300",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14208",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14208.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14209",
+    "name": "Transparent yellow",
+    "ka": "გამჭვირვალე ყვითელი",
+    "aliases": [],
+    "pigments": [
+      "PY150"
+    ],
+    "hex": "#E9C012",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14209",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14209.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14211",
+    "name": "Chromium yellow hue lemon",
+    "ka": "ქრომის ყვითელი იმიტაცია ლიმონის",
+    "aliases": [],
+    "pigments": [
+      "PY175"
+    ],
+    "hex": "#E7E100",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14211",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14211.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14214",
+    "name": "Chromium orange hue",
+    "ka": "ქრომის ნარინჯისფერი იმიტაცია",
+    "aliases": [],
+    "pigments": [
+      "PO62"
+    ],
+    "hex": "#F18800",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14214",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14214.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14215",
+    "name": "Lemon yellow",
+    "ka": "ლიმონის ყვითელი",
+    "aliases": [],
+    "pigments": [
+      "PY3"
+    ],
+    "hex": "#F1E631",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14215",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14215.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14216",
+    "name": "Pure yellow",
+    "ka": "სუფთა ყვითელი",
+    "aliases": [],
+    "pigments": [
+      "PY154"
+    ],
+    "hex": "#F5E223",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14216",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14216.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14217",
+    "name": "Quinacridone gold hue",
+    "ka": "ქინაკრიდონის ოქროსფერი იმიტაცია",
+    "aliases": [],
+    "pigments": [
+      "PR101",
+      "PY150"
+    ],
+    "hex": "#D97726",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14217",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14217.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14218",
+    "name": "Transparent orange",
+    "ka": "გამჭვირვალე ნარინჯისფერი",
+    "aliases": [],
+    "pigments": [
+      "PO71"
+    ],
+    "hex": "#EB6105",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14218",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14218.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14219",
+    "name": "Turner`s yellow",
+    "ka": "ტერნერის ყვითელი",
+    "aliases": [],
+    "pigments": [
+      "PY216"
+    ],
+    "hex": "#F9AF00",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14219",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14219.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14220",
+    "name": "Indian yellow",
+    "ka": "ინდური ყვითელი",
+    "aliases": [],
+    "pigments": [
+      "PY110",
+      "PY154"
+    ],
+    "hex": "#F7A500",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14220",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14220.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14222",
+    "name": "Yellow orange",
+    "ka": "ყვითელი ნარინჯისფერი",
+    "aliases": [],
+    "pigments": [
+      "PY110"
+    ],
+    "hex": "#F49500",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14222",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14222.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14223",
+    "name": "Cadmium yellow lemon",
+    "ka": "კადმიუმის ყვითელი ლიმონის",
+    "aliases": [],
+    "pigments": [
+      "PY35"
+    ],
+    "hex": "#E6E12E",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14223",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14223.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14224",
+    "name": "Cadmium yellow light",
+    "ka": "კადმიუმის ყვითელი ღია",
+    "aliases": [],
+    "pigments": [
+      "PY35"
+    ],
+    "hex": "#F7E401",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14224",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14224.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14225",
+    "name": "Cadmium yellow middle",
+    "ka": "კადმიუმის ყვითელი საშუალო",
+    "aliases": [],
+    "pigments": [
+      "PY35"
+    ],
+    "hex": "#F2CE01",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14225",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14225.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14226",
+    "name": "Cadmium yellow deep",
+    "ka": "კადმიუმის ყვითელი ღრმა",
+    "aliases": [],
+    "pigments": [
+      "PY35",
+      "PO20"
+    ],
+    "hex": "#F8C700",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14226",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14226.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14227",
+    "name": "Cadmium orange light",
+    "ka": "კადმიუმის ნარინჯისფერი ღია",
+    "aliases": [],
+    "pigments": [
+      "PO20"
+    ],
+    "hex": "#F59900",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14227",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14227.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14228",
+    "name": "Cadmium orange deep",
+    "ka": "კადმიუმის ნარინჯისფერი ღრმა",
+    "aliases": [],
+    "pigments": [
+      "PO20"
+    ],
+    "hex": "#F08301",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14228",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14228.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14229",
+    "name": "Naples yellow",
+    "ka": "ნეაპოლიტანური ყვითელი",
+    "aliases": [],
+    "pigments": [
+      "PW6",
+      "PY53",
+      "PBr24"
+    ],
+    "hex": "#F8BE54",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14229",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14229.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14341",
+    "name": "Geranium red",
+    "ka": "გერანის წითელი",
+    "aliases": [],
+    "pigments": [
+      "PR242"
+    ],
+    "hex": "#E63917",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14341",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14341.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14342",
+    "name": "Vermilion light",
+    "ka": "ვერმილიონი ღია",
+    "aliases": [],
+    "pigments": [
+      "PR188"
+    ],
+    "hex": "#E63917",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14342",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14342.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14343",
+    "name": "Quinacridone red light",
+    "ka": "ქინაკრიდონის წითელი ღია",
+    "aliases": [],
+    "pigments": [
+      "PR207"
+    ],
+    "hex": "#D13C3E",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14343",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14343.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14344",
+    "name": "Perylene dark red",
+    "ka": "პერილენის მუქი წითელი",
+    "aliases": [],
+    "pigments": [
+      "PR178"
+    ],
+    "hex": "#CD2939",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14344",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14344.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14346",
+    "name": "Ruby red deep",
+    "ka": "ლალისფერი წითელი ღრმა",
+    "aliases": [],
+    "pigments": [
+      "PR264"
+    ],
+    "hex": "#CC1F45",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14346",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14346.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14347",
+    "name": "Cadmium red middle",
+    "ka": "კადმიუმის წითელი საშუალო",
+    "aliases": [],
+    "pigments": [
+      "PR108"
+    ],
+    "hex": "#D23133",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14347",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14347.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14348",
+    "name": "Cadmium red orange",
+    "ka": "კადმიუმის წითელი ნარინჯისფერი",
+    "aliases": [],
+    "pigments": [
+      "PO20"
+    ],
+    "hex": "#E84D12",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14348",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14348.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14349",
+    "name": "Cadmium red light",
+    "ka": "კადმიუმის წითელი ღია",
+    "aliases": [],
+    "pigments": [
+      "PR108"
+    ],
+    "hex": "#E73F29",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14349",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14349.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14350",
+    "name": "Cadmium red deep",
+    "ka": "კადმიუმის წითელი ღრმა",
+    "aliases": [],
+    "pigments": [
+      "PR108"
+    ],
+    "hex": "#B52933",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14350",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14350.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14351",
+    "name": "Ruby red",
+    "ka": "ლალისფერი წითელი",
+    "aliases": [],
+    "pigments": [
+      "PV19"
+    ],
+    "hex": "#E73B67",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14351",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14351.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14352",
+    "name": "Magenta",
+    "ka": "მაჯენტა",
+    "aliases": [],
+    "pigments": [
+      "PV42"
+    ],
+    "hex": "#BD2539",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14352",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14352.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14353",
+    "name": "Permanent carmine",
+    "ka": "მდგრადი კარმინი",
+    "aliases": [],
+    "pigments": [
+      "PV19"
+    ],
+    "hex": "#DA365B",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14353",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14353.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14355",
+    "name": "Transparent red deep",
+    "ka": "გამჭვირვალე წითელი ღრმა",
+    "aliases": [],
+    "pigments": [
+      "PR144"
+    ],
+    "hex": "#B42C2B",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14355",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14355.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14356",
+    "name": "Rose madder",
+    "ka": "ვარდისფერი კრაპლაკი",
+    "aliases": [],
+    "pigments": [
+      "PR83:1",
+      "PR48:4"
+    ],
+    "hex": "#EA5983",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14356",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14356.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14357",
+    "name": "Alizarin crimson",
+    "ka": "ალიზარინის კრიმსონი",
+    "aliases": [],
+    "pigments": [
+      "PR83:1"
+    ],
+    "hex": "#D83457",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14357",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14357.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14359",
+    "name": "Saturn red",
+    "ka": "სატურნის წითელი",
+    "aliases": [],
+    "pigments": [
+      "PO64"
+    ],
+    "hex": "#DF5F2E",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14359",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14359.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14362",
+    "name": "Bordeaux",
+    "ka": "ბორდო",
+    "aliases": [],
+    "pigments": [
+      "PR187"
+    ],
+    "hex": "#BD2539",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14362",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14362.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14363",
+    "name": "Scarlet red",
+    "ka": "ალისფერი წითელი",
+    "aliases": [],
+    "pigments": [
+      "PR254"
+    ],
+    "hex": "#E41A23",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14363",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14363.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14365",
+    "name": "Vermilion",
+    "ka": "ვერმილიონი",
+    "aliases": [],
+    "pigments": [
+      "PR255"
+    ],
+    "hex": "#E52B16",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14365",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14365.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14366",
+    "name": "Perylene maroon",
+    "ka": "პერილენის შინდისფერი",
+    "aliases": [],
+    "pigments": [
+      "PR179"
+    ],
+    "hex": "#C23647",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14366",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14366.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14367",
+    "name": "Purple magenta",
+    "ka": "მეწამული მაჯენტა",
+    "aliases": [],
+    "pigments": [
+      "PR122"
+    ],
+    "hex": "#D31974",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14367",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14367.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14368",
+    "name": "Quinacridone violet",
+    "ka": "ქინაკრიდონის იისფერი",
+    "aliases": [],
+    "pigments": [
+      "PV19"
+    ],
+    "hex": "#B93B87",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14368",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14368.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14369",
+    "name": "Quinacridone magenta",
+    "ka": "ქინაკრიდონის მაჯენტა",
+    "aliases": [
+      "Quinacridone Magenta"
+    ],
+    "pigments": [
+      "PR202"
+    ],
+    "hex": "#BC1755",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14369",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14369.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14370",
+    "name": "Potters pink",
+    "ka": "კერამიკის ვარდისფერი",
+    "aliases": [],
+    "pigments": [
+      "PR233"
+    ],
+    "hex": "#993B44",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14370",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14370.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14371",
+    "name": "Perylene violet",
+    "ka": "პერილენის იისფერი",
+    "aliases": [],
+    "pigments": [
+      "PV29"
+    ],
+    "hex": "#6C303D",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14371",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14371.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14472",
+    "name": "Quinacridone purple",
+    "ka": "ქინაკრიდონის მეწამული",
+    "aliases": [],
+    "pigments": [
+      "PV55"
+    ],
+    "hex": "#742055",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14472",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14472.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14473",
+    "name": "Cobalt violet hue",
+    "ka": "კობალტის იისფერი იმიტაცია",
+    "aliases": [],
+    "pigments": [
+      "PV62"
+    ],
+    "hex": "#7557A1",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14473",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14473.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14474",
+    "name": "Manganese violet",
+    "ka": "მანგანუმის იისფერი",
+    "aliases": [],
+    "pigments": [
+      "PV16"
+    ],
+    "hex": "#964091",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14474",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14474.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14475",
+    "name": "Helio turquoise",
+    "ka": "ჰელიო ფირუზისფერი",
+    "aliases": [],
+    "pigments": [
+      "PB16"
+    ],
+    "hex": "#006C8B",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14475",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14475.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14476",
+    "name": "Schmincke violet",
+    "ka": "შმინკეს იისფერი",
+    "aliases": [],
+    "pigments": [
+      "PV23"
+    ],
+    "hex": "#522C87",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14476",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14476.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14477",
+    "name": "Phthalo sapphire blue",
+    "ka": "ფტალოს საფირონის ლურჯი",
+    "aliases": [],
+    "pigments": [
+      "PB15:6"
+    ],
+    "hex": "#28388E",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14477",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14477.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14479",
+    "name": "Helio cerulean",
+    "ka": "ჰელიო ცერულეუმი",
+    "aliases": [],
+    "pigments": [
+      "PB15:3"
+    ],
+    "hex": "#005CA8",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14479",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14479.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14481",
+    "name": "Cerulean blue hue",
+    "ka": "ცერულეუმი ლურჯი იმიტაცია",
+    "aliases": [],
+    "pigments": [
+      "PW4",
+      "PB15:3"
+    ],
+    "hex": "#0254A0",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14481",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14481.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14482",
+    "name": "Delft blue",
+    "ka": "დელფტის ლურჯი",
+    "aliases": [],
+    "pigments": [
+      "PB60"
+    ],
+    "hex": "#443889",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14482",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14482.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14483",
+    "name": "Cobalt azure",
+    "ka": "კობალტის ლაჟვარდი",
+    "aliases": [],
+    "pigments": [
+      "PB35"
+    ],
+    "hex": "#038DCC",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14483",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14483.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14484",
+    "name": "Phthalo blue",
+    "ka": "ფტალოს ლურჯი",
+    "aliases": [
+      "Phthalo Blue"
+    ],
+    "pigments": [
+      "PB15:1"
+    ],
+    "hex": "#0058A3",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14484",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14484.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14485",
+    "name": "Indigo",
+    "ka": "ინდიგო",
+    "aliases": [],
+    "pigments": [
+      "PB66",
+      "PB15:1"
+    ],
+    "hex": "#3E496A",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14485",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14485.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14487",
+    "name": "Cobalt blue light",
+    "ka": "კობალტის ლურჯი ღია",
+    "aliases": [
+      "Cobalt Blue"
+    ],
+    "pigments": [
+      "PB28"
+    ],
+    "hex": "#3551A0",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14487",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14487.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14488",
+    "name": "Cobalt blue deep",
+    "ka": "კობალტის ლურჯი ღრმა",
+    "aliases": [],
+    "pigments": [
+      "PB74"
+    ],
+    "hex": "#2D358D",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14488",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14488.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14491",
+    "name": "Paris blue",
+    "ka": "პარიზის ლურჯი",
+    "aliases": [],
+    "pigments": [
+      "PB27",
+      "PB15:1",
+      "PB15"
+    ],
+    "hex": "#0154A2",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14491",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14491.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14492",
+    "name": "Prussian blue",
+    "ka": "პრუსიული ლურჯი",
+    "aliases": [
+      "Prussian Blue",
+      "პრუსიის ლურჯი"
+    ],
+    "pigments": [
+      "PB27"
+    ],
+    "hex": "#0073B8",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14492",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14492.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14493",
+    "name": "French ultramarine",
+    "ka": "ფრანგული ულტრამარინი",
+    "aliases": [],
+    "pigments": [
+      "PB29"
+    ],
+    "hex": "#243389",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14493",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14493.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14494",
+    "name": "Ultramarine finest",
+    "ka": "ულტრამარინი ნატიფი",
+    "aliases": [
+      "Ultramarine Blue",
+      "ულტრემარინი"
+    ],
+    "pigments": [
+      "PB29"
+    ],
+    "hex": "#27318A",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14494",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14494.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14495",
+    "name": "Ultramarine violet",
+    "ka": "ულტრამარინი იისფერი",
+    "aliases": [],
+    "pigments": [
+      "PB29",
+      "PV15"
+    ],
+    "hex": "#2B2C88",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14495",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14495.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14496",
+    "name": "Ultramarine blue",
+    "ka": "ულტრამარინი ლურჯი",
+    "aliases": [],
+    "pigments": [
+      "PB29",
+      "PB15"
+    ],
+    "hex": "#2D368E",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14496",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14496.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14498",
+    "name": "Dark blue",
+    "ka": "მუქი ლურჯი",
+    "aliases": [],
+    "pigments": [
+      "PB60"
+    ],
+    "hex": "#405E97",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14498",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14498.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14499",
+    "name": "Cobalt cerulean",
+    "ka": "კობალტის ცერულეუმი",
+    "aliases": [
+      "Cerulean Blue"
+    ],
+    "pigments": [
+      "PB36"
+    ],
+    "hex": "#005B8F",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14499",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14499.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14509",
+    "name": "Cobalt turquoise",
+    "ka": "კობალტის ფირუზისფერი",
+    "aliases": [],
+    "pigments": [
+      "PG50"
+    ],
+    "hex": "#00A9B9",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14509",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14509.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14510",
+    "name": "Cobalt green turquoise",
+    "ka": "კობალტის მწვანე ფირუზისფერი",
+    "aliases": [],
+    "pigments": [
+      "PB36"
+    ],
+    "hex": "#006D72",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14510",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14510.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14511",
+    "name": "Chromium oxide green brilliant",
+    "ka": "ქრომის ოქსიდის მწვანე კაშკაშა",
+    "aliases": [],
+    "pigments": [
+      "PG18",
+      "PG7"
+    ],
+    "hex": "#009166",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14511",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14511.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14512",
+    "name": "Chromium oxide green",
+    "ka": "ქრომის ოქსიდის მწვანე",
+    "aliases": [],
+    "pigments": [
+      "PG17"
+    ],
+    "hex": "#517942",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14512",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14512.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14513",
+    "name": "Viridian",
+    "ka": "ვირიდიანი",
+    "aliases": [
+      "Viridian Green"
+    ],
+    "pigments": [
+      "PG18"
+    ],
+    "hex": "#009878",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14513",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14513.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14514",
+    "name": "Helio green",
+    "ka": "ჰელიო მწვანე",
+    "aliases": [],
+    "pigments": [
+      "PG36"
+    ],
+    "hex": "#007438",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14514",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14514.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14515",
+    "name": "Olive green",
+    "ka": "ზეთისხილისფერი მწვანე",
+    "aliases": [],
+    "pigments": [
+      "PB15",
+      "PG8"
+    ],
+    "hex": "#2F543B",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14515",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14515.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14516",
+    "name": "Green earth",
+    "ka": "მწვანე მიწის",
+    "aliases": [],
+    "pigments": [
+      "PG7",
+      "PBr7"
+    ],
+    "hex": "#9CAC67",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14516",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14516.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14519",
+    "name": "Phthalo green",
+    "ka": "ფტალოს მწვანე",
+    "aliases": [
+      "Phthalo Green"
+    ],
+    "pigments": [
+      "PG7"
+    ],
+    "hex": "#007550",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14519",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14519.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14521",
+    "name": "Hooker's green",
+    "ka": "ჰუკერის მწვანე",
+    "aliases": [],
+    "pigments": [
+      "PY42",
+      "PB15:3",
+      "PG7"
+    ],
+    "hex": "#3D6144",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14521",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14521.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14524",
+    "name": "May green",
+    "ka": "მაისის მწვანე",
+    "aliases": [],
+    "pigments": [
+      "PG7",
+      "PY151"
+    ],
+    "hex": "#62B32D",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14524",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14524.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14525",
+    "name": "Olive green yellowish",
+    "ka": "ზეთისხილისფერი მწვანე მოყვითალო",
+    "aliases": [],
+    "pigments": [
+      "PG36",
+      "PO62"
+    ],
+    "hex": "#5F6026",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14525",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14525.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14526",
+    "name": "Permanent green",
+    "ka": "მდგრადი მწვანე",
+    "aliases": [],
+    "pigments": [
+      "PY155",
+      "PG7"
+    ],
+    "hex": "#03A238",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14526",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14526.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14528",
+    "name": "Prussian green",
+    "ka": "პრუსიული მწვანე",
+    "aliases": [],
+    "pigments": [
+      "PB60",
+      "PG7"
+    ],
+    "hex": "#055A6B",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14528",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14528.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14530",
+    "name": "Sap green",
+    "ka": "საპის მწვანე",
+    "aliases": [],
+    "pigments": [
+      "PG7",
+      "PY153"
+    ],
+    "hex": "#3C8B34",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14530",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14530.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14533",
+    "name": "Cobalt green dark",
+    "ka": "კობალტის მწვანე მუქი",
+    "aliases": [],
+    "pigments": [
+      "PG26"
+    ],
+    "hex": "#02573A",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14533",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14533.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14535",
+    "name": "Cobalt green pure",
+    "ka": "კობალტის მწვანე სუფთა",
+    "aliases": [],
+    "pigments": [
+      "PG50"
+    ],
+    "hex": "#21914A",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14535",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14535.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14537",
+    "name": "Transparent green gold",
+    "ka": "გამჭვირვალე მწვანე ოქროსფერი",
+    "aliases": [],
+    "pigments": [
+      "PBr7",
+      "PY154"
+    ],
+    "hex": "#B28631",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14537",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14537.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14645",
+    "name": "Indian red",
+    "ka": "ინდური წითელი",
+    "aliases": [],
+    "pigments": [
+      "PR101"
+    ],
+    "hex": "#6E3C38",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14645",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14645.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14648",
+    "name": "Transparent brown",
+    "ka": "გამჭვირვალე ყავისფერი",
+    "aliases": [],
+    "pigments": [
+      "PBr41"
+    ],
+    "hex": "#873F2C",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14648",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14648.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14649",
+    "name": "English Venetian red",
+    "ka": "ინგლისური ვენეციური წითელი",
+    "aliases": [],
+    "pigments": [
+      "PR101"
+    ],
+    "hex": "#9A3E2F",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14649",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14649.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14650",
+    "name": "Spinel brown",
+    "ka": "შპინელის ყავისფერი",
+    "aliases": [],
+    "pigments": [
+      "PY119"
+    ],
+    "hex": "#944B22",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14650",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14650.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14651",
+    "name": "Maroon brown",
+    "ka": "შინდისფერი ყავისფერი",
+    "aliases": [],
+    "pigments": [
+      "PBr7"
+    ],
+    "hex": "#894E46",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14651",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14651.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14653",
+    "name": "Transparent Sienna",
+    "ka": "გამჭვირვალე სიენა",
+    "aliases": [],
+    "pigments": [
+      "PR101"
+    ],
+    "hex": "#9E3F2A",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14653",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14653.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14654",
+    "name": "Gold brown",
+    "ka": "ოქროსფერი ყავისფერი",
+    "aliases": [],
+    "pigments": [
+      "PBr41",
+      "PY65"
+    ],
+    "hex": "#A24B26",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14654",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14654.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14655",
+    "name": "Yellow ochre",
+    "ka": "ყვითელი ოხრა",
+    "aliases": [
+      "Yellow Ochre"
+    ],
+    "pigments": [
+      "PY42"
+    ],
+    "hex": "#AD7835",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14655",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14655.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14656",
+    "name": "Yellow raw ochre",
+    "ka": "ყვითელი ბუნებრივი ოხრა",
+    "aliases": [],
+    "pigments": [
+      "PY43"
+    ],
+    "hex": "#F1AF34",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14656",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14656.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14657",
+    "name": "Transparent ochre",
+    "ka": "გამჭვირვალე ოხრა",
+    "aliases": [],
+    "pigments": [
+      "PY42"
+    ],
+    "hex": "#F4BE39",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14657",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14657.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14658",
+    "name": "Mars brown",
+    "ka": "მარსის ყავისფერი",
+    "aliases": [],
+    "pigments": [
+      "PBr6"
+    ],
+    "hex": "#7E4C3B",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14658",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14658.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14659",
+    "name": "Titanium gold ochre",
+    "ka": "ტიტანის ოქროსფერი ოხრა",
+    "aliases": [],
+    "pigments": [
+      "PBr24"
+    ],
+    "hex": "#D78900",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14659",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14659.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14660",
+    "name": "Raw Sienna",
+    "ka": "ბუნებრივი სიენა",
+    "aliases": [],
+    "pigments": [
+      "PBr7",
+      "PY43"
+    ],
+    "hex": "#E8A32E",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14660",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14660.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14661",
+    "name": "Burnt Sienna",
+    "ka": "დამწვარი სიენა",
+    "aliases": [],
+    "pigments": [
+      "PR101",
+      "PBk9"
+    ],
+    "hex": "#CB6A3F",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14661",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14661.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14663",
+    "name": "Sepia brown",
+    "ka": "სეპია ყავისფერი",
+    "aliases": [],
+    "pigments": [
+      "PBr7",
+      "PBk9",
+      "PB15:1"
+    ],
+    "hex": "#5E4F41",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14663",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14663.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14665",
+    "name": "Green umber",
+    "ka": "მწვანე უმბრა",
+    "aliases": [],
+    "pigments": [
+      "PBr7"
+    ],
+    "hex": "#74593B",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14665",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14665.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14667",
+    "name": "Raw umber",
+    "ka": "ბუნებრივი უმბრა",
+    "aliases": [],
+    "pigments": [
+      "PY43"
+    ],
+    "hex": "#C0891E",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14667",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14667.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14668",
+    "name": "Burnt umber",
+    "ka": "დამწვარი უმბრა",
+    "aliases": [],
+    "pigments": [
+      "PBr7"
+    ],
+    "hex": "#996644",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14668",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14668.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14669",
+    "name": "Vandyke brown",
+    "ka": "ვან დეიკის ყავისფერი",
+    "aliases": [],
+    "pigments": [
+      "PY150",
+      "PBk7",
+      "PBr7"
+    ],
+    "hex": "#3F362B",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14669",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14669.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14670",
+    "name": "Madder brown",
+    "ka": "კრაპლაკი ყავისფერი",
+    "aliases": [],
+    "pigments": [
+      "PR206"
+    ],
+    "hex": "#97221F",
+    "opacity": "ნახევრად გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14670",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14670.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14671",
+    "name": "Transparent umber",
+    "ka": "გამჭვირვალე უმბრა",
+    "aliases": [],
+    "pigments": [
+      "PR101"
+    ],
+    "hex": "#834D3F",
+    "opacity": "გამჭვირვალე",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14671",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14671.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14672",
+    "name": "Mahogany brown",
+    "ka": "მაჰაგონი ყავისფერი",
+    "aliases": [],
+    "pigments": [
+      "PBr33"
+    ],
+    "hex": "#713F34",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14672",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14672.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14780",
+    "name": "Ivory black",
+    "ka": "სპილოს ძვლის შავი",
+    "aliases": [],
+    "pigments": [
+      "PBk9"
+    ],
+    "hex": "#393732",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14780",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14780.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14781",
+    "name": "Lamp black",
+    "ka": "ჭვარტლის შავი",
+    "aliases": [],
+    "pigments": [
+      "PBk6"
+    ],
+    "hex": "#383835",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14781",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14781.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14782",
+    "name": "Neutral tint",
+    "ka": "ნეიტრალური ტონი",
+    "aliases": [],
+    "pigments": [
+      "PR122",
+      "PB60",
+      "PBk7"
+    ],
+    "hex": "#645358",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14782",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14782.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14783",
+    "name": "Schmincke Payne's grey",
+    "ka": "შმინკეს პეინის ნაცრისფერი",
+    "aliases": [
+      "Payne's Grey"
+    ],
+    "pigments": [
+      "PR101",
+      "PB29",
+      "PBk7"
+    ],
+    "hex": "#433F3C",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14783",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14783.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14784",
+    "name": "Perylene green",
+    "ka": "პერილენის მწვანე",
+    "aliases": [],
+    "pigments": [
+      "PBk31"
+    ],
+    "hex": "#383F39",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14784",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14784.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14785",
+    "name": "Neutral grey",
+    "ka": "ნეიტრალური ნაცრისფერი",
+    "aliases": [],
+    "pigments": [
+      "PR255",
+      "PB60",
+      "PO62"
+    ],
+    "hex": "#7C7872",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14785",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14785.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14786",
+    "name": "Anthracite",
+    "ka": "ანტრაციტი",
+    "aliases": [],
+    "pigments": [
+      "PBk7"
+    ],
+    "hex": "#7D7873",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14786",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14786.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14787",
+    "name": "Payne's grey bluish",
+    "ka": "პეინის ნაცრისფერი მოლურჯო",
+    "aliases": [],
+    "pigments": [
+      "PB15:6",
+      "PBk6"
+    ],
+    "hex": "#3C4B5A",
+    "opacity": "ნახევრად დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14787",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14787.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14788",
+    "name": "Graphite grey",
+    "ka": "გრაფიტის ნაცრისფერი",
+    "aliases": [],
+    "pigments": [
+      "PBk10"
+    ],
+    "hex": "#403F39",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14788",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14788.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14789",
+    "name": "Hematite black",
+    "ka": "ჰემატიტის შავი",
+    "aliases": [],
+    "pigments": [
+      "PG17"
+    ],
+    "hex": "#575449",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14789",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14789.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  },
+  {
+    "id": "14791",
+    "name": "Mars black",
+    "ka": "მარსის შავი",
+    "aliases": [],
+    "pigments": [
+      "PBk11"
+    ],
+    "hex": "#8F887E",
+    "opacity": "დამფარავი",
+    "source": "https://www.schmincke.de/en/produkte/aquarell/horadam-aquarell#karte_14791",
+    "swatchSource": "https://www.schmincke.de/fileadmin/schmincke_products/farbwischer/14791.jpg",
+    "profile": "modeled-rgb",
+    "brandReference": "Schmincke HORADAM",
+    "note": "მწარმოებლის კონკრეტული ფორმულა; სხვა ბრენდის იგივე დასახელების შემადგენლობა შეიძლება განსხვავდებოდეს."
+  }
+]
