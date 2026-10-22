@@ -3,6 +3,7 @@ import { Pipette, Undo2, Trash2, Download, Maximize2, Minimize2 } from 'lucide-r
 import { PaintSurface, BRUSHES } from './painting.js';
 import { createRenderer } from './paintRenderer.js';
 import { ToolGlyph, TIP } from './tools.jsx';
+import { trackFirstUse, trackLab } from './analytics.js';
 import s from './PaintingCanvas.module.css';
 
 const TOOLS = [...BRUSHES, { id: 'tube', label: 'ტუბი — საღებავის გამოწურვა' }, { id: 'knife', label: 'პალიტრის დანა — ურევს ტილოზე არსებულ საღებავს' }];
@@ -28,15 +29,19 @@ const PaintingCanvas = forwardRef(function PaintingCanvas({ brush, onSample, onN
   }
   function schedule() { if (!frame.current) frame.current = requestAnimationFrame(render); }
   function finish() {
-    if (!pointer.current) return;
-    cancelAnimationFrame(pointer.current.loop);
-    const { moved, point: p, load: pressure, tube } = pointer.current;
-    if (tube) squeeze(performance.now());
-    else if (!moved) state.current.surface.dab(p.x, p.y, p.rx, p.ry, -.15, pressure);
-    pointer.current = null;
+    const pt = pointer.current;
+    if (!pt || !state.current) { pointer.current = null; return; }
+    cancelAnimationFrame(pt.loop);
     const surface = state.current.surface;
-    const sample = surface.end();
-    setStrokes(surface.history.length); callback.current(sample); schedule();
+    try {
+      if (pt.tube) squeeze(performance.now());
+      else if (!pt.moved) surface.dab(pt.point.x, pt.point.y, pt.point.rx, pt.point.ry, -.15, pt.load);
+    } finally {
+      // Whatever happens, the stroke is over: a stroke left open blocks the canvas.
+      pointer.current = null;
+      const sample = surface.end();
+      setStrokes(surface.history.length); callback.current(sample); schedule();
+    }
   }
   // While the tube is held, paint keeps coming: piling up in place, or laid
   // as a bead along the way the pointer moved since the last call.
@@ -82,6 +87,18 @@ const PaintingCanvas = forwardRef(function PaintingCanvas({ brush, onSample, onN
     const observer = new ResizeObserver(resize); observer.observe(canvasRef.current); resize();
     return () => { observer.disconnect(); cancelAnimationFrame(frame.current); cancelAnimationFrame(pointer.current?.loop); frame.current = 0; renderer?.destroy(); state.current = null; };
   }, []);
+  // Phones do not always deliver pointerup to the canvas; the window always
+  // sees it, and a touchend with no fingers left ends the stroke too.
+  useEffect(() => {
+    const ended = e => { if (pointer.current && (e.pointerId === undefined || e.pointerId === pointer.current.id)) finish(); };
+    const touchEnded = e => { if (!e.touches?.length) ended({}); };
+    window.addEventListener('pointerup', ended, true); window.addEventListener('pointercancel', ended, true);
+    window.addEventListener('touchend', touchEnded, true); window.addEventListener('touchcancel', touchEnded, true);
+    return () => {
+      window.removeEventListener('pointerup', ended, true); window.removeEventListener('pointercancel', ended, true);
+      window.removeEventListener('touchend', touchEnded, true); window.removeEventListener('touchcancel', touchEnded, true);
+    };
+  }, []);
   useEffect(() => {
     if (!expanded) return;
     const previous = document.body.style.overflow; document.body.style.overflow = 'hidden';
@@ -102,7 +119,13 @@ const PaintingCanvas = forwardRef(function PaintingCanvas({ brush, onSample, onN
     cursorRef.current.style.opacity = e.pointerType === 'touch' ? '0' : '1';
   }
   function down(e) {
-    if (e.button !== 0 || pointer.current || !state.current) return;
+    if (e.button !== 0 || !state.current) return;
+    if (pointer.current) {
+      // A second finger while one paints is ignored. A new primary touch means the
+      // last one ended without its pointerup reaching us (seen on phones): close it.
+      if (!e.isPrimary || pointer.current.id === e.pointerId) return;
+      finish();
+    }
     e.preventDefault(); const p = point(e), surface = state.current.surface;
     // The pipette puts the mix under it on the brush, pigments and shares included.
     if (settings.current.tool === 'sample') { const picked = surface.sample(p.x, p.y); callback.current(picked); if (picked) onPick?.(picked); setTool('paint'); return; }
@@ -112,6 +135,7 @@ const PaintingCanvas = forwardRef(function PaintingCanvas({ brush, onSample, onN
     canvasRef.current.setPointerCapture?.(e.pointerId);
     // The knife carries no paint of its own; it works what is on the canvas.
     surface.begin(knife ? [] : brushRef.current.components, settings.current.type);
+    trackFirstUse(settings.current.type);
     // The first stamp waits for a direction; a tap without one dabs on release.
     pointer.current = { id: e.pointerId, point: p, moved: false, load: load(e), tube: settings.current.type === 'tube', from: p, time: performance.now() }; moveCursor(e);
     if (pointer.current.tube) pointer.current.loop = requestAnimationFrame(flowLoop);
@@ -144,14 +168,14 @@ const PaintingCanvas = forwardRef(function PaintingCanvas({ brush, onSample, onN
   return <div className={`${s.workspace} ${expanded ? s.expanded : ''}`}>
     <div className={s.toolbar}>
       <span className={s.loaded} style={{ '--paint': brush?.hex || 'transparent' }} title={brush ? brush.hex : 'ფუნჯი ცარიელია'} aria-label={brush ? `ფუნჯზე ${brush.hex}` : 'ფუნჯი ცარიელია'} />
-      <div className={s.group} role="group" aria-label="ფუნჯი">{TOOLS.map(b => <button key={b.id} type="button" aria-label={b.label} title={b.label} aria-pressed={type === b.id && tool === 'paint'} onClick={() => { setType(b.id); setTool('paint'); }}><ToolGlyph id={b.id} size={30} style={{ transform: `rotate(${TILT}deg)` }} /></button>)}</div>
+      <div className={s.group} role="group" aria-label="ფუნჯი">{TOOLS.map(b => <button key={b.id} type="button" aria-label={b.label} title={b.label} aria-pressed={type === b.id && tool === 'paint'} onClick={() => { if (type !== b.id || tool !== 'paint') trackLab('tool', { tool: b.id }); setType(b.id); setTool('paint'); }}><ToolGlyph id={b.id} size={30} style={{ transform: `rotate(${TILT}deg)` }} /></button>)}</div>
       <label className={s.size} title="ფუნჯის ზომა"><i style={{ '--d': `${6 + size / 6}px` }} /><input aria-label="ფუნჯის ზომა" type="range" min="12" max="110" value={size} onChange={e => setSize(+e.target.value)} /></label>
       <div className={s.group}>
-        <button type="button" aria-pressed={tool === 'sample'} aria-label="პიპეტი" title="პიპეტი — ტილოდან ფერის აღება" onClick={() => setTool(t => t === 'sample' ? 'paint' : 'sample')}><Pipette size={17} /></button>
-        <button type="button" onClick={undo} disabled={!strokes} aria-label="უკან" title="უკან"><Undo2 size={17} /></button>
-        <button type="button" onClick={clear} disabled={!strokes} aria-label="გასუფთავება" title="გასუფთავება"><Trash2 size={17} /></button>
-        <button type="button" onClick={download} disabled={!strokes} aria-label="ჩამოტვირთვა" title="PNG"><Download size={17} /></button>
-        <button type="button" onClick={() => setExpanded(v => !v)} aria-label={expanded ? 'დაპატარავება' : 'გადიდება'} title={expanded ? 'დაპატარავება' : 'გადიდება'}>{expanded ? <Minimize2 size={17} /> : <Maximize2 size={17} />}</button>
+        <button type="button" aria-pressed={tool === 'sample'} aria-label="პიპეტი" title="პიპეტი — ტილოდან ფერის აღება" onClick={() => { if (tool !== 'sample') trackLab('tool', { tool: 'pipette' }); setTool(t => t === 'sample' ? 'paint' : 'sample'); }}><Pipette size={17} /></button>
+        <button type="button" onClick={() => { trackLab('canvas_action', { action: 'undo' }); undo(); }} disabled={!strokes} aria-label="უკან" title="უკან"><Undo2 size={17} /></button>
+        <button type="button" onClick={() => { trackLab('canvas_action', { action: 'clear', strokes }); clear(); }} disabled={!strokes} aria-label="გასუფთავება" title="გასუფთავება"><Trash2 size={17} /></button>
+        <button type="button" onClick={() => { trackLab('canvas_action', { action: 'download', strokes }); download(); }} disabled={!strokes} aria-label="ჩამოტვირთვა" title="PNG"><Download size={17} /></button>
+        <button type="button" onClick={() => { if (!expanded) trackLab('canvas_action', { action: 'expand' }); setExpanded(v => !v); }} aria-label={expanded ? 'დაპატარავება' : 'გადიდება'} title={expanded ? 'დაპატარავება' : 'გადიდება'}>{expanded ? <Minimize2 size={17} /> : <Maximize2 size={17} />}</button>
       </div>
     </div>
     <div className={`${s.paper} ${tool === 'sample' ? s.sampling : ''}`} style={{ '--aspect': grid[0] / grid[1] }}>
