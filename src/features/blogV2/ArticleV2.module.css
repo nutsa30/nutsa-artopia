@@ -15,8 +15,9 @@
   padding: 28px 16px 40px;
   -webkit-font-smoothing: antialiased;
 }
-.root img { max-width: 100%; height: auto; display: block; }
-.root figure { margin: 0; }
+/* :where = ნულოვანი specificity: ეს საერთო წესები ფოტოს კლასების (.cover, .figCol...) დაშორებას არ ფარავს */
+:where(.root) img { max-width: 100%; height: auto; display: block; }
+:where(.root) figure { margin: 0; }
 .root figcaption { font-size: 14px; color: var(--muted); line-height: 1.55; margin-top: 10px; }
 
 .narrow { max-width: var(--col); margin: 0 auto; }
@@ -41,18 +42,19 @@ a.kicker:hover { text-decoration: underline; text-underline-offset: 3px; }
 .article ul, .article ol { margin: 0 0 1.15em; padding-left: 1.3em; }
 .article li { margin: 0.3em 0; }
 
-.figCol { margin: 32px 0 !important; }
+.figCol { margin: 32px 0; }
 .figCol img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 12px; }
-.figPair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 32px 0 !important; }
+.figPair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 32px 0; }
 .figPair img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 12px; }
 .figPair figcaption { grid-column: 1 / -1; margin-top: 0; }
-.figSide { float: right; width: 46%; margin: 6px 0 14px 26px !important; }
+.figSide { float: right; width: 46%; margin: 6px 0 14px 26px; }
 .figSide img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 12px; }
-.figWide { max-width: var(--wide); margin: 44px auto !important; }
+.figWide { max-width: var(--wide); margin: 44px auto; }
 .figWide img { width: 100%; aspect-ratio: 21 / 9; object-fit: cover; border-radius: 16px; }
 .figWide figcaption { max-width: var(--col); margin-left: auto; margin-right: auto; }
-.figCenter { clear: both; margin: 36px auto !important; text-align: center; }
+.figCenter { clear: both; margin: 36px auto; text-align: center; }
 .figCenter img { display: block; margin: 0 auto; max-width: 100%; max-height: 560px; width: auto; height: auto; border-radius: 12px; }
+.figCenter img[style] { width: min(100%, calc(560px * var(--r))); aspect-ratio: var(--r); max-height: none; }
 .figCenter figcaption { max-width: 560px; margin: 10px auto 0; text-align: center; }
 .clear { clear: both; }
 
@@ -97,11 +99,12 @@ a.kicker:hover { text-decoration: underline; text-underline-offset: 3px; }
   .cover img { border-radius: 12px; }
   .figPair { grid-template-columns: 1fr; }
   .figPair img { aspect-ratio: 4 / 3; }
-  .figSide { float: none; width: 100%; margin: 28px 0 !important; text-align: center; }
+  .figSide { float: none; width: 100%; margin: 28px 0; text-align: center; }
   .figSide img { aspect-ratio: auto; width: auto; max-width: 100%; max-height: 70vh; margin: 0 auto; display: block; }
   .figSide figcaption { text-align: left; }
-  .figCenter { margin: 28px auto !important; }
+  .figCenter { margin: 28px auto; }
   .figCenter img { max-height: 70vh; }
+  .figCenter img[style], .figSide img[style] { width: min(100%, calc(70vh * var(--r))); aspect-ratio: var(--r); max-height: none; }
   .figCenter figcaption { text-align: left; }
   .figWide img { aspect-ratio: 16 / 9; border-radius: 12px; }
   .sgrid { grid-template-columns: repeat(2, 1fr); }
