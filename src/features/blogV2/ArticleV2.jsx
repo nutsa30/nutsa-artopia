@@ -36,6 +36,8 @@ function Img({ image, layout, eager = false }) {
       height={image.height || undefined}
       loading={eager ? "eager" : "lazy"}
       decoding="async"
+      // პროპორცია: „center"/„side" ფოტოს ადგილი ჩატვირთვამდე ცნობილია (ტექსტი არ ხტება, CLS)
+      style={image.width && image.height ? { "--r": image.width / image.height } : undefined}
       {...(eager ? { fetchpriority: "high" } : {})}
     />
   );

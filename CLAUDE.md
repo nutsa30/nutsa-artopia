@@ -281,3 +281,17 @@ cards (1 / 2 / 3 per row), the all-category search, and featured-product rails (
 icons are automatic (`src/components/catalog/SubcategoryIcon.jsx`: lucide icon per slug, colour per main
 category, keyword fallback for new Optimo categories) — the admin emoji picker is gone. Main-category images are managed in admin,
 with 1600 × 900 px documented as the recommended 16:9 size. Match backend and frontend deployments.
+
+### Blog categories, v2 articles and the editorial review (branch blog-review, 2026-10-22; NOT live until the owner says so)
+- **Categories:** `/blogs/category/<key>` (`BlogsPage` with `:category`; `/blogs/<x>` stays the old-article 301 in `_redirects`).
+  List, names, titles and intros come from the backend `GET /blogs/categories`; meta from `blogCategoryMeta` (React and edge).
+  An empty category is `noindex,follow` without canonical (React + edge + `x-robots-tag`), unknown key 404, API outage 200.
+  The nav shows only categories that have articles; the index puts the newest article first as a wide card.
+- **v2 article** (`src/features/blogV2/ArticleV2.jsx`, `content_format === "v2"`): renders the editorial pipeline's blocks with the
+  approved mockup's rules (artopia-editorial `editorial/templates/article.css`; change both together). Photo placement is decided
+  by the pipeline; `--r` (width/height) reserves the space of centered/side photos before they load (CLS). Base rules use
+  `:where(.root)` so they never override a figure class. Breadcrumbs and JSON-LD carry the category, `articleSection`, `wordCount`.
+- **Admin `/admin/blog-review`** (`src/admin/pages/blogReview/`): pending / revising / published / rejected tabs, the article in
+  the same `ArticleV2` (preview mode), Google snippet, history, category, and three buttons: დადასტურება (publishes),
+  რედაქტირება (note required → the pipeline's agents fix it → it comes back as a new version), უარყოფა (reason required).
+  The old Quill editor (`Blog.jsx`) sets a category for any article and sends v2 articles to the review page (backend 409 otherwise).
