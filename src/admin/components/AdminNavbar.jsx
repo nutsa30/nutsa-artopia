@@ -4,6 +4,7 @@ import {
   RefreshCw,
   LayoutGrid,
   FileText,
+  FileCheck,
   Ticket,
   Package,
   Mail,
@@ -197,6 +198,11 @@ const onSyncOptimo = async (dryRun = false) => {
                 </Link>
                 <Link to="/admin/reconciliation" className={styles.navLink}>
                   <ClipboardList size={18} /><span>გადახდების გადამოწმება</span>
+                </Link>
+
+                <Link to="/admin/blog-review" className={styles.navLink}>
+                  <FileCheck size={18} />
+                  <span>ბლოგის რედაქცია</span>
                 </Link>
 
                 <Link to="/blog" className={styles.navLink}>

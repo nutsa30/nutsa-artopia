@@ -180,6 +180,7 @@ const ChatMountIfNotAdmin = () => {
 />
 
 <Route path="/blogs" element={<DeferredPage><BlogsPage /></DeferredPage>} />
+<Route path="/blogs/category/:category" element={<DeferredPage><BlogsPage /></DeferredPage>} />
 <Route path="/color-lab" element={<DeferredPage><ColorLabPage /></DeferredPage>} />
 
 <Route path="/blog/:slug" element={<DeferredPage><BlogDetailPage /></DeferredPage>} />

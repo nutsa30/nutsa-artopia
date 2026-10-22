@@ -9,6 +9,7 @@ import { hasEdgeJsonLd } from "../utils/edgeJsonLd";
 import { readInitialData } from "../utils/initialData";
 import Breadcrumbs from "../components/Breadcrumbs";
 import { articleHasH1, sanitizeBlogHtml } from "../utils/blogHtml";
+import ArticleV2 from "../features/blogV2/ArticleV2";
 
 import { PUBLIC_API } from "../utils/apiBase";
 const BASE = `${PUBLIC_API}/blogs`;
@@ -256,6 +257,8 @@ document.addEventListener("mouseout", handleMouseOut);
     datePublished: blog.created_at,
     dateModified: blog.updated_at,
     mainEntityOfPage: canonicalUrl,
+    ...(blog.category_name ? { articleSection: blog.category_name } : {}),
+    ...(blog.word_count ? { wordCount: blog.word_count } : {}),
   };
 
   const breadcrumbSchema = {
@@ -327,6 +330,17 @@ if (loading) {
         </>
       )}
 
+      {blog.content_format === "v2" && blog.doc ? (
+        <div className={styles.page}>
+          <ArticleV2
+            blog={blog}
+            related={similarBlogs}
+            breadcrumbs={<Breadcrumbs items={[{ name: "მთავარი", item: "/" }, { name: "ბლოგი", item: "/blogs" },
+              ...(blog.category ? [{ name: blog.category_name, item: `/blogs/category/${blog.category}` }] : []),
+              { name: title, item: `/blog/${slug}` }]} />}
+          />
+        </div>
+      ) : (
       <div className={styles.page}>
         <div className={styles.container}>
           <Breadcrumbs items={[{ name: "მთავარი", item: "/" }, { name: "ბლოგი", item: "/blogs" }, { name: title, item: `/blog/${slug}` }]} />
@@ -504,6 +518,7 @@ if (loading) {
 )}
         </div>
       </div>
+      )}
     </>
   );
 }

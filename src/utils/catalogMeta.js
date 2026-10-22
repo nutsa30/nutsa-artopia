@@ -146,6 +146,16 @@ export function clipAtBoundary(value, max = 155) {
 // სტატიის title სრულად იწერება (ხელოვნურად აღარ იჭრება „…"-ით).
 // SEO ტექსტი ცალკეა: meta_title/meta_description, თუ არსებობს; ცარიელზე სტატიის სათაური/შესავალი.
 // `intro` ხილული შესავალია (description) და SEO ტექსტის შეცვლა მას არ ეხება.
+// ბლოგის კატეგორიის გვერდი (/blogs/category/<key>): სათაური და შესავალი backend-იდან (/blogs/categories)
+export function blogCategoryMeta(category) {
+  const name = squeeze(category?.title) || squeeze(category?.name);
+  return {
+    url: `${SITE_URL}/blogs/category/${category?.key || ""}`,
+    title: name ? `${name} | Artopia-ს ბლოგი` : BLOG_INDEX_META.title,
+    description: category?.intro ? clipAtBoundary(category.intro, 155) : BLOG_INDEX_META.description,
+  };
+}
+
 export function blogArticleMeta(post, slug) {
   const seoTitle = squeeze(post?.meta_title) || squeeze(post?.title);
   return {
