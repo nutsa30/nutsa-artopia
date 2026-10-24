@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import ProductCard from "../productCard/productsCard";
 import { catalogPath } from "../../utils/canonical";
 import styles from "./CatalogLanding.module.css";
@@ -61,6 +61,12 @@ function ProductRail({ section, eagerImages, onAddToCart, onBuyNow }) {
   // „ყველას ნახვა" → მთავარი კატეგორიის გვერდი, ეს ქვეკატეგორია უკვე არჩეული
   // (ისევე, როგორც მთავარი კატეგორიიდან შესვლისას); ძველ მონაცემზე — ქვეკატეგორიის გვერდი
   const seeAllHref = catalogPath({ category: category.slug });
+  const navigate = useNavigate();
+  const location = useLocation();
+  const linkState = { from: location.pathname + location.search };
+  const openProduct = (product) => {
+    if (product?.slug) navigate(`/products/${product.slug}`, { state: linkState });
+  };
 
   return <section className="tw:min-w-0">
     <header className="tw:mb-4 tw:flex tw:items-center tw:justify-between tw:gap-4">
@@ -82,9 +88,11 @@ function ProductRail({ section, eagerImages, onAddToCart, onBuyNow }) {
           ბარათს ≥1200px-ზე ფიქსირებული 300px აქვს (სხვა ბადეებისთვის) — აქ სლოტს ავსებს */}
       <div ref={rail}
         className="tw:flex tw:snap-x tw:snap-mandatory tw:gap-4 tw:overflow-x-auto tw:scroll-smooth tw:p-0.5 tw:pb-2 tw:lg:gap-5 tw:[scrollbar-width:none] tw:[&::-webkit-scrollbar]:hidden">
-        {section.products.map((product, index) => <div key={product.id}
+        {/* ბარათის ნებისმიერ ადგილზე დაჭერა ხსნის პროდუქტს (ისევე, როგორც კატეგორიის ბადეში);
+            სათაური ნამდვილი <a href>-ია, ღილაკები კლიკს ზემოთ არ უშვებენ */}
+        {section.products.map((product, index) => <div key={product.id} onClick={() => openProduct(product)}
           className="tw:min-w-0 tw:shrink-0 tw:snap-start tw:basis-[72%] tw:sm:basis-[calc((100%_-_1rem)/2)] tw:lg:basis-[calc((100%_-_2.5rem)/3)] tw:xl:basis-[calc((100%_-_3.75rem)/4)] tw:[&_.product-card]:w-full!">
-          <ProductCard product={product} href={`/products/${product.slug}`} eager={eagerImages && index < 2} deferImage
+          <ProductCard product={product} href={`/products/${product.slug}`} linkState={linkState} eager={eagerImages && index < 2} deferImage
             onAddToCart={(e, quantity) => { e.stopPropagation(); onAddToCart(product, quantity); }}
             onBuyNow={(e, quantity) => { e.stopPropagation(); onBuyNow(product, quantity); }} />
         </div>)}
