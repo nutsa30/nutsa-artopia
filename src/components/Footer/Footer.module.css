@@ -71,6 +71,19 @@ footer {
   font-size: 16px;
 }
 
+.address {
+  max-width: 34ch;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.address svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
 /* ===================== SOCIAL ===================== */
 
 .socialMedia {
