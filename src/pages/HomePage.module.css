@@ -172,6 +172,7 @@
 
 /* carousel-ის ადგილი ჩატვირთვამდე: იგივე margin და 16:9, რაც HomeCarousel.module.css-ში */
 .carouselPlaceholder {
+  position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   border-radius: 18px;

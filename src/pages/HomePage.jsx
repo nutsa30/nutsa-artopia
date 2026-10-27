@@ -27,14 +27,20 @@ export default function HomePage() {
       <section className={`${styles.section} ${styles.heroSection}`}>
         {/* ჩატვირთვისას იმავე ზომის ადგილი იჯავშნება, რაც carousel-ს აქვს (16:9) —
             ქვემოთ მდებარე სექციები აღარ „ხტება" (CLS) */}
-        {loading && homeImages.length === 0 && <div className={styles.carouselPlaceholder} aria-hidden="true" />}
+        {loading && homeImages.length === 0 && (
+          <div className={styles.carouselPlaceholder}>
+            <ProductSearchForm overlapHero />
+          </div>
+        )}
         {error && <div className={styles.error}>{error}</div>}
 
         {homeImages.length > 0 && (
-          <HomeCarousel images={homeImages} />
+          <HomeCarousel images={homeImages}>
+            <ProductSearchForm overlapHero />
+          </HomeCarousel>
         )}
 
-        <ProductSearchForm overlapHero />
+        {!loading && homeImages.length === 0 && <ProductSearchForm />}
       </section>
       {/* Visible introduction and the page's primary heading. */}
       <header className={styles.homeIntro}>

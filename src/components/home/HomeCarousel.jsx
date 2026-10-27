@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "./HomeCarousel.module.css";
 import { responsiveImage } from "../../utils/cloudinary";
 
-export default function HomeCarousel({ images = [], autoPlayMs = 5000 }) {
+export default function HomeCarousel({ images = [], autoPlayMs = 5000, children }) {
   const items = Array.isArray(images) ? images : [];
   const [idx, setIdx] = useState(0);
   const [initialReady, setInitialReady] = useState(false);
@@ -65,7 +65,7 @@ export default function HomeCarousel({ images = [], autoPlayMs = 5000 }) {
   return (
     <div className={styles.wrap}>
       <div
-        className={styles.slideArea}
+        className={`${styles.slideArea} ${children ? styles.withOverlay : ""}`}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -92,6 +92,8 @@ export default function HomeCarousel({ images = [], autoPlayMs = 5000 }) {
             </div>
           );})}
         </div>
+
+        {children}
 
         {items.length > 1 && (
           <>

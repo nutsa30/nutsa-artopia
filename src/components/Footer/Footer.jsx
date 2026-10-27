@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { catalogPath } from "../../utils/canonical";
 import styles from "./Footer.module.css";
-import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaEnvelope } from "react-icons/fa";
+import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import { useStorefrontData } from "../../context/StorefrontDataContext";
 
 /* ---------- ერთენოვანი ლეიბლები ---------- */
@@ -64,6 +64,13 @@ const Footer = () => {
                 <span className={styles.contactLinkDisabled}>{L.noEmail}</span>
               )}
             </p>
+
+            {contacts[0]?.address && (
+              <p className={`${styles.contact} ${styles.address}`}>
+                <FaMapMarkerAlt aria-hidden="true" />
+                <span>მისამართი: {contacts[0].address}</span>
+              </p>
+            )}
 
             <div className={styles.socialMedia}>
               <a 
