@@ -55,20 +55,13 @@
   }
 
   .heroSection {
-    margin-top: -56px;
+    margin-top: -36px;
   }
 
   .h2 {
     font-size: 18px;
   }
 }
-/* ≤380px-ზე App.css ნავბარის ქვეშ მეტ ადგილს ტოვებს (--navbar-h: 168px, --navbar-gap: 40px) */
-@media (max-width: 380px) {
-  .heroSection {
-    margin-top: -94px;
-  }
-}
-
 /* Google Maps — მაღაზიის ბმული რუკაზე */
 .mapsCta {
   display: flex;
