@@ -13,7 +13,7 @@ import { indexPolicy } from "../utils/indexPolicy";
 import { catalogJsonLd, catalogSchemaUrl } from "../utils/catalogSchema";
 import NotFound from "../components/NotFound";
 import { catalogPath, pageNumber } from "../utils/canonical";
-import { catalogMeta, PRODUCTS_PER_PAGE } from "../utils/catalogMeta";
+import { catalogMeta, parseSubcategoryParam, subcategorySelectionMeta, PRODUCTS_PER_PAGE } from "../utils/catalogMeta";
 import CatalogLanding from "../components/catalog/CatalogLanding";
 import ProductSearchForm from "../components/search/ProductSearchForm";
 import SubcategoryIcon from "../components/catalog/SubcategoryIcon";
@@ -131,7 +131,7 @@ const ProductsPage = () => {
     return () => clearTimeout(timer);
   }, [querySearch]);
   const selectedSubcategories = selectedMainCategory
-    ? [...new Set((searchParams.get("categories") || "").split(",").map((item) => item.trim()).filter(Boolean))]
+    ? parseSubcategoryParam(searchParams.get("categories"))
     : [];
   const filteredPath = (category, page, mainCategory = "") => {
     const path = catalogPath({ category, mainCategory, page });
@@ -183,6 +183,8 @@ const ProductsPage = () => {
     description: selectedSub?.meta_description || selectedMain?.meta_description || selectedMain?.description,
     page: currentPage,
   });
+  // არჩეული ქვეკატეგორიები: სათაურში მათი სახელები (არჩევის რიგით, მძიმით)
+  const selection = selectedMain ? subcategorySelectionMeta(selectedMain, selectedSubcategories, currentPage) : null;
   const hrefFor = (page) => filteredPath(selectedCategory === ALL ? null : selectedCategory, page, selectedMainCategory);
 
   const scrollToTop = () => {
@@ -395,8 +397,8 @@ const ProductsPage = () => {
   return (
     <>
       <SEO
-        title={meta.title}
-        description={meta.description}
+        title={selection?.title || meta.title}
+        description={selection?.description || meta.description}
         url={meta.url}
         // ცარიელი კატეგორია (პროდუქტი დროებით არ აქვს) ინდექსში არ უნდა მოხვდეს
         noIndex={policy.noIndex}
@@ -422,7 +424,7 @@ const ProductsPage = () => {
           ...(selectedMain || selectedSub ? [{ name: meta.heading, item: location.pathname }] : []),
         ]} />
         <h1 className="catalog-page-title">
-          {meta.heading}
+          {selection?.heading || meta.heading}
           {currentPage > 1 ? ` — გვერდი ${currentPage}` : ""}
         </h1>
         {selectedSub?.description && <p className="category-description">{selectedSub.description}</p>}

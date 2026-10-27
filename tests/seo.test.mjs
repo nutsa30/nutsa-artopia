@@ -489,6 +489,41 @@ test("subcategory copy hydrates with its products to prevent a late layout shift
   assert.deepEqual(initial.data.category_context, category);
 });
 
+test("a shared link with selected subcategories shows those subcategories, not the whole main category", async () => {
+  const main = { name: "სამხატვრო მასალები", slug: "art", image_url: "https://res.cloudinary.com/x/image/upload/v1/main.png",
+    meta_title: "სამხატვრო მასალები | Artopia", description: "მთავარი კატეგორიის აღწერა",
+    subcategories: [
+      { slug: "pigments", name: "პიგმენტები", meta_description: "პიგმენტები სამხატვრო სამუშაოებისთვის." },
+      { slug: "oil", name: "ზეთის საღებავები" },
+    ] };
+  const pigment = "https://res.cloudinary.com/x/image/upload/v1/pigment.png";
+  const api = async (url) => {
+    if (url.includes("/products/list?")) return new URL(url).searchParams.get("categories")
+      ? json({ items: [product({ image_url1: null }), product({ image_url1: pigment })], total: 2, category_exists: true })
+      : json({ items: [product()], total: 30, category_exists: true });
+    if (url.includes("/categories/main/")) return json(main);
+    if (url.endsWith("/categories/catalog")) return json({ main_categories: [main], featured_sections: [] });
+    return noNetwork(url);
+  };
+  const og = (body, key) => body.match(new RegExp(`<meta property="og:${key}" content="([^"]*)"`))?.[1];
+
+  const one = await visit("/products/group/art?categories=pigments", api);
+  assert.equal(og(one.body, "title"), "პიგმენტები — სამხატვრო მასალები | Artopia");
+  assert.equal(og(one.body, "description"), "პიგმენტები სამხატვრო სამუშაოებისთვის.");
+  assert.match(og(one.body, "image"), /pigment\.jpg$/);
+  assert.equal(robots(one.body), "noindex,follow");
+
+  const two = await visit("/products/group/art?categories=oil,pigments", api);
+  assert.equal(og(two.body, "title"), "ზეთის საღებავები, პიგმენტები — სამხატვრო მასალები | Artopia");
+
+  const whole = await visit("/products/group/art", api);
+  assert.equal(og(whole.body, "title"), "სამხატვრო მასალები | Artopia");
+  assert.match(og(whole.body, "image"), /main\.jpg$/);
+
+  const unknown = await visit("/products/group/art?categories=nope", api);
+  assert.equal(og(unknown.body, "title"), "სამხატვრო მასალები | Artopia");
+});
+
 test("a renamed main category answers 301 to its new slug (the API says so in JSON)", async () => {
   const api = async (url) => (url.includes("/products/list?")
     ? json({ items: [], total: 0, category_exists: true, main_category_exists: false, main_category_moved_to: "helouini-da-sachuqrebi" })

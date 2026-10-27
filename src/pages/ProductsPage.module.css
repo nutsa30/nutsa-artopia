@@ -319,9 +319,10 @@ body,
     flex-wrap: wrap;
   }
 
-  .subcategoryNav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .subcategoryNav button { grid-template-columns: auto minmax(0, 1fr); min-height: 56px; padding: 8px 10px; }
-  .subcategoryNav small { display: none; }
+  /* ტელეფონზე ერთ სვეტად: ქვეკატეგორიის სახელი სრულად ჩანს (გრძელი გადადის ახალ ხაზზე) */
+  .subcategoryNav { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .subcategoryNav button { min-height: 52px; padding: 8px 12px; }
+  .subcategoryNav button > span { overflow: visible; text-overflow: clip; white-space: normal; line-height: 1.35; }
 
   .paginationContainer {
     margin-top: 24px;

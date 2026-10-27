@@ -1,6 +1,6 @@
 import { canonicalHtml, canonicalUrl, catalogPath, parseCatalogPath } from "../../src/utils/canonical.js";
 import {
-  PRODUCTS_PER_PAGE, catalogMeta, productJsonLd, breadcrumbJsonLd, productBreadcrumbs, productPageMeta,
+  PRODUCTS_PER_PAGE, catalogMeta, parseSubcategoryParam, subcategorySelectionMeta, productJsonLd, breadcrumbJsonLd, productBreadcrumbs, productPageMeta,
   BLOG_INDEX_META, blogArticleMeta, blogCategoryMeta,
 } from "../../src/utils/catalogMeta.js";
 import { responsiveImage, shareImage, SHARE_DEFAULT_IMAGE, SHARE_WIDTH, SHARE_HEIGHT } from "../../src/utils/cloudinary.js";
@@ -598,6 +598,7 @@ async function handle(request, context) {
       const { category, mainCategory, page } = catalog;
       let total = null;
       let firstImage = null;
+      let firstPhoto = null;
       let confirmedEmpty = false;
       let categoryContext = null;
       let catalogData = null;
@@ -607,6 +608,9 @@ async function handle(request, context) {
       // ასეთ გვერდზე წინასწარ ჩასმული სია სხვა (ფილტრის გარეშე) შედეგი იქნებოდა.
       const listFiltered = url.searchParams.has("search") || url.searchParams.has("categories");
       const landing = !category && !mainCategory && page === 1 && !listFiltered;
+      // მთავარი კატეგორიის გვერდზე მონიშნული ქვეკატეგორიები: გაზიარებულ ლინკს მათი
+      // სახელი და ფოტო აქვს, არა მთელი დიდი კატეგორიის
+      const selectedSlugs = mainCategory ? parseSubcategoryParam(url.searchParams.get("categories")) : [];
       // ყველა მოთხოვნა ერთდროულად იგზავნება: HTML ყველაზე ნელ პასუხს ელოდება და არა ჯამს
       const contextRequest = (category || mainCategory)
         ? apiFetch(mainCategory ? `/categories/main/${encodeURIComponent(mainCategory)}` : `/categories/sub/${encodeURIComponent(category)}`)
@@ -618,6 +622,12 @@ async function handle(request, context) {
         ? apiFetch("/categories/catalog")
           .then((res) => (res.ok && (res.headers.get("content-type") || "").includes("application/json") ? res.json() : null))
           .then((tree) => (Array.isArray(tree?.main_categories) ? tree : null))
+          .catch(() => null)
+        : null;
+      const selectionListRequest = selectedSlugs.length
+        ? apiFetch(`/products/list?${new URLSearchParams({ page: "1", limit: String(PRODUCTS_PER_PAGE),
+          main_category: mainCategory, categories: selectedSlugs.join(","), ...(inclusive ? { include_out_of_stock: "1" } : {}) })}`)
+          .then((res) => (res.ok && (res.headers.get("content-type") || "").includes("application/json") ? res.json() : null))
           .catch(() => null)
         : null;
       // Page 1 of the full catalogue always exists; everything else is checked
@@ -645,6 +655,8 @@ async function handle(request, context) {
           }
           if (data?.main_category_exists === false) return notFoundResponse(shell, source, 404);
           if (items && items.length) firstImage = items[0]?.image_url1 || null;
+          // გაზიარების ფოტო: პირველი პროდუქტი, რომელსაც ფოტო აქვს (preload კი პირველ ბარათს მიჰყვება)
+          if (items && items.length) firstPhoto = items.find((item) => item?.image_url1)?.image_url1 || null;
           if (items && page > 1 && items.length === 0) return notFoundResponse(shell, source, 404);
           if (Number.isFinite(Number(data?.total))) total = Number(data.total);
           confirmedEmpty = items != null && items.length === 0 && total === 0;
@@ -674,6 +686,11 @@ async function handle(request, context) {
       const meta = catalogMeta({ category, mainCategory, displayName: categoryContext?.name, title: categoryContext?.meta_title,
         description: categoryContext?.meta_description || categoryContext?.description, page });
       meta.url += filterSuffix;
+      const selection = subcategorySelectionMeta(categoryContext, selectedSlugs, page);
+      if (selection) Object.assign(meta, selection);
+      const selectionData = selection && selectionListRequest ? await selectionListRequest : null;
+      const selectionPhoto = Array.isArray(selectionData?.items)
+        ? selectionData.items.find((item) => item?.image_url1)?.image_url1 || null : null;
 
       // rel prev/next: plain crawlable hints to the neighbouring listing pages
       const links = [];
@@ -686,9 +703,11 @@ async function handle(request, context) {
         title: meta.title,
         description: meta.description,
         url: meta.url,
-        // main category: its own photo (fill); small category / list: first product on white
-        image: (mainCategory && !category && categoryContext?.image_url) || (landing ? null : firstImage) || DEFAULT_IMAGE,
-        imageFit: mainCategory && !category && categoryContext?.image_url ? "fill" : "pad",
+        // main category: its own photo (fill); selected subcategories / small category / list:
+        // first product with a photo, on white
+        image: selection ? (selectionPhoto || DEFAULT_IMAGE)
+          : (mainCategory && !category && categoryContext?.image_url) || (landing ? null : firstPhoto) || DEFAULT_IMAGE,
+        imageFit: !selection && mainCategory && !category && categoryContext?.image_url ? "fill" : "pad",
         type: "website",
         headExtra: [...links, lcpPreload].filter(Boolean).join("\n"),
         jsonLd: catalogJsonLd({ meta, category, mainCategory, context: categoryContext, page, search: url.search }),

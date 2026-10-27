@@ -42,6 +42,29 @@ export function catalogMeta({ category, mainCategory, displayName, title: custom
   };
 }
 
+// მთავარი კატეგორიის გვერდზე არჩეული ქვეკატეგორიები (?categories=a,b) — არჩევის რიგით,
+// უცნობი slug-ის გარეშე. edge-იც და React-იც ამით წერს სათაურს, რომ გაზიარებულ ლინკს
+// (Facebook, Messenger…) დიდი კატეგორიის კი არა, არჩეული ქვეკატეგორიის სახელი ჰქონდეს.
+export function parseSubcategoryParam(value) {
+  return [...new Set(String(value || "").split(",").map((item) => item.trim()).filter(Boolean))];
+}
+
+export function subcategorySelectionMeta(main, slugs, page = 1) {
+  const subs = Array.isArray(main?.subcategories) ? main.subcategories : [];
+  const selected = (slugs || []).map((slug) => subs.find((sub) => sub?.slug === slug)).filter((sub) => sub?.name);
+  if (!selected.length) return null;
+  const n = Number(page) > 1 ? Number(page) : 1;
+  const heading = selected.map((sub) => String(sub.name).trim()).join(", ");
+  const one = selected.length === 1 ? selected[0] : null;
+  const mainName = String(main?.name || "").trim();
+  return {
+    heading,
+    title: `${heading}${n > 1 ? ` — გვერდი ${n}` : ""}${mainName ? ` — ${mainName}` : ""} | Artopia`,
+    description: String((one && (one.meta_description || one.description)) || "").trim()
+      || `${heading} Artopia-ში${mainName ? ` — ${mainName}` : ""}. ხარისხიანი პროდუქცია, ფართო არჩევანი და მიტანა მთელ საქართველოში.`,
+  };
+}
+
 // Product JSON-LD — ერთი აგება edge-ისთვის და React-ისთვის.
 // ბრენდი და GTIN მხოლოდ მაშინ იწერება, როცა API-მ სანდოდ დაადგინა
 // (`brand` / `gtin` ველები); „Artopia" გამყიდველია და არა ბრენდი.
