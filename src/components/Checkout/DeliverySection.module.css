@@ -368,3 +368,32 @@
   .logoBox { width: 38px; height: 38px; }
   .logo { width: 30px; height: 30px; }
 }
+
+/* ── City / village choice (regions only) ── */
+.placeRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.placeBtn {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid #475569;
+  background: #2a344d;
+  color: #cbd5e1;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 0.2s, background 0.2s;
+}
+.placeBtnOn {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.16);
+  color: #f8fafc;
+  font-weight: 700;
+}
+.placeFee { color: #94a3b8; font-weight: 400; margin-left: 4px; }
+.placeBtnOn .placeFee { color: #bfdbfe; }

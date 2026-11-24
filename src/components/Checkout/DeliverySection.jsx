@@ -1,6 +1,6 @@
 import React from "react";
 import s from "./DeliverySection.module.css";
-import { courierDeliveryInfo } from "../../utils/pricing";
+import { courierDeliveryInfo, isTbilisiCity, REGION_COURIER_FEE, VILLAGE_COURIER_FEE } from "../../utils/pricing";
 import { TruckIcon, PinIcon } from "./icons";
 
 const CITIES_GE = [
@@ -64,7 +64,8 @@ const CITIES_GE = [
 const fmt = (n) => Number(n ?? 0).toFixed(2);
 
 const DeliverySection = ({ delivery, onChange, subtotal = 0, hasEngraving = false }) => {
-  const info = courierDeliveryInfo(delivery.city, subtotal, hasEngraving);
+  const info = courierDeliveryInfo(delivery.city, subtotal, hasEngraving, delivery.village);
+  const region = !isTbilisiCity(delivery.city || "თბილისი");
   const needed = Math.max(0, +(info.freeThreshold - subtotal).toFixed(2));
 
   return (
@@ -79,19 +80,37 @@ const DeliverySection = ({ delivery, onChange, subtotal = 0, hasEngraving = fals
         className={s.addrInput}
         style={{ paddingLeft: 14, marginBottom: 10 }}
         value={delivery.city || "თბილისი"}
-        onChange={(e) => onChange({ city: e.target.value })}
+        onChange={(e) => onChange({ city: e.target.value, ...(isTbilisiCity(e.target.value) ? { village: false } : {}) })}
       >
         {CITIES_GE.map((c) => (
           <option key={c} value={c}>{c}</option>
         ))}
       </select>
 
+      {region && (
+        <div className={s.placeRow} role="radiogroup" aria-label="მიწოდების ადგილი">
+          {[
+            { village: false, label: "ქალაქი / დაბა", fee: REGION_COURIER_FEE },
+            { village: true, label: "სოფელი", fee: VILLAGE_COURIER_FEE },
+          ].map((o) => {
+            const on = Boolean(delivery.village) === o.village;
+            return (
+              <button key={o.label} type="button" role="radio" aria-checked={on}
+                className={`${s.placeBtn} ${on ? s.placeBtnOn : ""}`}
+                onClick={() => onChange({ village: o.village })}>
+                {o.label} <span className={s.placeFee}>{o.fee}₾</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <input
         className={s.addrInput}
         style={{ paddingLeft: 14, paddingRight: 14, marginBottom: 10 }}
         type="text"
         aria-label="მისამართი (ქუჩა, ნომერი)"
-        placeholder="მისამართი (ქუჩა, ნომერი)"
+        placeholder={region && delivery.village ? "სოფელი, ქუჩა, ნომერი" : "მისამართი (ქუჩა, ნომერი)"}
         value={delivery.address || ""}
         onChange={(e) => onChange({ address: e.target.value })}
       />
