@@ -15,6 +15,7 @@ import {
   isPromoEligible,
   PROMO_MESSAGES,
   courierDeliveryInfo,
+  isTbilisiCity,
   pickupReadyLabel,
 } from "../../utils/pricing";
 import {
@@ -110,6 +111,7 @@ const Checkout = () => {
 
   const [delivery, setDelivery] = useState({
     city: "თბილისი",
+    village: false,
     address: "",
     hallway: "",
     floor: "",
@@ -302,9 +304,9 @@ const Checkout = () => {
   const courierInfo = useMemo(
     () =>
       formData.deliveryOption === "courierDelivery"
-        ? courierDeliveryInfo(delivery.city, subtotal, hasEngraving)
+        ? courierDeliveryInfo(delivery.city, subtotal, hasEngraving, delivery.village)
         : null,
-    [formData.deliveryOption, delivery.city, subtotal, hasEngraving]
+    [formData.deliveryOption, delivery.city, delivery.village, subtotal, hasEngraving]
   );
 
   const preview = useMemo(() => {
@@ -482,6 +484,7 @@ const Checkout = () => {
       },
       delivery: formData.deliveryOption === "courierDelivery" ? {
         city:           delivery.city,
+        village:        !isTbilisiCity(delivery.city) && delivery.village === true,
         address:        delivery.address,
         hallway:        delivery.hallway,
         floor:          delivery.floor,

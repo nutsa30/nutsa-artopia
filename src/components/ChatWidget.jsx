@@ -83,8 +83,8 @@ const DATA = {
     },
 
     regions_delivery: {
-      ka: "რეგიონში კურიერული მიწოდება 7₾ ღირს. 70₾ და მეტი ღირებულების შეკვეთაზე მიწოდება უფასოა. მიტანის ვადაა 2-4 სამუშაო დღე. კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.\n\nშეკვეთის მინიმალური თანხა განსაზღვრული არ არის.",
-      en: "Courier delivery to regions costs 7₾. Orders of 70₾ or more get free delivery. Delivery takes 2-4 business days. Courier orders are paid by card online only, in advance.\n\nThere is no minimum order amount.",
+      ka: "რეგიონში კურიერული მიწოდება ქალაქში/დაბაში 8₾ ღირს, სოფელში — 10₾. 70₾ და მეტი ღირებულების შეკვეთაზე მიწოდება უფასოა. მიტანის ვადაა 2-4 სამუშაო დღე. კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.\n\nშეკვეთის მინიმალური თანხა განსაზღვრული არ არის.",
+      en: "Courier delivery to regions costs 8₾ to a town and 10₾ to a village. Orders of 70₾ or more get free delivery. Delivery takes 2-4 business days. Courier orders are paid by card online only, in advance.\n\nThere is no minimum order amount.",
     },
 
     pickup: {

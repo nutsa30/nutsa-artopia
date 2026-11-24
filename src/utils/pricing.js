@@ -106,8 +106,10 @@ export const couponDiscountFor = (eligibleSubtotal, percent) => {
  */
 export const TBILISI_COURIER_FEE = 5;
 export const TBILISI_FREE_THRESHOLD = 50;
-export const REGION_COURIER_FEE = 7;
+export const REGION_COURIER_FEE = 8;
 export const REGION_FREE_THRESHOLD = 70;
+export const VILLAGE_COURIER_FEE = 10;
+export const VILLAGE_FREE_THRESHOLD = 70;
 
 export const PICKUP_CUTOFF_HOUR = 18;
 
@@ -118,16 +120,18 @@ export const isTbilisiCity = (city) => {
 
 /** {isTbilisi, baseFee, freeThreshold, waived, fee, discount, etaLabel}
  *  hasEngraving — გრავირებიანი შეკვეთა კურიერს დამზადების (2-3 სამ. დღე) შემდეგ გადაეცემა */
-export const courierDeliveryInfo = (city, subtotal, hasEngraving = false) => {
+export const courierDeliveryInfo = (city, subtotal, hasEngraving = false, village = false) => {
   const st = Number(subtotal) || 0;
   const tbilisi = isTbilisiCity(city);
-  const baseFee = tbilisi ? TBILISI_COURIER_FEE : REGION_COURIER_FEE;
-  const threshold = tbilisi ? TBILISI_FREE_THRESHOLD : REGION_FREE_THRESHOLD;
+  const isVillage = Boolean(village) && !tbilisi;
+  const baseFee = tbilisi ? TBILISI_COURIER_FEE : isVillage ? VILLAGE_COURIER_FEE : REGION_COURIER_FEE;
+  const threshold = tbilisi ? TBILISI_FREE_THRESHOLD : isVillage ? VILLAGE_FREE_THRESHOLD : REGION_FREE_THRESHOLD;
   const baseEta = tbilisi ? "1-3 სამუშაო დღე" : "2-4 სამუშაო დღე";
   const etaLabel = hasEngraving ? engravingCourierEta(baseEta) : baseEta;
   const waived = st >= threshold;
   return {
     isTbilisi: tbilisi,
+    isVillage,
     baseFee,
     freeThreshold: threshold,
     waived,
