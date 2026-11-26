@@ -40,6 +40,7 @@ import {
   fontSupportsText,
 } from "../utils/engraving";
 import styles from "./EngravingPage.module.css";
+import ShopAddressLink from "../components/ShopAddressLink";
 
 const API_BASE = "https://artopia-backend-2024-54872c79acdd.herokuapp.com";
 const PREVIEW_PX_PER_MM = 40; // 3D ტექსტურის გარჩევადობა (ლაზერის ფაილი — 20px/მმ)
@@ -707,7 +708,7 @@ export default function EngravingPage() {
             <FaTiktok /> TikTok
           </a>
           <span>
-            <PinIcon /> {contact?.address || "სიმონ ჩიქოვანის 45, თბილისი"}
+            <PinIcon /> <ShopAddressLink>{contact?.address || "სიმონ ჩიქოვანის 45, თბილისი"}</ShopAddressLink>
             {contact?.working_hours ? ` · ${contact.working_hours}` : ""}
           </span>
         </div>

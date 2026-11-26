@@ -8,7 +8,7 @@ import SEO from "../components/SEO";
 import { useStorefrontData } from "../context/StorefrontDataContext";
 import { ArrowUpRight, MapPin } from "lucide-react";
 
-const MAPS_URL = "https://www.google.com/maps/search/?api=1&query=Artopia&query_place_id=ChIJIZJRgK9zREARDgmuTzhwb9o";
+import { ARTOPIA_MAPS_URL as MAPS_URL } from "../components/ShopAddressLink";
 
 
 export default function HomePage() {

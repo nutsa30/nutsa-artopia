@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "./ContactsPage.module.css";
+import ShopAddressLink from "../components/ShopAddressLink";
 import {
   FaInstagram,
   FaFacebook,
@@ -104,7 +105,7 @@ return (
                   <strong>
                     <FaMapMarkerAlt className={styles.pin} /> {T.address}
                   </strong>{" "}
-                  {address || "—"}
+                  {address ? <ShopAddressLink>{address}</ShopAddressLink> : "—"}
                 </p>
                 <p>
                   <strong>
