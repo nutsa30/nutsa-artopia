@@ -120,7 +120,7 @@ export function trackAddShippingInfo(cartItems, value, shippingTier) {
   return checkoutStep("add_shipping_info", { shipping_tier: String(shippingTier || "").slice(0, 100) }, cartItems, value);
 }
 
-// add_payment_info — payment method confirmed at submit. type: "card" | "on_site"
+// add_payment_info — payment method confirmed at submit. type: "card"
 export function trackAddPaymentInfo(cartItems, value, paymentType) {
   return checkoutStep("add_payment_info", { payment_type: String(paymentType || "").slice(0, 100) }, cartItems, value);
 }

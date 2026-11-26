@@ -4,7 +4,7 @@ import { cld, IMG } from "../../utils/cloudinary";
 import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
 import DeliverySection from "./DeliverySection";
-import { checkoutIntent, clearCheckoutIntent } from "../../utils/checkoutIntent";
+import { checkoutIntent } from "../../utils/checkoutIntent";
 import { TruckIcon, StoreIcon, ClockIcon, PinIcon, CardIcon, WarningIcon } from "./icons";
 import { trackBeginCheckout, trackAddShippingInfo, trackAddPaymentInfo, resetCheckoutSteps, getGaContext } from "../../utils/analytics";
 import {
@@ -80,7 +80,7 @@ const LBL = {
   deliveryOption: "აირჩიეთ მიტანის ვარიანტი",
   paymentMethod: "აირჩიეთ გადახდის მეთოდი",
   payCard: "ბარათით გადახდა (წინასწარ)",
-  payOnSite: "ადგილზე გადახდა",
+  pickupHold: "შეკვეთას მაღაზიაში 3 დღე შევინახავთ. ფასდაკლებით ან აქციის პერიოდში შეძენილს — აქციის დასრულებამდე.",
   courierCardOnlyNote: "კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.",
   proceed: "გაგრძელება",
   errOrderCreate: "შეკვეთის შექმნა ვერ მოხერხდა",
@@ -94,7 +94,7 @@ const LBL = {
 };
 
 const Checkout = () => {
-  const { cartItems, updateQuantity, removeFromCart, clearCart, refreshPrices } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, refreshPrices } = useCart();
   const navigate = useNavigate();
   const T = LBL;
 
@@ -257,16 +257,6 @@ const Checkout = () => {
     ];
   }, []);
 
-  // კურიერზე და გრავირებიან კალათაზე გადახდა მხოლოდ ბარათითაა — ავტომატურად ვაბრუნებთ "card"-ზე
-  useEffect(() => {
-    if (
-      (formData.deliveryOption === "courierDelivery" || hasEngraving) &&
-      formData.paymentMethod !== "card"
-    ) {
-      setFormData((prev) => ({ ...prev, paymentMethod: "card" }));
-    }
-  }, [formData.deliveryOption, formData.paymentMethod, hasEngraving]);
-
   useEffect(() => {
     let ignore = false;
 
@@ -398,56 +388,6 @@ const Checkout = () => {
     setError("");
     // GA4 add_payment_info — არჩეული გადახდის მეთოდი გაგზავნისას; ერთხელ
     trackAddPaymentInfo(cartItems, preview.subtotal, formData.paymentMethod);
-
-    // ── ადგილზე აღება + ადგილზე გადახდა — ბანკის გვერდის გვერდის ავლით ──
-    // (გრავირებიან კალათაზე ეს გზა დაკეტილია — მხოლოდ ბარათით, წინასწარ)
-    if (
-      !hasEngraving &&
-      formData.deliveryOption === "storePickup" &&
-      formData.paymentMethod === "on_site"
-    ) {
-      setSubmitting(true);
-      try {
-        const pickupDraft = {
-            deliveryOption: "storePickup", paymentMethod: "on_site",
-            totals: { subtotal: Number(preview.subtotal), total: Number(preview.subtotal) },
-            customer: {
-              first_name: formData.first_name,
-              last_name: formData.last_name,
-              email: formData.email,
-              phone: formData.phone,
-            },
-            comment: formData.comment,
-            items: cartItems.map((it) => ({
-              product_id: it.id,
-              quantity: it.quantity,
-            })),
-          };
-        const res = await fetch(`${API_BASE}/orders`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Idempotency-Key": await checkoutIntent("pickup", pickupDraft) },
-          body: JSON.stringify(pickupDraft),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          if (data?.error === "price_changed") refreshPrices?.(data.current_items);
-          throw new Error(data?.message || T.errOrderCreate);
-        }
-
-        clearCart();
-        clearCheckoutIntent("pickup");
-        setSuccessMessage(
-          `შეკვეთა მიღებულია — #${data.order_number}. გადასახდელია ${fmt(data.total)} ₾ ადგილზე. მზად იქნება: ${data.pickup_ready_label}.`
-        );
-      } catch (err) {
-        console.error(err);
-        setError(err.message || T.errOrderCreate);
-      } finally {
-        submissionInFlightRef.current = false;
-        setSubmitting(false);
-      }
-      return;
-    }
 
     // ── ბარათით გადახდა (pickup ან courier) — BOG ──
     const addrComment = [
@@ -874,6 +814,7 @@ const Checkout = () => {
           <div style={{ background: "rgba(59,130,246,.1)", border: "1px solid rgba(59,130,246,.35)", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: "#bfdbfe", margin: "7px 0" }}>
             <div><ClockIcon /> შეკვეთა მზად იქნება: <strong>{pickupReady}</strong></div>
             <div><PinIcon /> არტოპია — სიმონ ჩიკოვანის 45, თბილისი</div>
+            <div style={{ marginTop: 6, color: "#cbd5e1" }}>{T.pickupHold}</div>
           </div>
         )}
 
@@ -890,19 +831,6 @@ const Checkout = () => {
           <p className={styles.submitHint} style={{ marginTop: 4 }}>
             <CardIcon /> {T.engravingCardOnly}
           </p>
-        )}
-
-        {formData.deliveryOption === "storePickup" && !hasEngraving && (
-          <select
-            name="paymentMethod"
-            value={formData.paymentMethod}
-            onChange={handleChange}
-            className={styles.input}
-            required
-          >
-            <option value="card">{T.payCard}</option>
-            <option value="on_site">{T.payOnSite}</option>
-          </select>
         )}
 
         {formData.deliveryOption === "courierDelivery" && (

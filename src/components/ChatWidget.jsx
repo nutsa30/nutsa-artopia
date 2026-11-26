@@ -88,8 +88,8 @@ const DATA = {
     },
 
     pickup: {
-      ka: "შეკვეთის ადგილზე აღება შესაძლებელია არტოპიაში, უფასოდ. 18:00 საათამდე გაკეთებული შეკვეთა მზად იქნება დღესვე, 20:30 საათამდე — მოგვიანებით გაკეთებული კი მომდევნო სამუშაო დღეს. გადახდა შეგიძლიათ წინასწარ ბარათით საიტიდან, ან ადგილზე, ნივთის აღებისას.",
-      en: "You can collect your order from the store for free. Orders placed before 18:00 are ready the same day by 20:30 — later orders are ready the next business day. You can pay by card online in advance, or in person when you pick up the order.",
+      ka: "შეკვეთის ადგილზე აღება შესაძლებელია არტოპიაში, უფასოდ. 18:00 საათამდე გაკეთებული შეკვეთა მზად იქნება დღესვე, 20:30 საათამდე — მოგვიანებით გაკეთებული კი მომდევნო სამუშაო დღეს. გადახდა ხდება წინასწარ, ბარათით საიტიდან. შეკვეთას მაღაზიაში 3 დღე შევინახავთ, ფასდაკლებით ან აქციის პერიოდში შეძენილს — აქციის დასრულებამდე.",
+      en: "You can collect your order from the store for free. Orders placed before 18:00 are ready the same day by 20:30 — later orders are ready the next business day. Payment is made by card online in advance. We keep your order at the store for 3 days; items bought on sale or during a promotion are kept until the promotion ends.",
     },
 
     address: {
