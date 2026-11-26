@@ -41,7 +41,7 @@ const statusMeta = (s) =>
   STATUS_META[String(s || "").toLowerCase()] || { label: s || "—", color: "#8b5cf6" };
 
 const deliveryLabel = (m) =>
-  ({ courier: "კურიერი", pickup: "ადგილზე გატანა", next_day: "მომდევნო დღე",
+  ({ courier: "კურიერი", pickup: "ადგილიდან გატანა", next_day: "მომდევნო დღე",
      express: "ექსპრეს", regional: "რეგიონი" })[m] || m || "—";
 
 // ── Date helpers ──────────────────────────────────────────────────────

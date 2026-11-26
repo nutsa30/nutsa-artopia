@@ -90,7 +90,7 @@ const statusClass = (status) => {
 
 const deliveryMethodLabel = (method) => {
   if (method === "courier") return "კურიერული მიტანა";
-  if (method === "pickup") return "ადგილზე გატანა";
+  if (method === "pickup") return "ადგილიდან გატანა";
   if (method === "next_day") return "მომდევნო დღე";
   if (method === "express") return "ექსპრეს";
   if (method === "regional") return "რეგიონალური";
@@ -460,7 +460,7 @@ const OrderHistory = () => {
                         <span className={styles.deliveryBadge}>კურიერი</span>
                       )}
                       {isPickup && (
-                        <span className={styles.pickupBadge}>ადგილზე გატანა</span>
+                        <span className={styles.pickupBadge}>ადგილიდან გატანა</span>
                       )}
                       {o.payment_method === "cash_on_pickup" && (
                         <span className={styles.pickupBadge}>{paymentMethodLabel(o.payment_method)}</span>
@@ -583,7 +583,7 @@ const OrderHistory = () => {
 
                           {/* ══ მიტანის სექცია (full width) ══ */}
                           <div className={`${styles.infoCard} ${isCourierDetail ? styles.courierCard : ""}`}>
-                            <h4>{isCourierDetail ? "კურიერული მიტანა" : isPickupDetail ? "ადგილზე გატანა" : "მიტანა"}</h4>
+                            <h4>{isCourierDetail ? "კურიერული მიტანა" : isPickupDetail ? "ადგილიდან გატანა" : "მიტანა"}</h4>
                             <div className={styles.infoRows}>
                               {isCourierDetail && (
                                 <>
@@ -707,7 +707,7 @@ const OrderHistory = () => {
                               </div>
                             ) : isPickupDetail ? (
                               <div className={styles.totalRow}>
-                                <span>🏪 ადგილზე გატანა</span>
+                                <span>🏪 ადგილიდან გატანა</span>
                                 <b><span className={styles.freeLabel}>უფასო ✓</span></b>
                               </div>
                             ) : null}

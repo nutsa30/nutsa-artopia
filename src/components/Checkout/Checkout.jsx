@@ -4,6 +4,7 @@ import { cld, IMG } from "../../utils/cloudinary";
 import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
 import DeliverySection from "./DeliverySection";
+import ShopAddressLink from "../ShopAddressLink";
 import { checkoutIntent } from "../../utils/checkoutIntent";
 import { TruckIcon, StoreIcon, ClockIcon, PinIcon, CardIcon, WarningIcon } from "./icons";
 import { trackBeginCheckout, trackAddShippingInfo, trackAddPaymentInfo, resetCheckoutSteps, getGaContext } from "../../utils/analytics";
@@ -80,7 +81,7 @@ const LBL = {
   deliveryOption: "აირჩიეთ მიტანის ვარიანტი",
   paymentMethod: "აირჩიეთ გადახდის მეთოდი",
   payCard: "ბარათით გადახდა (წინასწარ)",
-  pickupHold: "შეკვეთას მაღაზიაში 3 დღე შევინახავთ. ფასდაკლებით ან აქციის პერიოდში შეძენილს — აქციის დასრულებამდე.",
+  pickupHold: "შეკვეთა მაღაზიაში შეინახება 3 დღით.",
   courierCardOnlyNote: "კურიერზე გადახდა ხდება მხოლოდ ბარათით, წინასწარ საიტიდან.",
   proceed: "გაგრძელება",
   errOrderCreate: "შეკვეთის შექმნა ვერ მოხერხდა",
@@ -813,7 +814,7 @@ const Checkout = () => {
         {formData.deliveryOption === "storePickup" && (
           <div style={{ background: "rgba(59,130,246,.1)", border: "1px solid rgba(59,130,246,.35)", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: "#bfdbfe", margin: "7px 0" }}>
             <div><ClockIcon /> შეკვეთა მზად იქნება: <strong>{pickupReady}</strong></div>
-            <div><PinIcon /> არტოპია — სიმონ ჩიკოვანის 45, თბილისი</div>
+            <div><PinIcon /> <ShopAddressLink>არტოპია — სიმონ ჩიქოვანის 45, თბილისი</ShopAddressLink></div>
             <div style={{ marginTop: 6, color: "#cbd5e1" }}>{T.pickupHold}</div>
           </div>
         )}

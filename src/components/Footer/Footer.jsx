@@ -4,6 +4,7 @@ import { catalogPath } from "../../utils/canonical";
 import styles from "./Footer.module.css";
 import { FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import { useStorefrontData } from "../../context/StorefrontDataContext";
+import ShopAddressLink from "../ShopAddressLink";
 
 /* ---------- ერთენოვანი ლეიბლები ---------- */
 const L = {
@@ -68,7 +69,7 @@ const Footer = () => {
             {contacts[0]?.address && (
               <p className={`${styles.contact} ${styles.address}`}>
                 <FaMapMarkerAlt aria-hidden="true" />
-                <span>მისამართი: {contacts[0].address}</span>
+                <span>მისამართი: <ShopAddressLink>{contacts[0].address}</ShopAddressLink></span>
               </p>
             )}
 
